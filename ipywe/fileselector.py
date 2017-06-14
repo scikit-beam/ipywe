@@ -37,10 +37,9 @@ class FileSelectorPanel:
         self.curdir = curdir
         explanation = ipyw.Label(self.instruction,layout=self.label_layout)
         entries_files = sorted(os.listdir(curdir))
-        entries_spacing = add_ftime_spacing(entries_files)
         entries_paths = [os.path.join(curdir, e) for e in entries_files]
         entries_ftime = create_file_times(entries_paths)
-        entries = create_nametime_labels(entries_files, entries_spacing, entries_ftime)
+        entries = create_nametime_labels(entries_files, entries_ftime)
         self._entries = entries = [' .', ' ..', ] + entries
         if self.multiple:
             value = []
@@ -153,28 +152,13 @@ def create_file_times(paths):
             ftimes.append(ftime)
     return ftimes
 
-def add_ftime_spacing(entries):
-    max_len = 0
-    for f in entries:
-        if len(f) >= max_len:
-            max_len = len(f)
-    base = "    |    "
-    blen = len(base)
-    spacing = []
-    dif = 0
-    for f in entries:
-        dif = max_len - len(f)
-        space = "%*s" % ((dif + blen), base)
-        spacing.append(space)
-    return(spacing)
-
-def create_nametime_labels(entries, spacing, ftime):
+def create_nametime_labels(entries, ftimes):
     label_list = []
-    for f in entries:
-        ind = entries.index(f)
-        file_label = " " + entries[ind] + spacing[ind] + ftime[ind] + " "
-        label_list.append(file_label)
-    return(label_list)
+    max_len = max(len(e) for e in entries)
+    n_spaces = 5
+    fmt_str = ' %-' + str(max_len+n_spaces) + "s|" + ' '*n_spaces + '%s'
+    label_list = [fmt_str % (e, f) for e, f in zip(entries, ftimes)]
+    return label_list
 
 def del_ftime(file_label):
     if isinstance(file_label, tuple):
