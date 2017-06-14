@@ -153,7 +153,7 @@ def create_file_times(paths):
     return ftimes
 
 def create_nametime_labels(entries, ftimes):
-    label_list = []
+    if not entries: return []
     max_len = max(len(e) for e in entries)
     n_spaces = 5
     fmt_str = ' %-' + str(max_len+n_spaces) + "s|" + ' '*n_spaces + '%s'
@@ -176,13 +176,9 @@ def del_ftime(file_label):
                         break
         file_label_new = tuple(file_name_list)
     else:    
-        file_label_new = file_label[1:]
+        file_label_new = file_label.strip()
         if file_label_new != "." and file_label_new != "..":
-            for char in file_label_new:
-                ind = file_label_new.index(char)
-                if file_label_new[ind] == " " and file_label_new[ind + 1] == " ":
-                    file_label_new = file_label_new[:ind]
-                    break
+            file_label_new = file_label_new.split("|")[0].rstrip()
     return(file_label_new)
 
 def test1():
@@ -191,8 +187,16 @@ def test1():
     panel.handle_enterdir(".")
     return
 
+def test2():
+    s = " __init__.py          |     Tue Jun 13 23:24:05 2017"
+    assert del_ftime(s) == '__init__.py'
+    s = ' . '
+    assert del_ftime(s) == '.'
+    return
+
 def main():
     test1()
+    test2()
     return
 
 if __name__ == '__main__': main()
