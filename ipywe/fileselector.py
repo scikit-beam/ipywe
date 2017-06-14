@@ -169,11 +169,14 @@ def del_ftime(file_label):
             if l_sub == "." or l_sub == "..":
                 file_name_list.append(l_sub)
             else:
-                for c in l_sub:
+                l_sub_new = l_sub.strip()
+                l_sub_new = l_sub_new.split("|")[0].rstrip()
+                file_name_list.append(l_sub_new)
+                """for c in l_sub:
                     ind = l_sub.index(c)
                     if l_sub[ind] == " " and l_sub[ind + 1] == " ":
                         file_name_list.append(l_sub[:ind])
-                        break
+                        break"""
         file_label_new = tuple(file_name_list)
     else:    
         file_label_new = file_label.strip()
