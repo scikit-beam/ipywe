@@ -162,9 +162,8 @@ def create_nametime_labels(entries, ftimes):
 
 def del_ftime(file_label):
     if isinstance(file_label, tuple):
-        file_label_list = list(file_label)
         file_name_list = []
-        for l in file_label_list:
+        for l in file_label:
             l_new = l.strip()
             if l_new != "." and l_new != "..":
                 l_new = l_new.split("|")[0].rstrip()
@@ -187,8 +186,11 @@ def test2():
     assert del_ftime(s) == '__init__.py'
     s = ' . '
     assert del_ftime(s) == '.'
-    s = ("__init__.py          |     Tue Jan 13 23:24:05 2017", "_utils.py            |     Mon Feb 11 12:00:00 2017")
-    assert del_ftime(s) == ("__init__.py", "_utils.py")
+    s = (" __init__.py          |     Tue Jan 13 23:24:05 2017", " _utils.py            |     Mon Feb 11 12:00:00 2017")
+    dels = del_ftime(s)
+    res = ("__init__.py", "_utils.py")
+    for e, r in zip(dels, res):
+        assert e == r
     return
 
 
