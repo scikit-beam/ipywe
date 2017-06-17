@@ -4,7 +4,7 @@ import os, glob, time
 import ipywidgets as ipyw
 from IPython.display import display, HTML, clear_output
 try:
-    from _utils import js_alert
+    from ._utils import js_alert
 except Exception:
     # only used if testing in this directory without installing
     from _utils import js_alert
@@ -161,14 +161,9 @@ def create_nametime_labels(entries, ftimes):
     return label_list
 
 def del_ftime(file_label):
+    "file_label is either a str or a tuple of strings"
     if isinstance(file_label, tuple):
-        file_name_list = []
-        for l in file_label:
-            l_new = l.strip()
-            if l_new != "." and l_new != "..":
-                l_new = l_new.split("|")[0].rstrip()
-            file_name_list.append(l_new)
-        file_label_new = tuple(file_name_list)
+        return tuple(del_ftime(s) for s in file_label)
     else:    
         file_label_new = file_label.strip()
         if file_label_new != "." and file_label_new != "..":
@@ -186,10 +181,11 @@ def test2():
     assert del_ftime(s) == '__init__.py'
     s = ' . '
     assert del_ftime(s) == '.'
-    s = (" __init__.py          |     Tue Jan 13 23:24:05 2017", " _utils.py            |     Mon Feb 11 12:00:00 2017")
+    s = (" __init__.py          |     Tue Jan 13 23:24:05 2017",
+         " _utils.py            |     Mon Feb 11 12:00:00 2017")
     dels = del_ftime(s)
-    res = ("__init__.py", "_utils.py")
-    for e, r in zip(dels, res):
+    expected = ("__init__.py", "_utils.py")
+    for e, r in zip(dels, expected):
         assert e == r
     return
 
