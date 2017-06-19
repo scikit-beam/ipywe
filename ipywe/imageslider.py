@@ -4,12 +4,6 @@ from cStringIO import StringIO
 from traitlets import Unicode, Integer, Float, HasTraits, observe
 import sys, os
 
-
-def run_js():
-    js = open(os.path.join(os.path.dirname(__file__), 'imageslider.js')).read()
-    js = js.decode("UTF-8")
-    get_ipython().run_cell_magic(u'javascript', u'', js)
-
 class ImageSlider(ipyw.DOMWidget):
     """The backend python class for the custom ImageSlider widget.
     
@@ -46,7 +40,6 @@ class ImageSlider(ipyw.DOMWidget):
             *width: an integer that is used to set the width of the image and UI elements.
             *height: an integer that is used to set the height of the image and UI elements."""
         
-        run_js()
         self.image_series = image_series
         self.width = width
         self.height = height
@@ -156,3 +149,15 @@ class ImageSlider(ipyw.DOMWidget):
             %(str(self.height * 1.3), str(self.width * 1.1), str(self.height * 1.25), str(1000 - self.width * 1.1 - 25), 
               str(self.height * 1.25))))
         return
+
+
+def get_js():
+    js = open(os.path.join(os.path.dirname(__file__), 'imageslider.js')).read()
+    return js.decode("UTF-8")
+
+def run_js():
+    js = get_js()
+    # get_ipython().run_cell_magic(u'javascript', u'', js)
+    display(HTML("<script>"+js+"</script>"))
+
+run_js()
