@@ -117,8 +117,6 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
 
             
             //Adds vslide_label and vslide_html to data_vbox. At this point, the widget can be successfully displayed.
-            console.log(text_content.outerHeight(true))
-            console.log(vslide_label.outerHeight(true))
             vslide_html.height(this.model.get("height") * 0.75);
             data_vbox.append(vslide_label);
             data_vbox.append(vslide_html);
