@@ -80,9 +80,16 @@ class ImageSlider(ipyw.DOMWidget):
         If img_min and/or img_max have been changed from their default values, this function will also change the image data to account for this change before encoding the data into Base64."""
         
         arr = self.current_img.data.copy()
-        arr[arr<self.img_min] = 0
+        arr[arr<self.img_min] = self.img_min
         arr[arr>self.img_max] = self.img_max
-        img = ((arr-self.img_min)/(self.img_max-self.img_min)*(2**15-1)).astype('int32')
+        img = ((arr-self.img_min)/(self.img_max-self.img_min)*(2**15-1)).astype('int16')
+        import numpy as np
+        size = np.max(img.shape)
+        view_size = np.max((self.width, self.height))
+        if size>view_size:
+            downsample_ratio = 1.*view_size/size
+            import scipy.misc
+            img = scipy.misc.imresize(img, downsample_ratio)
         f = StringIO()
         import PIL.Image, base64
         PIL.Image.fromarray(img).save(f, self._format)
