@@ -44,7 +44,7 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
 
             //Creates a read-only input field with no border to dynamically display the value of the horizontal slider.
             var hslide_label = $('<input type="text" readonly style="border:0">'); 
-            hslide_label.attr("id", "hslabel");
+            hslide_label.addClass("hslabel");
             //Creates the horizontal slider using JQuery UI
             var hslide_html = $('<div>'); hslide_html.addClass("hslider");
             hslide_html.slider({
@@ -84,7 +84,7 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
             console.log(data_vbox);
             
             //Creates the label for the vertical slider with a static value of "Z range" (done in the same way as the other label)
-            var vslide_label = $('<input type="text" readonly style="border:0">'); vslide_label.attr("id", "vs-label");
+            var vslide_label = $('<input type="text" readonly style="border:0">'); vslide_label.addClass("vslabel");
             vslide_label.val("\n\nZ range");
             vslide_label.css("paddingBottom", "10px");
             //Creates the vertical slider using JQuery UI
@@ -140,7 +140,7 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
                 this.$el.find(".img-value").text(this.model.get("pix_val"));
             }
             else {
-                this.$el.children(".img-value").text(this.model.get("err"));
+                this.$el.find(".img-value").text(this.model.get("err"));
             }
         },
 
