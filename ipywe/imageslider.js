@@ -22,8 +22,17 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
               data_vbox stores the html text element (displays the XY coordinates of the mouse and that position's value) and the vertical (Z range) slider.*/
 
             var widget_area = $("<div>"); widget_area.addClass("flex-container");
+            
+            widget_area.css("display", "-webkit-flex"); widget_area.css("display", "flex");
+            widget_area.css("justifyContent", "flex-start"); widget_area.width(1000); widget_area.height(this.model.get("height") * 1.3);
+            
             var img_vbox = $("<div>"); img_vbox.addClass("flex-item-img img-box");
+
+            img_vbox.width(this.model.get("width") * 1.1); img_vbox.height(this.model.get("height") * 1.25); img_vbox.css("padding", "5px");
+
             var data_vbox = $("<div>"); data_vbox.addClass("flex-item-data data-box");
+
+            data_vbox.width(1000 - this.model.get("width") * 1.1 - 25); data_vbox.height(this.model.get("height") * 1.25); data_vbox.css("padding", "5px");
 
             //Adds the img_vbox and data_vbox to the overall flexbox.
 
@@ -108,6 +117,8 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
 
             
             //Adds vslide_label and vslide_html to data_vbox. At this point, the widget can be successfully displayed.
+            console.log(text_content.outerHeight(true))
+            console.log(vslide_label.outerHeight(true))
             vslide_html.height(this.model.get("height") * 0.75);
             data_vbox.append(vslide_label);
             data_vbox.append(vslide_html);
