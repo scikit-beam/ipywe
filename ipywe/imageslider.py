@@ -50,7 +50,6 @@ class ImageSlider(ipyw.DOMWidget):
         import numpy as np
         self.img_min, self.img_max = int(np.min(arr)), int(np.max(arr))
         self.update_image(None);
-        self.set_css();
         super(ImageSlider, self).__init__()
         return
     
@@ -123,11 +122,11 @@ class ImageSlider(ipyw.DOMWidget):
         self._b64value = self.getimg_bytes()
         return
     
-    def set_css(self):
-        """Creates the CSS classes that are used to format the HTML flexboxes and flexitems used to store the UI on screen.
-        Done on the backend to allow the boxes to be sized according to the width and height values provided in the constructor."""
+    """def set_css(self):
+        #Creates the CSS classes that are used to format the HTML flexboxes and flexitems used to store the UI on screen.
+        #Done on the backend to allow the boxes to be sized according to the width and height values provided in the constructor.
         
-        display(HTML("""
+        display(HTML(#If using, include triple quotes
         <html>
         <body>
         <style type="text/css">
@@ -152,10 +151,10 @@ class ImageSlider(ipyw.DOMWidget):
         }
         </style>
         </body>
-        </html>""" 
+        </html>#If using, include triple quotes
             %(str(self.height * 1.3), str(self.width * 1.1), str(self.height * 1.25), str(1000 - self.width * 1.1 - 25), 
               str(self.height * 1.25))))
-        return
+        return"""
 
 
 def get_js():
