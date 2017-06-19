@@ -138,7 +138,7 @@ class FileSelectorPanel:
         self.remove()
         # next step
         if self.next:
-            self.next()
+            self.next(self.selected)
         return
 
     def show(self):
