@@ -143,13 +143,12 @@ class FileSelectorPanel:
 
     def show(self):
         display(HTML("""
-        <html>
         <style type="text/css">
-        div#notebook{
+        .jupyter-widgets select option {
             font-family: "Lucida Console", Monaco, monospace;
         }
         </style>
-        </html>"""))
+        """))
         display(self.panel)
 
     def remove(self):
