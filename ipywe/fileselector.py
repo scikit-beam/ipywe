@@ -3,6 +3,8 @@
 import os, glob, time
 import ipywidgets as ipyw
 from IPython.display import display, HTML, clear_output
+# This try-except should not be necessary anymore.
+# The testing is now done in ../tests.
 try:
     from ._utils import js_alert
 except Exception:
@@ -24,6 +26,22 @@ class FileSelectorPanel:
     layout = ipyw.Layout()
     
     def __init__(self, instruction, start_dir=".", type='file', next=None, multiple=False):
+        """
+        Create FileSelectorPanel instance
+
+        Parameters
+        ----------
+        instruction : str
+            instruction to users for file/dir selection
+        start_dir : str
+            starting directory path
+        type : str
+            type of selection. "file" or "directory"
+        multiple: bool
+            if True, multiple files/dirs can be selected
+        next : function
+            callback function to execute after the selection is selected
+        """
         if not type in ['file', 'directory']:
             raise ValueError("type must be either file or directory")
         self.instruction = instruction
