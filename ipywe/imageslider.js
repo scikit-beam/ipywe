@@ -17,20 +17,20 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
             var vrange_step = (vrange_max - vrange_min)/100;
             var vrange = [vrange_min, vrange_max];
 
-            /*Creates the flexbox that will store the widget and the two flexitems that it will contain.
+            /*Creates the flexbox that will store the widget and the two flexitems that it will contain. Also formats all of them.
               img_vbox stores the image and the horizontal (Image Selector) slider.
               data_vbox stores the html text element (displays the XY coordinates of the mouse and that position's value) and the vertical (Z range) slider.*/
 
-            var widget_area = $("<div>"); widget_area.addClass("flex-container");
+            var widget_area = $('<div class="flex-container">');
             
             widget_area.css("display", "-webkit-flex"); widget_area.css("display", "flex");
             widget_area.css("justifyContent", "flex-start"); widget_area.width(1000); widget_area.height(this.model.get("height") * 1.3);
             
-            var img_vbox = $("<div>"); img_vbox.addClass("flex-item-img img-box");
+            var img_vbox = $('<div class="flex-item-img img-box">');
 
             img_vbox.width(this.model.get("width") * 1.1); img_vbox.height(this.model.get("height") * 1.25); img_vbox.css("padding", "5px");
 
-            var data_vbox = $("<div>"); data_vbox.addClass("flex-item-data data-box");
+            var data_vbox = $('<div class="flex-item-data data-box">');
 
             data_vbox.width(1000 - this.model.get("width") * 1.1 - 25); data_vbox.height(this.model.get("height") * 1.25); data_vbox.css("padding", "5px");
 
@@ -43,19 +43,18 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
             this.$el.append(widget_area);
 
             //Creates the image stored in the initial value of _b64value and adds it to img_vbox.
-            var img = $("<img>");
+            var img = $('<img class="curr-img">');
             var image_src = "data:image/" + this.model.get("_format") + ";base64," + this.model.get("_b64value")
             img.attr("src", image_src);
-            img.addClass("curr-img");
+            
             img.css("margin", "10px");
             img.width(this.model.get("width")); img.height(this.model.get("height"));
             img_vbox.append(img);
 
             //Creates a read-only input field with no border to dynamically display the value of the horizontal slider.
-            var hslide_label = $('<input type="text" readonly style="border:0">'); 
-            hslide_label.addClass("hslabel");
+            var hslide_label = $('<input class="hslabel" type="text" readonly style="border:0">'); 
             //Creates the horizontal slider using JQuery UI
-            var hslide_html = $('<div>'); hslide_html.addClass("hslider");
+            var hslide_html = $('<div class="hslider">');
             hslide_html.slider({
                 value: 0,
                 min: 0,
@@ -80,25 +79,25 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
             console.log("done with img box");
 
             //Creates the fields (divs and spans) for the current mouse position and that position's value and adds them to data_vbox.
-            var text_content = $("<div>"); text_content.addClass("widget-html-content");
+            var text_content = $('<div class="widget-html-content">');
             var xy = $("<div>"); xy.text("X,Y: ");
-            var x_coord = $("<span>"); x_coord.addClass("img-offsetx");
-            var y_coord = $("<span>"); y_coord.addClass("img-offsety");
+            var x_coord = $('<span class="img-offsetx">');
+            var y_coord = $('<span class="img-offsety">');
             xy.append(x_coord); xy.append(", "); xy.append(y_coord);
             var value = $("<div>"); value.text("Value: ");
-            var val = $("<span>"); val.addClass("img-value");
+            var val = $('<span class="img-value">');
             value.append(val);
             text_content.append(xy); text_content.append(value);
             data_vbox.append(text_content);
             console.log(data_vbox);
             
             //Creates the label for the vertical slider with a static value of "Z range" (done in the same way as the other label)
-            var vslide_label = $('<input type="text" readonly style="border:0">'); vslide_label.addClass("vslabel");
+            var vslide_label = $('<input class="vslabel" type="text" readonly style="border:0">');
             vslide_label.val("Z range");
             vslide_label.css("marginTop", "10px");
             vslide_label.css("marginBottom", "10px");
             //Creates the vertical slider using JQuery UI
-            var vslide_html = $("<div>"); vslide_html.addClass("vslider");
+            var vslide_html = $('<div class="vslider">');
             vslide_html.slider({
                 range: true,
                 orientation: "vertical",
