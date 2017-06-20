@@ -13,22 +13,21 @@ class ImageSlider(ipyw.DOMWidget):
     _view_name = Unicode("ImgSliderView").tag(sync=True)
     _view_module = Unicode("imgslider").tag(sync=True)
     
-    _format = Unicode("png").tag(sync=True)
     _b64value = Unicode().tag(sync=True)
-    series_max = Integer().tag(sync=True)
-    img_min = Float().tag(sync=True)
-    img_max = Float().tag(sync=True)
-    nrows = Integer().tag(sync=True)
-    ncols = Integer().tag(sync=True)
-    width = Integer().tag(sync=True)
+    _err = Unicode().tag(sync=True)
+    _format = Unicode("png").tag(sync=True)
+    _img_min = Float().tag(sync=True)
+    _img_max = Float().tag(sync=True)
+    _nrows = Integer().tag(sync=True)
+    _ncols = Integer().tag(sync=True)
+    _offsetX = Integer().tag(sync=True)
+    _offsetY = Integer().tag(sync=True)
+    _pix_val = Float().tag(sync=True)
+    _series_max = Integer().tag(sync=True)
+
     height = Integer().tag(sync=True)
-    err = Unicode().tag(sync=True)
-    offsetX = Integer().tag(sync=True)
-    offsetY = Integer().tag(sync=True)
-    pix_val = Float().tag(sync=True)
-    img_change_trig = Integer(0).tag(sync=True)
-    display_trig = Integer(0).tag(sync=True)
-    css_trig = Integer(0).tag(sync=True)
+    img_index = Integer(0).tag(sync=True)
+    width = Integer().tag(sync=True)
   
     
     def __init__(self, image_series, width, height):
@@ -43,45 +42,44 @@ class ImageSlider(ipyw.DOMWidget):
         self.image_series = image_series
         self.width = width
         self.height = height
-        self.series_max = len(self.image_series) - 1
-        self.current_img = self.image_series[self.img_change_trig]
+        self._series_max = len(self.image_series) - 1
+        self.current_img = self.image_series[self.img_index]
         arr = self.current_img.data
-        self.nrows, self.ncols = arr.shape
+        self._nrows, self._ncols = arr.shape
         import numpy as np
-        self.img_min, self.img_max = int(np.min(arr)), int(np.max(arr))
+        self._img_min, self._img_max = int(np.min(arr)), int(np.max(arr))
         self.update_image(None);
         super(ImageSlider, self).__init__()
         return
     
-    #This function is called when the values of offsetX and/or offsetY change.
-    @observe("offsetX", "offsetY")
+    #This function is called when the values of _offsetX and/or _offsetY change.
+    @observe("_offsetX", "_offsetY")
     def get_val(self, change):
-        """Tries to calculate the value of the image at the mouse position and store the result in the member variable pix_val
+        """Tries to calculate the value of the image at the mouse position and store the result in the member variable _pix_val
         
-        If an error occurs, this method calls the handle_error method and stores the result in the member variable err."""
+        If an error occurs, this method calls the handle_error method and stores the result in the member variable _err."""
         
         try:
             arr = self.current_img.data
-            #nrows, ncols = arr.shape
-            col = int(self.offsetX*1./self.width * self.ncols)
-            row = int(self.offsetY*1./self.height * self.nrows)
+            col = int(self._offsetX*1./self.width * self._ncols)
+            row = int(self._offsetY*1./self.height * self._nrows)
             if col >= arr.shape[1]: col = arr.shape[1]-1
             if row >= arr.shape[0]: row = arr.shape[0]-1
-            self.pix_val = arr[col, row]
-            self.err = ""
+            self._pix_val = arr[col, row]
+            self._err = ""
         except Exception:
-            self.err = self.handle_error()
+            self._err = self.handle_error()
             return
     
     def getimg_bytes(self):
         """Encodes the data for the currently viewed image into Base64.
         
-        If img_min and/or img_max have been changed from their default values, this function will also change the image data to account for this change before encoding the data into Base64."""
+        If _img_min and/or _img_max have been changed from their default values, this function will also change the image data to account for this change before encoding the data into Base64."""
         
         arr = self.current_img.data.copy()
-        arr[arr<self.img_min] = self.img_min
-        arr[arr>self.img_max] = self.img_max
-        img = ((arr-self.img_min)/(self.img_max-self.img_min)*(2**15-1)).astype('int16')
+        arr[arr<self._img_min] = self._img_min
+        arr[arr>self._img_max] = self._img_max
+        img = ((arr-self._img_min)/(self._img_max-self._img_min)*(2**15-1)).astype('int16')
         import numpy as np
         size = np.max(img.shape)
         view_size = np.max((self.width, self.height))
@@ -109,16 +107,16 @@ class ImageSlider(ipyw.DOMWidget):
             ex_mess = ex_mess + str(arg)
         return(ex_mess)
     
-    #This function is called when img_change_trig, img_min, and/or img_max change
-    @observe("img_change_trig", "img_min", "img_max")
+    #This function is called when img_index, _img_min, and/or _img_max change
+    @observe("img_index", "_img_min", "_img_max")
     def update_image(self, change):
         """The function that begins any change to the displayed image.
         
-        If it is triggered by a change in img_change_trig, it changes the current_img member variable to the new desired image.
+        If it is triggered by a change in img_index, it changes the current_img member variable to the new desired image.
         
         In all cases, this function calls the getimg_bytes method to obtain the new Base64 encoding (of either the new or old image) and stores this encoding in _b64value."""
         
-        self.current_img = self.image_series[self.img_change_trig]
+        self.current_img = self.image_series[self.img_index]
         self._b64value = self.getimg_bytes()
         return
     

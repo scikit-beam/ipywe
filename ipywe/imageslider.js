@@ -11,9 +11,9 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
 
             //Sets all the values needed for creating the sliders. wid is created to allow model values to be obtained in functions within this render function.
             var wid = this;
-            var img_max = this.model.get("series_max");
-            var vrange_min = this.model.get("img_min");
-            var vrange_max = this.model.get("img_max");
+            var img_max = this.model.get("_series_max");
+            var vrange_min = this.model.get("_img_min");
+            var vrange_max = this.model.get("_img_max");
             var vrange_step = (vrange_max - vrange_min)/100;
             var vrange = [vrange_min, vrange_max];
 
@@ -60,11 +60,11 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
                 min: 0,
                 max: img_max,
                 /*When the handle slides, this function is called to update hslide_label 
-                  and change img_change_trig on the backend (triggers the update_image function on the backend)*/
+                  and change img_index on the backend (triggers the update_image function on the backend)*/
                 slide: function(event, ui) {
                     hslide_label.val( ui.value );
                     console.log("Executed!");
-                    wid.model.set("img_change_trig", ui.value);
+                    wid.model.set("img_index", ui.value);
                     wid.touch();
                 }
             });
@@ -105,11 +105,11 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
                 max: vrange_max,
                 values: vrange,
                 step: vrange_step,
-                /*When either handle slides, this function sets img_min and/or img_max on the backend to the handles' values.
+                /*When either handle slides, this function sets _img_min and/or _img_max on the backend to the handles' values.
                   This triggers the update_image function on the backend.*/
                 slide: function(event, ui) {
-                    wid.model.set("img_min", ui.values[0]);
-                    wid.model.set("img_max", ui.values[1]);
+                    wid.model.set("_img_min", ui.values[0]);
+                    wid.model.set("_img_max", ui.values[1]);
                     wid.touch();
                 }
             });
@@ -123,33 +123,33 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
             console.log("done with data box");
 
             
-            /*This function sets offsetX and offsetY on the backend to the event-specific offset values whenever
+            /*This function sets _offsetX and _offsetY on the backend to the event-specific offset values whenever
               the mouse moves over the image. It then calculates the data-based XY coordinates and displays them
               in the x_coord and y_coord span fields.*/
             img.mousemove(function(event){
-                wid.model.set("offsetX", event.offsetX);
-                wid.model.set("offsetY", event.offsetY);
+                wid.model.set("_offsetX", event.offsetX);
+                wid.model.set("_offsetY", event.offsetY);
                 wid.touch();
-                x_coord.text(Math.floor(event.offsetX*1./(wid.model.get("width"))*(wid.model.get("ncols"))));
-                y_coord.text(Math.floor(event.offsetY*1./(wid.model.get("height"))*(wid.model.get("nrows"))));
+                x_coord.text(Math.floor(event.offsetX*1./(wid.model.get("width"))*(wid.model.get("_ncols"))));
+                y_coord.text(Math.floor(event.offsetY*1./(wid.model.get("height"))*(wid.model.get("_nrows"))));
             });
 
-            //Triggers on_pixval_change and on_img_change when the backend values of pix_val and _b64value change.
-            this.model.on("change:pix_val", this.on_pixval_change, this);
+            //Triggers on_pixval_change and on_img_change when the backend values of _pix_val and _b64value change.
+            this.model.on("change:_pix_val", this.on_pixval_change, this);
             this.model.on("change:_b64value", this.on_img_change, this);
         },
 
         /*If there is no custom error message, this function sets the value of the img-value span field to
-          the value of pix_val from the backend. Otherwise, it sets the value of this field to the value of
+          the value of _pix_val from the backend. Otherwise, it sets the value of this field to the value of
           err (the error message).*/
 
         on_pixval_change: function() {
             console.log("Executing on_pixval_change");
-            if (this.model.get("err") == "") {
-                this.$el.find(".img-value").text(this.model.get("pix_val"));
+            if (this.model.get("_err") == "") {
+                this.$el.find(".img-value").text(this.model.get("_pix_val"));
             }
             else {
-                this.$el.find(".img-value").text(this.model.get("err"));
+                this.$el.find(".img-value").text(this.model.get("_err"));
             }
         },
 
