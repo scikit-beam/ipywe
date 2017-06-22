@@ -69,8 +69,14 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
                 }
             });
             
-            //Sets the label's initial value to the initial value of the slider
+            //Sets the label's initial value to the initial value of the slider and adds a left margin to the label
             hslide_label.val(hslide_html.slider("value"));
+            hslide_label.css("marginLeft", "7px");
+            //Makes the slider's handle a blue circle and adds a 10 pixel margin to the slider
+            var hslide_handle = hslide_html.find(".ui-slider-handle");
+            hslide_handle.css("borderRadius", "50%");
+            hslide_handle.css("background", "#0099e6");
+            hslide_html.css("margin", "10px");
             //Adds hslide_html (the slider) and hslide_label (the label) to img_vbox
             img_vbox.append(hslide_html);
             img_vbox.append(hslide_label);
@@ -115,6 +121,11 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
             });
 
             
+            //Explicitly sets the slider's background color to white. Also, changes the handles to blue circles
+            var vslide_bar = vslide_html.find(".ui-widget-header");
+            vslide_bar.css("background", "#ffffff");
+            vslide_bar.siblings().css("borderRadius", "50%");
+            vslide_bar.siblings().css("background", "#0099e6");
             //Adds vslide_label and vslide_html to data_vbox. At this point, the widget can be successfully displayed.
             vslide_html.height(this.model.get("height") * 0.75);
             data_vbox.append(vslide_label);
