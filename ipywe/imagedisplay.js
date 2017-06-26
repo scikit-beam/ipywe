@@ -11,13 +11,37 @@ define("imgdisplay", ["jupyter-js-widgets"], function(widgets) {
             var image_src = "data:image/" + this.model.get("_format") + ";base64," + this.model.get("_b64value")
             img.attr("src", image_src);
             img.width(this.model.get("width")); img.height(this.model.get("height"));
-            this.$el.append(img);
+            this.$el.append(img)
+
+            var zoom_button = $('<button class="zoom-button">');
+            zoom_button.button({
+                label: "Zoom",
+                disabled: false
+            });
+            this.$el.append(zoom_button);
+            zoom_button.click(function() {
+                trigger_val = wid.model.get("_button_click");
+                if (trigger_val < Number.MAX_SAFE_INTEGER - 1) {
+                    trigger_val++;
+                }
+                else {
+                    trigger_val = 0;
+                }
+                wid.model.set("_button_click", trigger_val);
+                wid.touch();
+                select.remove();
+                console.log("Select removed");
+                console.log("Array Size: " + wid.model.get("data_X") + " x " + wid.model.get("data_Y"));
+            });
 
             var select = $('<div class="selection-box">');
 
+            img.on("dragstart", false);
+
             img.on("mousedown", function(event) {
-                var click_x = event.pageX;
-                var click_y = event.pageY;
+                console.log("Click 1");
+                var click_x = event.offsetX;
+                var click_y = event.offsetY;
                 
                 select.css({
                     "top": click_y,
@@ -26,11 +50,12 @@ define("imgdisplay", ["jupyter-js-widgets"], function(widgets) {
                     "height": 0
                 });
                 
-                img.append(select);
+                select.appendTo(img);
 
                 img.on("mousemove", function(event) {
-                    var move_x = event.pageX;
-                    var move_y = event.pageY;
+                    console.log("Mouse moving");
+                    var move_x = event.offsetX;
+                    var move_y = event.offsetY;
                     var width = Math.abs(move_x - click_x);
                     var height = Math.abs(move_y - click_y);
                     var new_x, new_y;
@@ -42,36 +67,24 @@ define("imgdisplay", ["jupyter-js-widgets"], function(widgets) {
                         "width": width,
                         "height": height,
                         "top": new_y,
-                        "left": new_x
+                        "left": new_x,
+                        "background": "transparent",
+                        "border": "2px solid red",
+                        "position": "absolute"
                     });
 
-                    this.model.set("_offXtop", select.button("option", "left");
-                    this.model.set("_offYtop", select.button("option", "top");
-                    this.model.set("_offXbottom", select.button("option", "left") + select.button("option", "width"));
-                    this.model.set("_offYbottom", select.button("option", "top") + select.button("option", "height"));
-                    this.touch();
+                    wid.model.set("_offXtop", parseInt(select.css("left"), 10));
+                    wid.model.set("_offYtop", parseInt(select.css("top"), 10));
+                    wid.model.set("_offXbottom", parseInt(select.css("left"), 10) + select.width());
+                    wid.model.set("_offYbottom", parseInt(select.css("top"), 10) + select.height());
+                    wid.touch();
 
                 }).on("mouseup", function(event) {
+                    console.log("Click 2");
                     img.off("mousemove");
                 });
             });
             
-            var zoom_button = $('<button class="zoom-button">');
-            zoom_button.button({
-                label: "Zoom",
-                disabled: false
-            });
-            zoom_button.click(function() {
-                trigger_val = wid.model.get("_button_click");
-                if (trigger_val < Number.MAX_SAFE_INTEGER - 1) {
-                    trigger_val++;
-                }
-                else {
-                    trigger_val = 0;
-                }
-                this.model.set("_button_click", trigger_val);
-                this.touch();
-            });
             this.model.on("change:_b64value", this.on_img_change, this);
         },
 
@@ -82,7 +95,7 @@ define("imgdisplay", ["jupyter-js-widgets"], function(widgets) {
 
     });
 
-    render {
+    return {
         ImgDisplayView : ImgDisplayView
     };
 
