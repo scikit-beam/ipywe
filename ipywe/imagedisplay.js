@@ -28,6 +28,7 @@ define("imgdisplay", ["jupyter-js-widgets"], function(widgets) {
                 disabled: false
             });
             zoom_button.css("margin", "10px");
+            zoom_button.css("marginLeft", "0px");
             this.$el.append(zoom_button);
             zoom_button.click(function() {
                 var zoom_val = wid.model.get("_zoom_click");
