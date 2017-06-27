@@ -78,7 +78,8 @@ define("imgdisplay", ["jupyter-js-widgets"], function(widgets) {
                     "left": click_x,
                     "width": 0,
                     "height": 0,
-                    "position": "absolute"
+                    "position": "absolute",
+                    "pointerEvents": "none"
                 });
                 
                 select.appendTo(img_container);
