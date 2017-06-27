@@ -6,12 +6,21 @@ define("imgdisplay", ["jupyter-js-widgets"], function(widgets) {
     
         render: function() {
             var wid = this;
+
+            var img_container = $('<div class="img-container">');
+            this.$el.append(img_container);
+            img_container.css({
+                position: "relative",
+                width: this.model.get("width"),
+                height: this.model.get("height")
+            });
             
             var img = $('<img class="curr-img">');
             var image_src = "data:image/" + this.model.get("_format") + ";base64," + this.model.get("_b64value")
             img.attr("src", image_src);
             img.width(this.model.get("width")); img.height(this.model.get("height"));
-            this.$el.append(img)
+            img_container.append(img);
+            //this.$el.append(img);
 
             var zoom_button = $('<button class="zoom-button">');
             zoom_button.button({
@@ -68,10 +77,11 @@ define("imgdisplay", ["jupyter-js-widgets"], function(widgets) {
                     "top": click_y,
                     "left": click_x,
                     "width": 0,
-                    "height": 0
+                    "height": 0,
+                    "position": "absolute"
                 });
                 
-                select.appendTo(img);
+                select.appendTo(img_container);
 
                 img.on("mousemove", function(event) {
                     console.log("Mouse moving");
@@ -85,13 +95,12 @@ define("imgdisplay", ["jupyter-js-widgets"], function(widgets) {
                     new_y = (move_y < click_y) ? (click_y - height) : click_y;
 
                     select.css({
-                        "width": width,
-                        "height": height,
+                        "width": width - 1,
+                        "height": height - 1,
                         "top": new_y,
                         "left": new_x,
                         "background": "transparent",
-                        "border": "2px solid red",
-                        "position": "absolute"
+                        "border": "2px solid red"
                     });
 
                     wid.model.set("_offXtop", parseInt(select.css("left"), 10));
