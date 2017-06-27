@@ -90,6 +90,7 @@ class ImageDisplay(ipyw.DOMWidget):
     @observe("_reset_click")
     def resetImg(self, change):
         self.arr = self.curr_img.data.copy()
+        self._nrows, self._ncols = self.arr.shape
         self.curr_img_data = self.arr
         self._b64value = self.createImg()
         return        
