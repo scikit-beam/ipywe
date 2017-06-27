@@ -18,20 +18,41 @@ define("imgdisplay", ["jupyter-js-widgets"], function(widgets) {
                 label: "Zoom",
                 disabled: false
             });
+            zoom_button.css("margin", "10px");
             this.$el.append(zoom_button);
             zoom_button.click(function() {
-                trigger_val = wid.model.get("_button_click");
-                if (trigger_val < Number.MAX_SAFE_INTEGER - 1) {
-                    trigger_val++;
+                var zoom_val = wid.model.get("_zoom_click");
+                if (zoom_val < Number.MAX_SAFE_INTEGER - 1) {
+                    zoom_val++;
                 }
                 else {
-                    trigger_val = 0;
+                    zoom_val = 0;
                 }
-                wid.model.set("_button_click", trigger_val);
+                wid.model.set("_zoom_click", zoom_val);
                 wid.touch();
                 select.remove();
                 console.log("Select removed");
-                console.log("Array Size: " + wid.model.get("data_X") + " x " + wid.model.get("data_Y"));
+            });
+
+            var reset_button = $('<button class="reset-button">')
+            reset_button.button({
+                label: "Reset",
+                disabled: false
+            });
+            reset_button.css("margin", "10px");
+            this.$el.append(reset_button);
+            reset_button.click(function() {
+                var reset_val = wid.model.get("_reset_click");
+                if (reset_val < Number.MAX_SAFE_INTEGER - 1) {
+                    reset_val++;
+                }
+                else {
+                    reset_val = 0;
+                }
+                wid.model.set("_reset_click", reset_val);
+                wid.touch();
+                select.remove();
+                console.log("Image reset");
             });
 
             var select = $('<div class="selection-box">');
