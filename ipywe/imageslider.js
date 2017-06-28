@@ -81,7 +81,7 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
             //Sets the label's initial value to the initial value of the slider and adds a left margin to the label
             hslide_label.val(hslide_html.slider("value"));
             hslide_label.css("marginLeft", "7px");
-            hslide_label.width("30%");
+            hslide_label.width("15%");
             //Makes the slider's handle a blue circle and adds a 10 pixel margin to the slider
             var hslide_handle = hslide_html.find(".ui-slider-handle");
             hslide_handle.css("borderRadius", "50%");
@@ -93,7 +93,7 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
             img_vbox.append(hslide_html);
             img_vbox.append(hslide_label);
 
-            //Creates a zoom button and a reset button after the label
+            //Creates a zoom button, a zoom all button, and a reset button after the label
             var zoom_button = $('<button class="zoom-button">');
             zoom_button.button({
                 label: "Zoom",
@@ -112,7 +112,28 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
                 wid.model.set("_zoom_click", zoom_val);
                 wid.touch();
                 select.remove();
-                console.log("Select removed");
+                console.log("Zoomed");
+            });
+
+            var zoomall_button = $('<button class="zoom-button">');
+            zoomall_button.button({
+                label: "Zoom All",
+                disabled: false
+            });
+            zoomall_button.css("margin", "10px");
+            img_vbox.append(zoomall_button);
+            zoomall_button.click(function() {
+                var zoomall_val = wid.model.get("_zoomall_click");
+                if (zoomall_val < Number.MAX_SAFE_INTEGER) {
+                    zoomall_val++;
+                }
+                else {
+                    zoomall_val = 0;
+                }
+                wid.model.set("_zoomall_click", zoomall_val);
+                wid.touch();
+                select.remove();
+                console.log("All images zoomed");
             });
 
             var reset_button = $('<button class="reset-button">')

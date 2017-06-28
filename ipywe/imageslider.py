@@ -32,6 +32,7 @@ class ImageSlider(ipyw.DOMWidget):
     _offYbottom = Float().tag(sync=True)
     _zoom_click = Integer(0).tag(sync=True)
     _reset_click = Integer(0).tag(sync=True)
+    _zoomall_click = Integer(0).tag(sync=True)
 
     height = Integer().tag(sync=True)
     img_index = Integer(0).tag(sync=True)
@@ -48,6 +49,7 @@ class ImageSlider(ipyw.DOMWidget):
             *height: an integer that is used to set the height of the image and UI elements."""
         
         self.image_series = image_series
+        self.curr_img_series = self.image_series
         self.width = width
         self.height = height
         self._series_max = len(self.image_series) - 1
@@ -127,8 +129,11 @@ class ImageSlider(ipyw.DOMWidget):
         
         In all cases, this function calls the getimg_bytes method to obtain the new Base64 encoding (of either the new or old image) and stores this encoding in _b64value."""
         
-        self.current_img = self.image_series[self.img_index]
-        self.arr = self.current_img.data.copy()
+        self.current_img = self.curr_img_series[self.img_index]
+        if type(self.current_img) is np.ndarray:
+            self.arr = self.current_img
+        else:
+            self.arr = self.current_img.data.copy()
         self._nrows, self._ncols = self.arr.shape
         self.curr_img_data = self.arr
         self._b64value = self.getimg_bytes()
@@ -175,13 +180,60 @@ class ImageSlider(ipyw.DOMWidget):
         self._b64value = self.getimg_bytes()
         return
 
+    @observe("_zoomall_click")
+    def zoomAll(self, change):
+        left = int(self._offXtop*1./self.width * self._ncols)
+        right = int(self._offXbottom*1./self.width*self._ncols)
+        top = int(self._offYtop*1./self.height*self._nrows)
+        bottom = int(self._offYbottom*1./self.height*self._nrows)
+        if (right - left) == 0 and (bottom - top) == 0:
+            right = left + 1
+            bottom = top + 1
+        if (right - left) == 0:
+            right = left + 1
+        if (bottom - top) == 0:
+            bottom = top + 1
+        new_series = []
+        self._nrows = bottom - top
+        self._ncols = right - left
+        for img in self.curr_img_series:
+            if type(img) is np.ndarray:
+                imgdata = img
+            else:
+                imgdata = img.data.copy()
+            newimg = imgdata[top:bottom, left:right]
+            if self._ncols > self._nrows:
+                diff = self._ncols - self._nrows
+                if diff % 2 == 0:
+                    addtop = diff / 2
+                    addbottom = diff / 2
+                else:
+                    addtop = diff / 2 + 1
+                    addbottom = diff / 2
+                extrarows_top = np.full((addtop, self._ncols), 1)
+                extrarows_bottom = np.full((addbottom, self._ncols), 1)
+                newimg = np.vstack((extrarows_top, newimg, extrarows_bottom))
+            else:
+                diff = self._nrows - self._ncols
+                if diff % 2 == 0:
+                    addleft = diff / 2
+                    addright = diff / 2
+                else:
+                    addleft = diff / 2 + 1
+                    addright = diff / 2
+                extrarows_left = np.full((self._nrows, addleft), 1)
+                extrarows_right = np.full((self._nrows, addright), 1)
+                newimg = np.hstack((extrarows_left, newimg, extrarows_right))
+            new_series.append(newimg)
+        self.curr_img_series = list(new_series)
+        self.update_image(None)
+        return
+
     @observe("_reset_click")
     def resetImg(self, change):
-        self.arr = self.current_img.data.copy()
-        self._nrows, self._ncols = self.arr.shape
-        self.curr_img_data = self.arr
-        self._b64value = self.getimg_bytes()
-        return  
+        self.curr_img_series = self.image_series 
+        self.update_image(None)
+        return
 
 
 def get_js():
