@@ -177,6 +177,7 @@ class ImageSlider(ipyw.DOMWidget):
             extrarows_left = np.full((self._nrows, addleft), 1)
             extrarows_right = np.full((self._nrows, addright), 1)
             self.curr_img_data = np.hstack((extrarows_left, self.curr_img_data, extrarows_right))
+        self.curr_img_series[self.img_index] = self.curr_img_data
         self._b64value = self.getimg_bytes()
         return
 
