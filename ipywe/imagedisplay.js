@@ -32,7 +32,7 @@ define("imgdisplay", ["jupyter-js-widgets"], function(widgets) {
             this.$el.append(zoom_button);
             zoom_button.click(function() {
                 var zoom_val = wid.model.get("_zoom_click");
-                if (zoom_val < Number.MAX_SAFE_INTEGER - 1) {
+                if (zoom_val < Number.MAX_SAFE_INTEGER) {
                     zoom_val++;
                 }
                 else {
@@ -53,7 +53,7 @@ define("imgdisplay", ["jupyter-js-widgets"], function(widgets) {
             this.$el.append(reset_button);
             reset_button.click(function() {
                 var reset_val = wid.model.get("_reset_click");
-                if (reset_val < Number.MAX_SAFE_INTEGER - 1) {
+                if (reset_val < Number.MAX_SAFE_INTEGER) {
                     reset_val++;
                 }
                 else {
