@@ -131,7 +131,7 @@ class ImageSlider(ipyw.DOMWidget):
         
         self.current_img = self.curr_img_series[self.img_index]
         if type(self.current_img) is np.ndarray:
-            self.arr = self.current_img
+            self.arr = self.current_img.copy()
         else:
             self.arr = self.current_img.data.copy()
         self._nrows, self._ncols = self.arr.shape
