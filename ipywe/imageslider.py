@@ -49,13 +49,13 @@ class ImageSlider(ipyw.DOMWidget):
             *height: an integer that is used to set the height of the image and UI elements."""
         
         self.image_series = image_series
-        self.curr_img_series = self.image_series
+        self.curr_img_series = list(self.image_series)
         self.width = width
         self.height = height
         self._series_max = len(self.image_series) - 1
         self.current_img = self.image_series[self.img_index]
         self.arr = self.current_img.data.copy()
-        self.curr_img_data = self.arr
+        self.curr_img_data = self.arr.copy()
         self._nrows, self._ncols = self.arr.shape
         self._img_min, self._img_max = int(np.min(self.arr)), int(np.max(self.arr))
         self.update_image(None);
@@ -135,7 +135,7 @@ class ImageSlider(ipyw.DOMWidget):
         else:
             self.arr = self.current_img.data.copy()
         self._nrows, self._ncols = self.arr.shape
-        self.curr_img_data = self.arr
+        self.curr_img_data = self.arr.copy()
         self._b64value = self.getimg_bytes()
         return
 
@@ -154,7 +154,7 @@ class ImageSlider(ipyw.DOMWidget):
             bottom = top + 1
         self.arr = self.arr[top:bottom, left:right]
         self._nrows, self._ncols = self.arr.shape
-        self.curr_img_data = self.arr
+        self.curr_img_data = self.arr.copy()
         if self._ncols > self._nrows:
             diff = self._ncols - self._nrows
             if diff % 2 == 0:
