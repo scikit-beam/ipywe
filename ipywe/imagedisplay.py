@@ -59,6 +59,13 @@ class ImageDisplay(ipyw.DOMWidget):
         right = int(self._offXbottom*1./self.width*self._ncols)
         top = int(self._offYtop*1./self.height*self._nrows)
         bottom = int(self._offYbottom*1./self.height*self._nrows)
+        if (right - left) == 0 and (bottom - top) == 0:
+            right = left + 1
+            bottom = top + 1
+        if (right - left) == 0:
+            right = left + 1
+        if (bottom - top) == 0:
+            bottom = top + 1
         self.arr = self.arr[top:bottom, left:right]
         self._nrows, self._ncols = self.arr.shape
         self.curr_img_data = self.arr
