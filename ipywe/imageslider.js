@@ -49,7 +49,7 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
                 position: "relative",
                 width: this.model.get("width"),
                 height: this.model.get("height"),
-                margin: "10px"
+                padding: "10px"
             });
 
             //Creates the image stored in the initial value of _b64value and adds it to img_vbox.
@@ -87,6 +87,8 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
             hslide_handle.css("borderRadius", "50%");
             hslide_handle.css("background", "#0099e6");
             hslide_html.css("margin", "10px");
+            hslide_html.css("marginBottom", "5px");
+            hslide_html.css("marginTop", "20px");
             //Adds hslide_html (the slider) and hslide_label (the label) to img_vbox
             img_vbox.append(hslide_html);
             img_vbox.append(hslide_label);
@@ -139,7 +141,7 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
 
             img.on("dragstart", false);
 
-            img.on("mousedown", function(event) {
+            img_container.on("mousedown", function(event) {
                 console.log("Click 1");
                 var click_x = event.offsetX;
                 var click_y = event.offsetY;
@@ -155,7 +157,7 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
                 
                 select.appendTo(img_container);
 
-                img.on("mousemove", function(event) {
+                img_container.on("mousemove", function(event) {
                     console.log("Mouse moving");
                     var move_x = event.offsetX;
                     var move_y = event.offsetY;
@@ -183,7 +185,7 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
 
                 }).on("mouseup", function(event) {
                     console.log("Click 2");
-                    img.off("mousemove");
+                    img_container.off("mousemove");
                 });
             });
 
