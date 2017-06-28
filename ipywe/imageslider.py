@@ -3,6 +3,7 @@ from IPython.display import display, HTML, clear_output
 from cStringIO import StringIO
 from traitlets import Unicode, Integer, Float, HasTraits, observe
 import sys, os
+import numpy as np
 
 class ImageSlider(ipyw.DOMWidget):
     """The backend python class for the custom ImageSlider widget.
@@ -24,6 +25,13 @@ class ImageSlider(ipyw.DOMWidget):
     _offsetY = Integer().tag(sync=True)
     _pix_val = Float().tag(sync=True)
     _series_max = Integer().tag(sync=True)
+    
+    _offXtop = Float().tag(sync=True)
+    _offXbottom = Float().tag(sync=True)
+    _offYtop = Float().tag(sync=True)
+    _offYbottom = Float().tag(sync=True)
+    _zoom_click = Integer(0).tag(sync=True)
+    _reset_click = Integer(0).tag(sync=True)
 
     height = Integer().tag(sync=True)
     img_index = Integer(0).tag(sync=True)
@@ -44,10 +52,10 @@ class ImageSlider(ipyw.DOMWidget):
         self.height = height
         self._series_max = len(self.image_series) - 1
         self.current_img = self.image_series[self.img_index]
-        arr = self.current_img.data
-        self._nrows, self._ncols = arr.shape
-        import numpy as np
-        self._img_min, self._img_max = int(np.min(arr)), int(np.max(arr))
+        self.arr = self.current_img.data.copy()
+        self.curr_img_data = self.arr
+        self._nrows, self._ncols = self.arr.shape
+        self._img_min, self._img_max = int(np.min(self.arr)), int(np.max(self.arr))
         self.update_image(None);
         super(ImageSlider, self).__init__()
         return
@@ -60,12 +68,12 @@ class ImageSlider(ipyw.DOMWidget):
         If an error occurs, this method calls the handle_error method and stores the result in the member variable _err."""
         
         try:
-            arr = self.current_img.data
+            #arr = self.current_img.data
             col = int(self._offsetX*1./self.width * self._ncols)
             row = int(self._offsetY*1./self.height * self._nrows)
-            if col >= arr.shape[1]: col = arr.shape[1]-1
-            if row >= arr.shape[0]: row = arr.shape[0]-1
-            self._pix_val = arr[col, row]
+            if col >= self.arr.shape[1]: col = self.arr.shape[1]-1
+            if row >= self.arr.shape[0]: row = self.arr.shape[0]-1
+            self._pix_val = self.arr[col, row]
             self._err = ""
         except Exception:
             self._err = self.handle_error()
@@ -76,17 +84,20 @@ class ImageSlider(ipyw.DOMWidget):
         
         If _img_min and/or _img_max have been changed from their default values, this function will also change the image data to account for this change before encoding the data into Base64."""
         
-        arr = self.current_img.data.copy()
-        arr[arr<self._img_min] = self._img_min
-        arr[arr>self._img_max] = self._img_max
-        img = ((arr-self._img_min)/(self._img_max-self._img_min)*(2**15-1)).astype('int16')
-        import numpy as np
+        #arr = self.current_img.data.copy()
+        self.curr_img_data[self.curr_img_data<self._img_min] = self._img_min
+        self.curr_img_data[self.curr_img_data>self._img_max] = self._img_max
+        img = ((self.curr_img_data-self._img_min)/(self._img_max-self._img_min)*(2**15-1)).astype('int16')
         size = np.max(img.shape)
         view_size = np.max((self.width, self.height))
         if size>view_size:
             downsample_ratio = 1.*view_size/size
             import scipy.misc
             img = scipy.misc.imresize(img, downsample_ratio)
+        else:
+            upsample_ratio = 1.*view_size/size
+            import scipy.misc
+            img = scipy.misc.imresize(img, upsample_ratio)
         f = StringIO()
         import PIL.Image, base64
         PIL.Image.fromarray(img).save(f, self._format)
@@ -117,42 +128,59 @@ class ImageSlider(ipyw.DOMWidget):
         In all cases, this function calls the getimg_bytes method to obtain the new Base64 encoding (of either the new or old image) and stores this encoding in _b64value."""
         
         self.current_img = self.image_series[self.img_index]
+        self.arr = self.current_img.data.copy()
+        self.curr_img_data = self.arr
         self._b64value = self.getimg_bytes()
         return
-    
-    """def set_css(self):
-        #Creates the CSS classes that are used to format the HTML flexboxes and flexitems used to store the UI on screen.
-        #Done on the backend to allow the boxes to be sized according to the width and height values provided in the constructor.
-        
-        display(HTML(#If using, include triple quotes
-        <html>
-        <body>
-        <style type="text/css">
-        .flex-container {
-            display: -webkit-flex;
-            display: flex;
-            justify-content: flex-start;
-            width: 1000px;
-            height: %spx;
-        }
-    
-        .flex-item-img {
-            width: %spx;
-            height: %spx;
-            padding: 5px;
-        }
-        
-        .flex-item-data {
-            width: %spx;
-            height: %spx;
-            padding: 5px;
-        }
-        </style>
-        </body>
-        </html>#If using, include triple quotes
-            %(str(self.height * 1.3), str(self.width * 1.1), str(self.height * 1.25), str(1000 - self.width * 1.1 - 25), 
-              str(self.height * 1.25))))
-        return"""
+
+    @observe("_zoom_click")
+    def zoomImg(self, change):
+        left = int(self._offXtop*1./self.width * self._ncols)
+        right = int(self._offXbottom*1./self.width*self._ncols)
+        top = int(self._offYtop*1./self.height*self._nrows)
+        bottom = int(self._offYbottom*1./self.height*self._nrows)
+        if (right - left) == 0 and (bottom - top) == 0:
+            right = left + 1
+            bottom = top + 1
+        if (right - left) == 0:
+            right = left + 1
+        if (bottom - top) == 0:
+            bottom = top + 1
+        self.arr = self.arr[top:bottom, left:right]
+        self._nrows, self._ncols = self.arr.shape
+        self.curr_img_data = self.arr
+        if self._ncols > self._nrows:
+            diff = self._ncols - self._nrows
+            if diff % 2 == 0:
+                addtop = diff / 2
+                addbottom = diff / 2
+            else:
+                addtop = diff / 2 + 1
+                addbottom = diff / 2
+            extrarows_top = np.full((addtop, self._ncols), 1)
+            extrarows_bottom = np.full((addbottom, self._ncols), 1)
+            self.curr_img_data = np.vstack((extrarows_top, self.curr_img_data, extrarows_bottom))
+        else:
+            diff = self._nrows - self._ncols
+            if diff % 2 == 0:
+                addleft = diff / 2
+                addright = diff / 2
+            else:
+                addleft = diff / 2 + 1
+                addright = diff / 2
+            extrarows_left = np.full((self._nrows, addleft), 1)
+            extrarows_right = np.full((self._nrows, addright), 1)
+            self.curr_img_data = np.hstack((extrarows_left, self.curr_img_data, extrarows_right))
+        self._b64value = self.getimg_bytes()
+        return
+
+    @observe("_reset_click")
+    def resetImg(self, change):
+        self.arr = self.current_img.data.copy()
+        self._nrows, self._ncols = self.arr.shape
+        self.curr_img_data = self.arr
+        self._b64value = self.getimg_bytes()
+        return  
 
 
 def get_js():
