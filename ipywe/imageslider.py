@@ -129,6 +129,7 @@ class ImageSlider(ipyw.DOMWidget):
         
         self.current_img = self.image_series[self.img_index]
         self.arr = self.current_img.data.copy()
+        self._nrows, self._ncols = self.arr.shape
         self.curr_img_data = self.arr
         self._b64value = self.getimg_bytes()
         return
