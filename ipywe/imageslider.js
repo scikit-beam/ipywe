@@ -81,6 +81,7 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
             //Sets the label's initial value to the initial value of the slider and adds a left margin to the label
             hslide_label.val(hslide_html.slider("value"));
             hslide_label.css("marginLeft", "7px");
+            hslide_label.width("30%");
             //Makes the slider's handle a blue circle and adds a 10 pixel margin to the slider
             var hslide_handle = hslide_html.find(".ui-slider-handle");
             hslide_handle.css("borderRadius", "50%");
