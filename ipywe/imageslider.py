@@ -16,8 +16,10 @@ class ImageSlider(ipyw.DOMWidget):
     _b64value = Unicode().tag(sync=True)
     _err = Unicode().tag(sync=True)
     _format = Unicode("png").tag(sync=True)
-    _img_min = Float().tag(sync=True)
-    _img_max = Float().tag(sync=True)
+    _img_view_min = Float().tag(sync=True)      # value range for viewing
+    _img_view_max = Float().tag(sync=True)
+    _imgseries_min = Float().tag(sync=True)     # approx range of values for the whole image series
+    _imgseries_max = Float().tag(sync=True)
     _nrows = Integer().tag(sync=True)
     _ncols = Integer().tag(sync=True)
     _offsetX = Integer().tag(sync=True)
@@ -38,7 +40,8 @@ class ImageSlider(ipyw.DOMWidget):
             *image_series: a list of ImageFile objects (see https://github.com/ornlneutronimaging/iMars3D/blob/master/python/imars3d/ImageFile.py for more details). This list is used to give the widget access to the images that are to be viewed.
             *width: an integer that is used to set the width of the image and UI elements.
             *height: an integer that is used to set the height of the image and UI elements."""
-        
+
+        assert len(image_series), "image series cannot be empty"
         self.image_series = image_series
         self.width = width
         self.height = height
@@ -46,8 +49,7 @@ class ImageSlider(ipyw.DOMWidget):
         self.current_img = self.image_series[self.img_index]
         arr = self.current_img.data
         self._nrows, self._ncols = arr.shape
-        import numpy as np
-        self._img_min, self._img_max = int(np.min(arr)), int(np.max(arr))
+        self._get_series_val_range()        
         self.update_image(None);
         super(ImageSlider, self).__init__()
         return
@@ -58,14 +60,13 @@ class ImageSlider(ipyw.DOMWidget):
         """Tries to calculate the value of the image at the mouse position and store the result in the member variable _pix_val
         
         If an error occurs, this method calls the handle_error method and stores the result in the member variable _err."""
-        
         try:
             arr = self.current_img.data
             col = int(self._offsetX*1./self.width * self._ncols)
             row = int(self._offsetY*1./self.height * self._nrows)
             if col >= arr.shape[1]: col = arr.shape[1]-1
             if row >= arr.shape[0]: row = arr.shape[0]-1
-            self._pix_val = arr[col, row]
+            self._pix_val = float(arr[col, row])  # conversion is required
             self._err = ""
         except Exception:
             self._err = self.handle_error()
@@ -74,13 +75,16 @@ class ImageSlider(ipyw.DOMWidget):
     def getimg_bytes(self):
         """Encodes the data for the currently viewed image into Base64.
         
-        If _img_min and/or _img_max have been changed from their default values, this function will also change the image data to account for this change before encoding the data into Base64."""
-        
-        arr = self.current_img.data.copy()
-        arr[arr<self._img_min] = self._img_min
-        arr[arr>self._img_max] = self._img_max
-        img = ((arr-self._img_min)/(self._img_max-self._img_min)*(2**15-1)).astype('int16')
+        If _img_view_min and/or _img_view_max have been changed from their default values, this function will also change the image data to account for this change before encoding the data into Base64."""
+        # avoid divid by zero
+        if self._img_view_min >= self._img_view_max:
+            self._img_view_max = self._img_view_min + (self._imgseries_max-self._imgseries_min)*1e-5
         import numpy as np
+        arr = self.current_img.data.copy().astype('float')
+        arr[arr<self._img_view_min] = self._img_view_min
+        arr[arr>self._img_view_max] = self._img_view_max
+        # use uint8 because scipy.misc.imresize below only converts to uint8.
+        img = ((arr-self._img_view_min)/(self._img_view_max-self._img_view_min)*(2**8-1)).astype('uint8')
         size = np.max(img.shape)
         view_size = np.max((self.width, self.height))
         if size>view_size:
@@ -107,52 +111,41 @@ class ImageSlider(ipyw.DOMWidget):
             ex_mess = ex_mess + str(arg)
         return(ex_mess)
     
-    #This function is called when img_index, _img_min, and/or _img_max change
-    @observe("img_index", "_img_min", "_img_max")
+    #This function is called when img_index changes
+    @observe("img_index")
     def update_image(self, change):
-        """The function that begins any change to the displayed image.
+        """The function is called when the image index changes
         
-        If it is triggered by a change in img_index, it changes the current_img member variable to the new desired image.
+        It changes the current_img member variable to the new desired image.
         
-        In all cases, this function calls the getimg_bytes method to obtain the new Base64 encoding (of either the new or old image) and stores this encoding in _b64value."""
+        This function calls the getimg_bytes method to obtain the new Base64 encoding (of either the new or old image) and stores this encoding in _b64value."""
         
         self.current_img = self.image_series[self.img_index]
+        self._b64value = self.getimg_bytes()        
+        return
+
+    #This function is called when _img_view_min, and/or _img_view_max change
+    @observe("_img_view_min", "_img_view_max")
+    def update_image_view_range(self, change):
+        """The function is called when view range is changed
+        
+        This function calls the getimg_bytes method to obtain the new Base64 encoding (of either the new or old image) and stores this encoding in _b64value."""
+        
         self._b64value = self.getimg_bytes()
         return
-    
-    """def set_css(self):
-        #Creates the CSS classes that are used to format the HTML flexboxes and flexitems used to store the UI on screen.
-        #Done on the backend to allow the boxes to be sized according to the width and height values provided in the constructor.
-        
-        display(HTML(#If using, include triple quotes
-        <html>
-        <body>
-        <style type="text/css">
-        .flex-container {
-            display: -webkit-flex;
-            display: flex;
-            justify-content: flex-start;
-            width: 1000px;
-            height: %spx;
-        }
-    
-        .flex-item-img {
-            width: %spx;
-            height: %spx;
-            padding: 5px;
-        }
-        
-        .flex-item-data {
-            width: %spx;
-            height: %spx;
-            padding: 5px;
-        }
-        </style>
-        </body>
-        </html>#If using, include triple quotes
-            %(str(self.height * 1.3), str(self.width * 1.1), str(self.height * 1.25), str(1000 - self.width * 1.1 - 25), 
-              str(self.height * 1.25))))
-        return"""
+
+    def _get_series_val_range(self, sample_size=10):
+        import numpy as np
+        img_series = self.image_series
+        N = len(img_series)
+        if N<sample_size:
+            data = [img.data for img in img_series]
+        else:
+            indexes = np.random.choice(N, sample_size, replace=False)
+            data = [img_series[i].data for i in indexes]
+        self._img_view_min = self._imgseries_min = float(np.min(data)) # conversion is required
+        self._img_view_max = self._imgseries_max = float(np.max(data))
+        return
 
 
 def get_js():

@@ -12,8 +12,8 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
             //Sets all the values needed for creating the sliders. wid is created to allow model values to be obtained in functions within this render function.
             var wid = this;
             var img_max = this.model.get("_series_max");
-            var vrange_min = this.model.get("_img_min");
-            var vrange_max = this.model.get("_img_max");
+            var vrange_min = this.model.get("_imgseries_min");
+            var vrange_max = this.model.get("_imgseries_max");
             var vrange_step = (vrange_max - vrange_min)/100;
             var vrange = [vrange_min, vrange_max];
 
@@ -35,7 +35,6 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
             data_vbox.width(1000 - this.model.get("width") * 1.1 - 25); data_vbox.height(this.model.get("height") * 1.25); data_vbox.css("padding", "5px");
 
             //Adds the img_vbox and data_vbox to the overall flexbox.
-
             widget_area.append(img_vbox);
             widget_area.append(data_vbox);
 
@@ -98,8 +97,8 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
             console.log(data_vbox);
             
             //Creates the label for the vertical slider with a static value of "Z range" (done in the same way as the other label)
-            var vslide_label = $('<input class="vslabel" type="text" readonly style="border:0">');
-            vslide_label.val("Z range");
+            var vslide_label = $('<div class="vslabel" style="border:0">');
+            vslide_label.text("Z range " + vrange);
             vslide_label.css("marginTop", "10px");
             vslide_label.css("marginBottom", "10px");
             //Creates the vertical slider using JQuery UI
@@ -111,11 +110,11 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
                 max: vrange_max,
                 values: vrange,
                 step: vrange_step,
-                /*When either handle slides, this function sets _img_min and/or _img_max on the backend to the handles' values.
+                /*When either handle slides, this function sets _img_view_min and/or _img_view_max on the backend to the handles' values.
                   This triggers the update_image function on the backend.*/
                 slide: function(event, ui) {
-                    wid.model.set("_img_min", ui.values[0]);
-                    wid.model.set("_img_max", ui.values[1]);
+                    wid.model.set("_img_view_min", ui.values[0]);
+                    wid.model.set("_img_view_max", ui.values[1]);
                     wid.touch();
                 }
             });
@@ -172,7 +171,6 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
             var src = "data:image/" + this.model.get("_format") + ";base64," + this.model.get("_b64value");
             this.$el.find(".curr-img").attr("src", src);
         }
-	
     });
 
 
