@@ -282,44 +282,44 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
                 }
                 else if (wid.model.get("_extrarows") != 0 && wid.model.get("_extracols") == 0) {
                     if (wid.model.get("_extrarows") % 2 == 0) {
-                        yrows_top = wid.model.get("_extrarows") / 2;
-                        yrows_bottom = wid.model.get("_extrarows") / 2;
+                        yrows_top = parseInt(wid.model.get("_extrarows") / 2);
+                        yrows_bottom = parseInt(wid.model.get("_extrarows") / 2);
                     }
                     else {
-                        yrows_top = wid.model.get("_extrarows") / 2 + 1;
-                        yrows_bottom = wid.model.get("_extrarows") / 2;
+                        yrows_top = parseInt(wid.model.get("_extrarows") / 2 + 1);
+                        yrows_bottom = parseInt(wid.model.get("_extrarows") / 2);
                     }
                     xcols_left = 0;
                     xcols_right = Number.MAX_SAFE_INTEGER;
                 }
                 else if (wid.model.get("_extrarows") == 0 && wid.model.get("_extracols") != 0) {
                     if (wid.model.get("_extracols") % 2 == 0) {
-                        xcols_left = wid.model.get("_extracols") / 2;
-                        xcols_right = wid.model.get("_extracols") / 2;
+                        xcols_left = parseInt(wid.model.get("_extracols") / 2);
+                        xcols_right = parseInt(wid.model.get("_extracols") / 2);
                     }
                     else {
-                        xcols_left = wid.model.get("_extracols") / 2 + 1;
-                        xcols_right = wid.model.get("_extracols") / 2;
+                        xcols_left = parseInt(wid.model.get("_extracols") / 2 + 1);
+                        xcols_right = parseInt(wid.model.get("_extracols") / 2);
                     }
                     yrows_top = 0;
                     yrows_bottom = Number.MAX_SAFE_INTEGER;
                 }
                 else {
                     if (wid.model.get("_extrarows") % 2 == 0) {
-                        yrows_top = wid.model.get("_extrarows") / 2;
-                        yrows_bottom = wid.model.get("_extrarows") / 2;
+                        yrows_top = parseInt(wid.model.get("_extrarows") / 2);
+                        yrows_bottom = parseInt(wid.model.get("_extrarows") / 2);
                     }
                     else {
-                        yrows_top = wid.model.get("_extrarows") / 2 + 1;
-                        yrows_bottom = wid.model.get("_extrarows") / 2;
+                        yrows_top = parseInt(wid.model.get("_extrarows") / 2 + 1);
+                        yrows_bottom = parseInt(wid.model.get("_extrarows") / 2);
                     }
                     if (wid.model.get("_extracols") % 2 == 0) {
-                        xcols_left = wid.model.get("_extracols") / 2;
-                        xcols_right = wid.model.get("_extracols") / 2;
+                        xcols_left = parseInt(wid.model.get("_extracols") / 2);
+                        xcols_right = parseInt(wid.model.get("_extracols") / 2);
                     }
                     else {
-                        xcols_left = wid.model.get("_extracols") / 2 + 1;
-                        xcols_right = wid.model.get("_extracols") / 2;
+                        xcols_left = parseInt(wid.model.get("_extracols") / 2 + 1);
+                        xcols_right = parseInt(wid.model.get("_extracols") / 2);
                     }
                 }
                 console.log("coords: (" + x_coordinate + ", " + y_coordinate + ")");

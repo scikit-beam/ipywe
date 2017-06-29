@@ -77,9 +77,9 @@ class ImageSlider(ipyw.DOMWidget):
             #arr = self.current_img.data
             col = int(self._offsetX*1./self.width * self._ncols_currimg)
             row = int(self._offsetY*1./self.height * self._nrows_currimg)
-            if col >= self.arr.shape[1]: col = self.arr.shape[1]-1
-            if row >= self.arr.shape[0]: row = self.arr.shape[0]-1
-            self._pix_val = self.arr[col, row]
+            if col >= self.curr_img_data.shape[1]: col = self.curr_img_data.shape[1]-1
+            if row >= self.curr_img_data.shape[0]: row = self.curr_img_data.shape[0]-1
+            self._pix_val = self.curr_img_data[row, col]
             self._err = ""
         except Exception:
             self._err = self.handle_error()
@@ -172,6 +172,7 @@ class ImageSlider(ipyw.DOMWidget):
             extrarows_bottom = np.full((addbottom, self._ncols), 1)
             self.curr_img_data = np.vstack((extrarows_top, self.curr_img_data, extrarows_bottom))
         else:
+            print("nrows > ncols")
             diff = self._nrows - self._ncols
             if diff % 2 == 0:
                 addleft = diff / 2
