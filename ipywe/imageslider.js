@@ -322,7 +322,6 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
                         xcols_right = parseInt(wid.model.get("_extracols") / 2);
                     }
                 }
-                console.log("coords: (" + x_coordinate + ", " + y_coordinate + ")");
                 if (y_coordinate < yrows_top || (y_coordinate > wid.model.get("_nrows_currimg") - yrows_bottom && yrows_bottom != Number.MAX_SAFE_INTEGER) || x_coordinate < xcols_left || (x_coordinate > wid.model.get("_ncols_currimg") - xcols_right && xcols_right != Number.MAX_SAFE_INTEGER)) {
                     x_coord.text("");
                     y_coord.text("");
