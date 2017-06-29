@@ -61,6 +61,7 @@ class ImageSlider(ipyw.DOMWidget):
         self.arr = self.current_img.data.copy()
         self.curr_img_data = self.arr.copy()
         self._nrows, self._ncols = self.arr.shape
+        self._nrows_currimg, self._ncols_currimg = self.arr.shape
         self._img_min, self._img_max = int(np.min(self.arr)), int(np.max(self.arr))
         self.update_image(None);
         super(ImageSlider, self).__init__()
@@ -79,7 +80,7 @@ class ImageSlider(ipyw.DOMWidget):
             row = int(self._offsetY*1./self.height * self._nrows_currimg)
             if col >= self.curr_img_data.shape[1]: col = self.curr_img_data.shape[1]-1
             if row >= self.curr_img_data.shape[0]: row = self.curr_img_data.shape[0]-1
-            self._pix_val = self.curr_img_data[row, col]
+            self._pix_val = float(self.curr_img_data[row, col])
             self._err = ""
         except Exception:
             self._err = self.handle_error()
@@ -172,7 +173,6 @@ class ImageSlider(ipyw.DOMWidget):
             extrarows_bottom = np.full((addbottom, self._ncols), 1)
             self.curr_img_data = np.vstack((extrarows_top, self.curr_img_data, extrarows_bottom))
         else:
-            print("nrows > ncols")
             diff = self._nrows - self._ncols
             if diff % 2 == 0:
                 addleft = diff / 2
@@ -248,7 +248,7 @@ class ImageSlider(ipyw.DOMWidget):
 
     @observe("_reset_click")
     def resetImg(self, change):
-        self.curr_img_series = self.image_series
+        self.curr_img_series = list(self.image_series)
         self._extrarows = 0
         self._extracols = 0 
         self.update_image(None)
