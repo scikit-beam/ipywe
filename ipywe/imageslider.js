@@ -270,8 +270,67 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
                 wid.model.set("_offsetX", event.offsetX);
                 wid.model.set("_offsetY", event.offsetY);
                 wid.touch();
-                x_coord.text(Math.floor(event.offsetX*1./(wid.model.get("width"))*(wid.model.get("_ncols"))));
-                y_coord.text(Math.floor(event.offsetY*1./(wid.model.get("height"))*(wid.model.get("_nrows"))));
+                console.log(wid.model.get("_extrarows"), wid.model.get("_extracols"));
+                var yrows_top, yrows_bottom, xcols_left, xcols_right, x_coordinate, y_coordinate;
+                x_coordinate = Math.floor(event.offsetX*1./(wid.model.get("width"))*(wid.model.get("_ncols_currimg")));
+                y_coordinate = Math.floor(event.offsetY*1./(wid.model.get("height"))*(wid.model.get("_nrows_currimg")));
+                if (wid.model.get("_extrarows") == 0 && wid.model.get("_extracols") == 0) {
+                    yrows_top = 0;
+                    yrows_bottom = Number.MAX_SAFE_INTEGER;
+                    xcols_left = 0;
+                    xcols_right = Number.MAX_SAFE_INTEGER;
+                }
+                else if (wid.model.get("_extrarows") != 0 && wid.model.get("_extracols") == 0) {
+                    if (wid.model.get("_extrarows") % 2 == 0) {
+                        yrows_top = wid.model.get("_extrarows") / 2;
+                        yrows_bottom = wid.model.get("_extrarows") / 2;
+                    }
+                    else {
+                        yrows_top = wid.model.get("_extrarows") / 2 + 1;
+                        yrows_bottom = wid.model.get("_extrarows") / 2;
+                    }
+                    xcols_left = 0;
+                    xcols_right = Number.MAX_SAFE_INTEGER;
+                }
+                else if (wid.model.get("_extrarows") == 0 && wid.model.get("_extracols") != 0) {
+                    if (wid.model.get("_extracols") % 2 == 0) {
+                        xcols_left = wid.model.get("_extracols") / 2;
+                        xcols_right = wid.model.get("_extracols") / 2;
+                    }
+                    else {
+                        xcols_left = wid.model.get("_extracols") / 2 + 1;
+                        xcols_right = wid.model.get("_extracols") / 2;
+                    }
+                    yrows_top = 0;
+                    yrows_bottom = Number.MAX_SAFE_INTEGER;
+                }
+                else {
+                    if (wid.model.get("_extrarows") % 2 == 0) {
+                        yrows_top = wid.model.get("_extrarows") / 2;
+                        yrows_bottom = wid.model.get("_extrarows") / 2;
+                    }
+                    else {
+                        yrows_top = wid.model.get("_extrarows") / 2 + 1;
+                        yrows_bottom = wid.model.get("_extrarows") / 2;
+                    }
+                    if (wid.model.get("_extracols") % 2 == 0) {
+                        xcols_left = wid.model.get("_extracols") / 2;
+                        xcols_right = wid.model.get("_extracols") / 2;
+                    }
+                    else {
+                        xcols_left = wid.model.get("_extracols") / 2 + 1;
+                        xcols_right = wid.model.get("_extracols") / 2;
+                    }
+                }
+                console.log("coords: (" + x_coordinate + ", " + y_coordinate + ")");
+                if (y_coordinate < yrows_top || (y_coordinate > wid.model.get("_nrows_currimg") - yrows_bottom && yrows_bottom != Number.MAX_SAFE_INTEGER) || x_coordinate < xcols_left || (x_coordinate > wid.model.get("_ncols_currimg") - xcols_right && xcols_right != Number.MAX_SAFE_INTEGER)) {
+                    x_coord.text("");
+                    y_coord.text("");
+                }
+                else {
+                    x_coord.text((x_coordinate - xcols_left));
+                    y_coord.text((y_coordinate - yrows_top));
+                }
             });
 
             //Triggers on_pixval_change and on_img_change when the backend values of _pix_val and _b64value change.
@@ -285,11 +344,16 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
 
         on_pixval_change: function() {
             console.log("Executing on_pixval_change");
-            if (this.model.get("_err") == "") {
-                this.$el.find(".img-value").text(this.model.get("_pix_val"));
+            if (this.$el.find(".img-offsetx").text() == "" && this.$el.find(".img-offsety").text() == "") {
+                this.$el.find(".img-value").text("");
             }
             else {
-                this.$el.find(".img-value").text(this.model.get("_err"));
+                if (this.model.get("_err") == "") {
+                    this.$el.find(".img-value").text(this.model.get("_pix_val"));
+                }
+                else {
+                    this.$el.find(".img-value").text(this.model.get("_err"));
+                }
             }
         },
 

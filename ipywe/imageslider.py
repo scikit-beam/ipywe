@@ -33,6 +33,10 @@ class ImageSlider(ipyw.DOMWidget):
     _zoom_click = Integer(0).tag(sync=True)
     _reset_click = Integer(0).tag(sync=True)
     _zoomall_click = Integer(0).tag(sync=True)
+    _extrarows = Integer(0).tag(sync=True)
+    _extracols = Integer(0).tag(sync=True)
+    _nrows_currimg = Integer().tag(sync=True)
+    _ncols_currimg = Integer().tag(sync=True)
 
     height = Integer().tag(sync=True)
     img_index = Integer(0).tag(sync=True)
@@ -71,8 +75,8 @@ class ImageSlider(ipyw.DOMWidget):
         
         try:
             #arr = self.current_img.data
-            col = int(self._offsetX*1./self.width * self._ncols)
-            row = int(self._offsetY*1./self.height * self._nrows)
+            col = int(self._offsetX*1./self.width * self._ncols_currimg)
+            row = int(self._offsetY*1./self.height * self._nrows_currimg)
             if col >= self.arr.shape[1]: col = self.arr.shape[1]-1
             if row >= self.arr.shape[0]: row = self.arr.shape[0]-1
             self._pix_val = self.arr[col, row]
@@ -135,6 +139,7 @@ class ImageSlider(ipyw.DOMWidget):
         else:
             self.arr = self.current_img.data.copy()
         self._nrows, self._ncols = self.arr.shape
+        self._nrows_currimg, self._ncols_currimg = self.arr.shape
         self.curr_img_data = self.arr.copy()
         self._b64value = self.getimg_bytes()
         return
@@ -177,6 +182,11 @@ class ImageSlider(ipyw.DOMWidget):
             extrarows_left = np.full((self._nrows, addleft), 1)
             extrarows_right = np.full((self._nrows, addright), 1)
             self.curr_img_data = np.hstack((extrarows_left, self.curr_img_data, extrarows_right))
+        self._nrows_currimg, self._ncols_currimg = self.curr_img_data.shape
+        if self._nrows_currimg > self._nrows:
+            self._extrarows = self._nrows_currimg - self._nrows
+        if self._ncols_currimg > self._ncols:
+            self._extracols = self._ncols_currimg - self._ncols
         self.curr_img_series[self.img_index] = self.curr_img_data
         self._b64value = self.getimg_bytes()
         return
@@ -226,13 +236,20 @@ class ImageSlider(ipyw.DOMWidget):
                 extrarows_right = np.full((self._nrows, addright), 1)
                 newimg = np.hstack((extrarows_left, newimg, extrarows_right))
             new_series.append(newimg)
+        self._nrows_currimg, self._ncols_currimg = new_series[0].shape
+        if self._nrows_currimg > self._nrows:
+            self._extrarows = self._nrows_currimg - self._nrows
+        if self._ncols_currimg > self._ncols:
+            self._extracols = self._ncols_currimg - self._ncols
         self.curr_img_series = list(new_series)
         self.update_image(None)
         return
 
     @observe("_reset_click")
     def resetImg(self, change):
-        self.curr_img_series = self.image_series 
+        self.curr_img_series = self.image_series
+        self._extrarows = 0
+        self._extracols = 0 
         self.update_image(None)
         return
 
