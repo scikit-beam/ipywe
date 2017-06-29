@@ -63,10 +63,22 @@ class ImageSlider(ipyw.DOMWidget):
         self._nrows, self._ncols = self.arr.shape
         self._nrows_currimg, self._ncols_currimg = self.arr.shape
         self._img_min, self._img_max = int(np.min(self.arr)), int(np.max(self.arr))
-        self.update_image(None);
+        self.get_series_minmax()
+        self.update_image(None)
         super(ImageSlider, self).__init__()
         return
-    
+
+    def get_series_minmax(self):
+        for i in self.image_series:
+            img = i.data.copy()
+            curr_min = int(np.min(img))
+            curr_max = int(np.max(img))
+            if curr_min < self._img_min:
+                self._img_min = curr_min
+            if curr_max > self._img_max:
+                self._img_max = curr_max
+        return
+                
     #This function is called when the values of _offsetX and/or _offsetY change.
     @observe("_offsetX", "_offsetY")
     def get_val(self, change):
