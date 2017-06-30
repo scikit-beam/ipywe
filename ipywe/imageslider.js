@@ -245,7 +245,11 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
             var value = $("<div>"); value.text("Value: ");
             var val = $('<span class="img-value">');
             value.append(val);
-            text_content.append(xy); text_content.append(value);
+            var roi = $("<div>"); roi.text("ROI: ");
+            var corners = $('<span class="roi">');
+            roi.append(corners);
+            corners.css("whiteSpace", "pre");
+            text_content.append(xy); text_content.append(value); text_content.append(roi);
             data_vbox.append(text_content);
             console.log(data_vbox);
             
@@ -363,9 +367,12 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
                 }
             });
 
+            this.calc_roi();
+
             //Triggers on_pixval_change and on_img_change when the backend values of _pix_val and _b64value change.
             this.model.on("change:_pix_val", this.on_pixval_change, this);
             this.model.on("change:_b64value", this.on_img_change, this);
+            this.model.on("change:_b64value", this.calc_roi, this);
         },
 
         /*If the text of the coordinate fields (x_coord and y_coord) contain empty strings, the value field will 
@@ -394,6 +401,18 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
             console.log("Executing on_img_change");
             var src = "data:image/" + this.model.get("_format") + ";base64," + this.model.get("_b64value");
             this.$el.find(".curr-img").attr("src", src);
+        },
+
+        calc_roi: function() {
+            var topleft = "(" + this.model.get("_xcoord_absolute") + ", " + this.model.get("_ycoord_absolute") + ")";
+            var right = this.model.get("_xcoord_absolute") + this.model.get("_ncols_currimg") - this.model.get("_extracols");
+            var bottom = this.model.get("_ycoord_absolute") + this.model.get("_nrows_currimg") - this.model.get("_extrarows");
+            var topright = "(" + right + ", " + this.model.get("_ycoord_absolute") + ")";
+            var bottomleft = "(" + this.model.get("_xcoord_absolute") + ", " + bottom + ")";
+            var bottomright = "(" + right + ", " + bottom + ")";
+            var corns = topleft + "  " + topright + "\n        " + bottomleft + "  " + bottomright;
+            console.log(corns);
+            this.$el.find(".roi").text(corns);
         }
 	
     });
