@@ -327,8 +327,8 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
                     y_coord.text("");
                 }
                 else {
-                    x_coord.text((x_coordinate - xcols_left));
-                    y_coord.text((y_coordinate - yrows_top));
+                    x_coord.text((x_coordinate - xcols_left) + wid.model.get("_xcoord_absolute"));
+                    y_coord.text((y_coordinate - yrows_top) + wid.model.get("_ycoord_absolute"));
                 }
             });
 
