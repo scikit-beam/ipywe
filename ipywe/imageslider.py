@@ -37,6 +37,8 @@ class ImageSlider(ipyw.DOMWidget):
     _extracols = Integer(0).tag(sync=True)
     _nrows_currimg = Integer().tag(sync=True)
     _ncols_currimg = Integer().tag(sync=True)
+    _xcoord_absolute = Integer(0).tag(sync=True)
+    _ycoord_absolute = Integer(0).tag(sync=True)
 
     height = Integer().tag(sync=True)
     img_index = Integer(0).tag(sync=True)
@@ -45,6 +47,14 @@ class ImageSlider(ipyw.DOMWidget):
     
     def __init__(self, image_series, width, height):
         """Constructor method for setting the necessary member variables that are synced between the front- and back-ends.
+        Creates the following non-synced member variables:
+
+            *image_series: the list containing the original series of image objects passed by the image_series parameter. This variable is not changed in the code to preserve the original data.
+            *curr_img_series: the list containing the image series that is currently being displayed by the widget. Contains image objects (if no images have been changed or if they've been reset), numpy arrays corresponding to zoomed images, or a combination of the two (if only single images have been changed)
+            *current_img: the image object or corresponding numpy array of data that is currently being displayed
+            *arr: a numpy array containing the data for the current image that does not contain buffer rows/columns
+            *curr_img_data: a numpy array containing the data for the current image, including buffer rows/columns
+
         
         Parameters:
         
@@ -159,10 +169,10 @@ class ImageSlider(ipyw.DOMWidget):
 
     @observe("_zoom_click")
     def zoomImg(self, change):
-        left = int(self._offXtop*1./self.width * self._ncols)
-        right = int(self._offXbottom*1./self.width*self._ncols)
-        top = int(self._offYtop*1./self.height*self._nrows)
-        bottom = int(self._offYbottom*1./self.height*self._nrows)
+        left = int(self._offXtop*1./self.width * self._ncols_currimg)
+        right = int(self._offXbottom*1./self.width*self._ncols_currimg)
+        top = int(self._offYtop*1./self.height*self._nrows_currimg)
+        bottom = int(self._offYbottom*1./self.height*self._nrows_currimg)
         if (right - left) == 0 and (bottom - top) == 0:
             right = left + 1
             bottom = top + 1
@@ -170,7 +180,9 @@ class ImageSlider(ipyw.DOMWidget):
             right = left + 1
         if (bottom - top) == 0:
             bottom = top + 1
-        self.arr = self.arr[top:bottom, left:right]
+        self.arr = self.curr_img_data[top:bottom, left:right]
+        self._xcoord_absolute += left
+        self._ycoord_absolute += top
         self._nrows, self._ncols = self.arr.shape
         self.curr_img_data = self.arr.copy()
         if self._ncols > self._nrows:
@@ -206,10 +218,10 @@ class ImageSlider(ipyw.DOMWidget):
 
     @observe("_zoomall_click")
     def zoomAll(self, change):
-        left = int(self._offXtop*1./self.width * self._ncols)
-        right = int(self._offXbottom*1./self.width*self._ncols)
-        top = int(self._offYtop*1./self.height*self._nrows)
-        bottom = int(self._offYbottom*1./self.height*self._nrows)
+        left = int(self._offXtop*1./self.width * self._ncols_currimg)
+        right = int(self._offXbottom*1./self.width*self._ncols_currimg)
+        top = int(self._offYtop*1./self.height*self._nrows_currimg)
+        bottom = int(self._offYbottom*1./self.height*self._nrows_currimg)
         if (right - left) == 0 and (bottom - top) == 0:
             right = left + 1
             bottom = top + 1
