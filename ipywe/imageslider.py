@@ -174,6 +174,8 @@ class ImageSlider(ipyw.DOMWidget):
 
     @observe("_zoom_click")
     def zoomImg(self, change):
+        self._extrarows = 0
+        self._extracols = 0
         left = int(self._offXtop*1./self.width * self._ncols_currimg)
         right = int(self._offXbottom*1./self.width*self._ncols_currimg)
         top = int(self._offYtop*1./self.height*self._nrows_currimg)
@@ -227,6 +229,8 @@ class ImageSlider(ipyw.DOMWidget):
 
     @observe("_zoomall_click")
     def zoomAll(self, change):
+        self._extrarows = 0
+        self._extracols = 0
         left = int(self._offXtop*1./self.width * self._ncols_currimg)
         right = int(self._offXbottom*1./self.width*self._ncols_currimg)
         top = int(self._offYtop*1./self.height*self._nrows_currimg)
