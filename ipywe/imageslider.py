@@ -63,33 +63,34 @@ class ImageSlider(ipyw.DOMWidget):
             *width: an integer that is used to set the width of the image and UI elements.
             *height: an integer that is used to set the height of the image and UI elements."""
         
+        assert len(image_series), "Image series cannot be empty"
         self.image_series = image_series
         self.curr_img_series = list(self.image_series)
         self.width = width
         self.height = height
         self._series_max = len(self.image_series) - 1
         self.current_img = self.image_series[self.img_index]
-        self.arr = self.current_img.data.copy()
+        self.arr = self.current_img.data.copy().astype("float")
         self.curr_img_data = self.arr.copy()
         self._nrows, self._ncols = self.arr.shape
         self._nrows_currimg, self._ncols_currimg = self.arr.shape
         self.ybuff = 0
         self.xbuff = 0
-        self._img_min, self._img_max = int(np.min(self.arr)), int(np.max(self.arr))
         self.get_series_minmax()
         self.update_image(None)
         super(ImageSlider, self).__init__()
         return
 
-    def get_series_minmax(self):
-        for i in self.image_series:
-            img = i.data.copy()
-            curr_min = int(np.min(img))
-            curr_max = int(np.max(img))
-            if curr_min < self._img_min:
-                self._img_min = curr_min
-            if curr_max > self._img_max:
-                self._img_max = curr_max
+    def get_series_minmax(self, sample_size=10):
+        img_series = list(self.image_series)
+        N = len(img_series)
+        if N < sample_size:
+            data = [img.data for img in img_series]
+        else:
+            indexes = np.random.choice(N, sample_size, replace=False)
+            data = [img_series[i].data for i in indexes]
+        self._img_min = float(np.min(data))
+        self._img_max = float(np.max(data))
         return
                 
     #This function is called when the values of _offsetX and/or _offsetY change.
@@ -116,10 +117,11 @@ class ImageSlider(ipyw.DOMWidget):
         
         If _img_min and/or _img_max have been changed from their default values, this function will also change the image data to account for this change before encoding the data into Base64."""
         
-        #arr = self.current_img.data.copy()
+        if self._img_min >= self._img_max:
+            self._img_max = self._img_min + (self._img_max - self._img_min) * 1e-5
         self.curr_img_data[self.curr_img_data<self._img_min] = self._img_min
         self.curr_img_data[self.curr_img_data>self._img_max] = self._img_max
-        img = ((self.curr_img_data-self._img_min)/(self._img_max-self._img_min)*(2**15-1)).astype('int16')
+        img = ((self.curr_img_data-self._img_min)/(self._img_max-self._img_min)*(2**8-1)).astype('uint8')
         size = np.max(img.shape)
         view_size = np.max((self.width, self.height))
         if size>view_size:
@@ -161,9 +163,9 @@ class ImageSlider(ipyw.DOMWidget):
         
         self.current_img = self.curr_img_series[self.img_index]
         if type(self.current_img) is np.ndarray:
-            self.arr = self.current_img.copy()
+            self.arr = self.current_img.copy().astype("float")
         else:
-            self.arr = self.current_img.data.copy()
+            self.arr = self.current_img.data.copy().astype("float")
         self._nrows, self._ncols = self.arr.shape
         self._nrows_currimg, self._ncols_currimg = self.arr.shape
         self.curr_img_data = self.arr.copy()
@@ -243,9 +245,9 @@ class ImageSlider(ipyw.DOMWidget):
         self._ncols = right - left
         for img in self.curr_img_series:
             if type(img) is np.ndarray:
-                imgdata = img
+                imgdata = img.astype("float")
             else:
-                imgdata = img.data.copy()
+                imgdata = img.data.copy().astype("float")
             newimg = imgdata[top:bottom, left:right]
             if self._ncols > self._nrows:
                 diff = self._ncols - self._nrows

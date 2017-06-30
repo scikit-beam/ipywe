@@ -227,8 +227,8 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
             console.log(data_vbox);
             
             //Creates the label for the vertical slider with a static value of "Z range" (done in the same way as the other label)
-            var vslide_label = $('<input class="vslabel" type="text" readonly style="border:0">');
-            vslide_label.val("Z range");
+            var vslide_label = $('<div class="vslabel" type="text" readonly style="border:0">');
+            vslide_label.text("Z range: " + vrange);
             vslide_label.css("marginTop", "10px");
             vslide_label.css("marginBottom", "10px");
             //Creates the vertical slider using JQuery UI
