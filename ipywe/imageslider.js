@@ -93,7 +93,7 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
             img_vbox.append(hslide_html);
             img_vbox.append(hslide_label);
 
-            //Creates a zoom button, a zoom all button, and a reset button after the label
+            //Creates and adds a button after hslide_label for zooming into a single image
             var zoom_button = $('<button class="zoom-button">');
             zoom_button.button({
                 label: "Zoom",
@@ -101,6 +101,10 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
             });
             zoom_button.css("margin", "10px");
             img_vbox.append(zoom_button);
+            /*When zoom_button is clicked, the synced variable _zoom_click is either incremented or
+              reset to 0 (if its value is almost too large for Javascript to safely handle). 
+              This triggeres the zoomImg python function. The selection box is also removed.
+            */
             zoom_button.click(function() {
                 var zoom_val = wid.model.get("_zoom_click");
                 if (zoom_val < Number.MAX_SAFE_INTEGER) {
@@ -115,6 +119,7 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
                 console.log("Zoomed");
             });
 
+            //Creates and adds a button after zoom_button for zooming into all images
             var zoomall_button = $('<button class="zoom-button">');
             zoomall_button.button({
                 label: "Zoom All",
@@ -122,6 +127,9 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
             });
             zoomall_button.css("margin", "10px");
             img_vbox.append(zoomall_button);
+            /*When zoomall_button is clicked, the synced variable _zoomall_click is either incremented or
+              reset to 0. This triggers the zoomAll python function. The selection box is also removed.
+            */
             zoomall_button.click(function() {
                 var zoomall_val = wid.model.get("_zoomall_click");
                 if (zoomall_val < Number.MAX_SAFE_INTEGER) {
@@ -136,6 +144,7 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
                 console.log("All images zoomed");
             });
 
+            //Creates and adds a button after zoomall_button for reseting all displayed images.
             var reset_button = $('<button class="reset-button">')
             reset_button.button({
                 label: "Reset",
@@ -143,6 +152,9 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
             });
             reset_button.css("margin", "10px");
             img_vbox.append(reset_button);
+            /*When reset_button is clicked, the synced variable _reset_click is either incremented or
+              reset to 0. This triggers the resetImg python function. The selection box is also removed.
+            */
             reset_button.click(function() {
                 var reset_val = wid.model.get("_reset_click");
                 if (reset_val < Number.MAX_SAFE_INTEGER) {
@@ -157,16 +169,19 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
                 console.log("Image reset");
             });
 
-            //Adds the selection box and changes its size as the mouse moves over the image
+            //Creates the selection box's div.
             var select = $('<div class="selection-box">');
 
+            //Prevents the displayed image from being dragged (done to prevent issues with the following code.
             img.on("dragstart", false);
 
+            //Controls creating, changing, and displaying the selection box.
             img_container.on("mousedown", function(event) {
                 console.log("Click 1");
                 var click_x = event.offsetX;
                 var click_y = event.offsetY;
                 
+                //Initializes the selection box and adds it to img_container
                 select.css({
                     "top": click_y,
                     "left": click_x,
@@ -186,9 +201,15 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
                     var height = Math.abs(move_y - click_y);
                     var new_x, new_y;
 
+                    /*The logic that allows the creation of a selection box where the final
+                      mouse position is up and left from the initial position.
+                    */
                     new_x = (move_x < click_x) ? (click_x - width) : click_x;
                     new_y = (move_y < click_y) ? (click_y - height) : click_y;
 
+                    /*As the mouse moves, this statement dynamically resizes the selection
+                      box.
+                    */
                     select.css({
                         "width": width - 1,
                         "height": height - 1,
@@ -198,6 +219,7 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
                         "border": "2px solid red"
                     });
 
+                    //Sets the variables used to splice the image's data on the backend
                     wid.model.set("_offXtop", parseInt(select.css("left"), 10));
                     wid.model.set("_offYtop", parseInt(select.css("top"), 10));
                     wid.model.set("_offXbottom", parseInt(select.css("left"), 10) + select.width());
@@ -205,6 +227,7 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
                     wid.touch();
 
                 }).on("mouseup", function(event) {
+                    //Turns the mousemove event off to stop resizing the selection box.
                     console.log("Click 2");
                     img_container.off("mousemove");
                 });
@@ -270,10 +293,13 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
                 wid.model.set("_offsetX", event.offsetX);
                 wid.model.set("_offsetY", event.offsetY);
                 wid.touch();
+
                 console.log(wid.model.get("_extrarows"), wid.model.get("_extracols"));
                 var yrows_top, yrows_bottom, xcols_left, xcols_right, x_coordinate, y_coordinate;
                 x_coordinate = Math.floor(event.offsetX*1./(wid.model.get("width"))*(wid.model.get("_ncols_currimg")));
                 y_coordinate = Math.floor(event.offsetY*1./(wid.model.get("height"))*(wid.model.get("_nrows_currimg")));
+
+                //All of this logic is used to get the correct coordinates for images containing buffer rows/columns.
                 if (wid.model.get("_extrarows") == 0 && wid.model.get("_extracols") == 0) {
                     yrows_top = 0;
                     yrows_bottom = Number.MAX_SAFE_INTEGER;
@@ -322,6 +348,11 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
                         xcols_right = parseInt(wid.model.get("_extracols") / 2);
                     }
                 }
+
+                /*If the mouse is in a buffer area, the text for the x_coord and y_coord HTML fields are set to empty strings.
+                  Otherwise, these text elements are set to be a string containing the mouse position relative to the 
+                  original, un-zoomed image.
+                */
                 if (y_coordinate < yrows_top || (y_coordinate > wid.model.get("_nrows_currimg") - yrows_bottom && yrows_bottom != Number.MAX_SAFE_INTEGER) || x_coordinate < xcols_left || (x_coordinate > wid.model.get("_ncols_currimg") - xcols_right && xcols_right != Number.MAX_SAFE_INTEGER)) {
                     x_coord.text("");
                     y_coord.text("");
@@ -337,10 +368,11 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
             this.model.on("change:_b64value", this.on_img_change, this);
         },
 
-        /*If there is no custom error message, this function sets the value of the img-value span field to
-          the value of _pix_val from the backend. Otherwise, it sets the value of this field to the value of
-          err (the error message).*/
-
+        /*If the text of the coordinate fields (x_coord and y_coord) contain empty strings, the value field will 
+          also be set to an empty string. Otherwise, if there is no custom error message, this field will be
+          set to the image's value at the mouse's position. If there is a custom error message, it will be
+          displayed in the value field.
+        */
         on_pixval_change: function() {
             console.log("Executing on_pixval_change");
             if (this.$el.find(".img-offsetx").text() == "" && this.$el.find(".img-offsety").text() == "") {
@@ -358,7 +390,6 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
 
         /*When _b64value changes on the backend, this function creates a new source string for the image (based
           on the new value of _b64value). This new source then replaces the old source of the image.*/
-
         on_img_change: function() {
             console.log("Executing on_img_change");
             var src = "data:image/" + this.model.get("_format") + ";base64," + this.model.get("_b64value");

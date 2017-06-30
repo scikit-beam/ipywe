@@ -25,7 +25,12 @@ class ImageSlider(ipyw.DOMWidget):
     _offsetY = Integer().tag(sync=True)
     _pix_val = Float().tag(sync=True)
     _series_max = Integer().tag(sync=True)
+
+    height = Integer().tag(sync=True)
+    img_index = Integer(0).tag(sync=True)
+    width = Integer().tag(sync=True)
     
+    #These variables were added to support zoom functionality
     _offXtop = Float().tag(sync=True)
     _offXbottom = Float().tag(sync=True)
     _offYtop = Float().tag(sync=True)
@@ -39,14 +44,11 @@ class ImageSlider(ipyw.DOMWidget):
     _ncols_currimg = Integer().tag(sync=True)
     _xcoord_absolute = Integer(0).tag(sync=True)
     _ycoord_absolute = Integer(0).tag(sync=True)
-
-    height = Integer().tag(sync=True)
-    img_index = Integer(0).tag(sync=True)
-    width = Integer().tag(sync=True)
   
     
     def __init__(self, image_series, width, height):
         """Constructor method for setting the necessary member variables that are synced between the front- and back-ends.
+        
         Creates the following non-synced member variables:
 
             *image_series: the list containing the original series of image objects passed by the image_series parameter. This variable is not changed in the code to preserve the original data.
@@ -56,7 +58,6 @@ class ImageSlider(ipyw.DOMWidget):
             *curr_img_data: a numpy array containing the data for the current image, including buffer rows/columns
             *xbuff and ybuff: the number of buffer rows in the previously displayed image
 
-        
         Parameters:
         
             *image_series: a list of ImageFile objects (see https://github.com/ornlneutronimaging/iMars3D/blob/master/python/imars3d/ImageFile.py for more details). This list is used to give the widget access to the images that are to be viewed.
@@ -82,6 +83,12 @@ class ImageSlider(ipyw.DOMWidget):
         return
 
     def get_series_minmax(self, sample_size=10):
+        """Determines the absolute minimum and maximum image values of either all the images in self.image_series
+        or of 'sample_size' random images from self.image_series
+           
+        Parameters:
+            *sample_size: the maximum number of images to use in determining _img_min and _img_max. By default, its value is 10."""
+
         img_series = list(self.image_series)
         N = len(img_series)
         if N < sample_size:
@@ -115,7 +122,7 @@ class ImageSlider(ipyw.DOMWidget):
     def getimg_bytes(self):
         """Encodes the data for the currently viewed image into Base64.
         
-        If _img_min and/or _img_max have been changed from their default values, this function will also change the image data to account for this change before encoding the data into Base64."""
+        If _img_min and/or _img_max have been changed from their initial values, this function will also change the image data to account for this change before encoding the data into Base64."""
         
         if self._img_min >= self._img_max:
             self._img_max = self._img_min + (self._img_max - self._img_min) * 1e-5
@@ -172,8 +179,21 @@ class ImageSlider(ipyw.DOMWidget):
         self._b64value = self.getimg_bytes()
         return
 
+    #This function is called when _zoom_click changes.
     @observe("_zoom_click")
     def zoomImg(self, change):
+        """The function that controlls zooming on a single image.
+ 
+        It calculates the indicies of the four corners of the region to zoom into and splices the data for the current image
+        so that it only contains the desired region.
+
+        The function then copies the zoomed data and adds buffer rows/columns to the copy to insure the data used to create
+        the image is a square numpy array.
+
+        Then, the number of extra rows and/or columns is calculated, and the new data for the image is added to curr_img_series.
+
+        Finally, the zoomed image data is converted to a displayable image by calling the getimg_bytes function."""
+
         self._extrarows = 0
         self._extracols = 0
         left = int(self._offXtop*1./self.width * self._ncols_currimg)
@@ -227,8 +247,16 @@ class ImageSlider(ipyw.DOMWidget):
         self._b64value = self.getimg_bytes()
         return
 
+    #This function is triggered when the value of _zoomall_click changes.
     @observe("_zoomall_click")
     def zoomAll(self, change):
+        """The function that controlls zooming on all images.
+
+        The process for zooming is the same as zoomImg, but it is mostly contained within a for loop over
+        the elements of curr_img_series.
+
+        Instead of calling getimg_bytes at the end, this function calls the update_image function."""
+
         self._extrarows = 0
         self._extracols = 0
         left = int(self._offXtop*1./self.width * self._ncols_currimg)
@@ -289,8 +317,13 @@ class ImageSlider(ipyw.DOMWidget):
         self.update_image(None)
         return
 
+    #This function is triggered when the value of _reset_click changes.
     @observe("_reset_click")
     def resetImg(self, change):
+        """Resets all variables that are involved in zooming to their default values.
+
+        After resetting, the update_image function is called."""
+
         self.curr_img_series = list(self.image_series)
         self._extrarows = 0
         self._extracols = 0 
@@ -303,10 +336,14 @@ class ImageSlider(ipyw.DOMWidget):
 
 
 def get_js():
+    """Locates, opens, and reads the imageslider.js file from the same directory as imageslider.py."""
+
     js = open(os.path.join(os.path.dirname(__file__), 'imageslider.js')).read()
     return js.decode("UTF-8")
 
 def run_js():
+    """Obtains the content of the imageslider.js file from get_js and runs the Javascript code."""
+
     js = get_js()
     # get_ipython().run_cell_magic(u'javascript', u'', js)
     display(HTML("<script>"+js+"</script>"))
