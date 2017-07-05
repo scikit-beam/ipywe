@@ -48,8 +48,8 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
             img_container.css({
                 position: "relative",
                 width: this.model.get("width"),
-                height: this.model.get("height"),
-                padding: "10px"
+                height: this.model.get("height")
+                //padding: "10px"
             });
 
             //Creates the image stored in the initial value of _b64value and adds it to img_vbox.
@@ -80,13 +80,13 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
             
             //Sets the label's initial value to the initial value of the slider and adds a left margin to the label
             hslide_label.val(hslide_html.slider("value"));
-            hslide_label.css("marginLeft", "7px");
             hslide_label.width("15%");
             //Makes the slider's handle a blue circle and adds a 10 pixel margin to the slider
             var hslide_handle = hslide_html.find(".ui-slider-handle");
             hslide_handle.css("borderRadius", "50%");
             hslide_handle.css("background", "#0099e6");
-            hslide_html.css("margin", "10px");
+            hslide_html.width(this.model.get("width"));
+            hslide_html.css("marginLeft", "7px");
             hslide_html.css("marginBottom", "5px");
             hslide_html.css("marginTop", "20px");
             //Adds hslide_html (the slider) and hslide_label (the label) to img_vbox
@@ -283,7 +283,7 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
             vslide_bar.siblings().css("borderRadius", "50%");
             vslide_bar.siblings().css("background", "#0099e6");
             //Adds vslide_label and vslide_html to data_vbox. At this point, the widget can be successfully displayed.
-            vslide_html.height(this.model.get("height") * 0.75);
+            vslide_html.height(this.model.get("height") * 0.7);
             data_vbox.append(vslide_label);
             data_vbox.append(vslide_html);
             console.log(data_vbox);
