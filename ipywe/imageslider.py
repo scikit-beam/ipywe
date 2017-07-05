@@ -37,7 +37,7 @@ class ImageSlider(ipyw.DOMWidget):
     _offYbottom = Float().tag(sync=True)
     _zoom_click = Integer(0).tag(sync=True)
     _reset_click = Integer(0).tag(sync=True)
-    _zoomall_click = Integer(0).tag(sync=True)
+    #_zoomall_click = Integer(0).tag(sync=True)
     _extrarows = Integer(0).tag(sync=True)
     _extracols = Integer(0).tag(sync=True)
     _nrows_currimg = Integer().tag(sync=True)
@@ -77,6 +77,10 @@ class ImageSlider(ipyw.DOMWidget):
         self._nrows_currimg, self._ncols_currimg = self.arr.shape
         self.ybuff = 0
         self.xbuff = 0
+        self.left = -1
+        self.right = -1
+        self.top = -1
+        self.bottom = -1
         self.get_series_minmax()
         self.update_image(None)
         super(ImageSlider, self).__init__()
@@ -176,12 +180,24 @@ class ImageSlider(ipyw.DOMWidget):
         self._nrows, self._ncols = self.arr.shape
         self._nrows_currimg, self._ncols_currimg = self.arr.shape
         self.curr_img_data = self.arr.copy()
+        if self.left != -1 and self.right != -1 and self.top != -1 and self.bottom != -1:
+            self.handle_zoom()
+            return
         self._b64value = self.getimg_bytes()
         return
 
     #This function is called when _zoom_click changes.
     @observe("_zoom_click")
     def zoomImg(self, change):
+        self.left = int(self._offXtop*1./self.width * self._ncols_currimg)
+        self.right = int(self._offXbottom*1./self.width*self._ncols_currimg)
+        self.top = int(self._offYtop*1./self.height*self._nrows_currimg)
+        self.bottom = int(self._offYbottom*1./self.height*self._nrows_currimg)
+        self._xcoord_absolute += (self.left - self.xbuff)
+        self._ycoord_absolute += (self.top - self.ybuff)
+        self.update_image(None)
+
+    def handle_zoom(self):
         """The function that controlls zooming on a single image.
  
         It calculates the indicies of the four corners of the region to zoom into and splices the data for the current image
@@ -196,20 +212,16 @@ class ImageSlider(ipyw.DOMWidget):
 
         self._extrarows = 0
         self._extracols = 0
-        left = int(self._offXtop*1./self.width * self._ncols_currimg)
-        right = int(self._offXbottom*1./self.width*self._ncols_currimg)
-        top = int(self._offYtop*1./self.height*self._nrows_currimg)
-        bottom = int(self._offYbottom*1./self.height*self._nrows_currimg)
-        if (right - left) == 0 and (bottom - top) == 0:
-            right = left + 1
-            bottom = top + 1
-        if (right - left) == 0:
-            right = left + 1
-        if (bottom - top) == 0:
-            bottom = top + 1
-        self._xcoord_absolute += (left - self.xbuff)
-        self._ycoord_absolute += (top - self.ybuff)
-        self.arr = self.curr_img_data[top:bottom, left:right]
+        select_width = self.right - self.left
+        select_height = self.bottom - self.top
+        if select_width == 0 and select_height == 0:
+            select_width = 1
+            select_height = 1
+        if select_width == 0:
+            select_width = 1
+        if select_height == 0:
+            select_height = 1
+        self.arr = self.curr_img_series[self.img_index].data[self._ycoord_absolute:(self._ycoord_absolute + select_height), self._xcoord_absolute:(self._xcoord_absolute + select_width)]
         self._nrows, self._ncols = self.arr.shape
         self.curr_img_data = self.arr.copy()
         if self._ncols > self._nrows:
@@ -243,19 +255,19 @@ class ImageSlider(ipyw.DOMWidget):
             self._extrarows = self._nrows_currimg - self._nrows
         if self._ncols_currimg > self._ncols:
             self._extracols = self._ncols_currimg - self._ncols
-        self.curr_img_series[self.img_index] = self.curr_img_data
         self._b64value = self.getimg_bytes()
+        #self.curr_img_series[self.img_index] = self.curr_img_data
         return
 
-    #This function is triggered when the value of _zoomall_click changes.
+    """#This function is triggered when the value of _zoomall_click changes.
     @observe("_zoomall_click")
     def zoomAll(self, change):
-        """The function that controlls zooming on all images.
+        ///The function that controlls zooming on all images.
 
         The process for zooming is the same as zoomImg, but it is mostly contained within a for loop over
         the elements of curr_img_series.
 
-        Instead of calling getimg_bytes at the end, this function calls the update_image function."""
+        Instead of calling getimg_bytes at the end, this function calls the update_image function.///
 
         self._extrarows = 0
         self._extracols = 0
@@ -315,7 +327,7 @@ class ImageSlider(ipyw.DOMWidget):
             self._extracols = self._ncols_currimg - self._ncols
         self.curr_img_series = list(new_series)
         self.update_image(None)
-        return
+        return"""
 
     #This function is triggered when the value of _reset_click changes.
     @observe("_reset_click")
@@ -325,6 +337,10 @@ class ImageSlider(ipyw.DOMWidget):
         After resetting, the update_image function is called."""
 
         self.curr_img_series = list(self.image_series)
+        self.right = -1
+        self.left = -1
+        self.top = -1
+        self.bottom = -1
         self._extrarows = 0
         self._extracols = 0 
         self.xbuff = 0

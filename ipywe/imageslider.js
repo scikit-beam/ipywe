@@ -120,7 +120,7 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
             });
 
             //Creates and adds a button after zoom_button for zooming into all images
-            var zoomall_button = $('<button class="zoom-button">');
+            /*var zoomall_button = $('<button class="zoom-button">');
             zoomall_button.button({
                 label: "Zoom All",
                 disabled: false
@@ -129,7 +129,7 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
             img_vbox.append(zoomall_button);
             /*When zoomall_button is clicked, the synced variable _zoomall_click is either incremented or
               reset to 0. This triggers the zoomAll python function. The selection box is also removed.
-            */
+            
             zoomall_button.click(function() {
                 var zoomall_val = wid.model.get("_zoomall_click");
                 if (zoomall_val < Number.MAX_SAFE_INTEGER) {
@@ -142,7 +142,7 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
                 wid.touch();
                 select.remove();
                 console.log("All images zoomed");
-            });
+            });*/
 
             //Creates and adds a button after zoomall_button for reseting all displayed images.
             var reset_button = $('<button class="reset-button">')
