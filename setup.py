@@ -10,6 +10,8 @@ setup(
         "numpy",
         "ipywidgets",
         "traitlets",
+        "scipy",
+        "pillow",
     ],
     package_data = {
         '': ["*.js"],
