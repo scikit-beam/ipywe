@@ -298,19 +298,21 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
                 wid.model.set("_offsetY", event.offsetY);
                 wid.touch();
 
-                console.log(wid.model.get("_extrarows"), wid.model.get("_extracols"));
+                //console.log(wid.model.get("_extrarows"), wid.model.get("_extracols"));
                 var yrows_top, yrows_bottom, xcols_left, xcols_right, x_coordinate, y_coordinate;
                 x_coordinate = Math.floor(event.offsetX*1./(wid.model.get("width"))*(wid.model.get("_ncols_currimg")));
                 y_coordinate = Math.floor(event.offsetY*1./(wid.model.get("height"))*(wid.model.get("_nrows_currimg")));
 
                 //All of this logic is used to get the correct coordinates for images containing buffer rows/columns.
                 if (wid.model.get("_extrarows") == 0 && wid.model.get("_extracols") == 0) {
+                    //console.log("No extra rows/cols");
                     yrows_top = 0;
                     yrows_bottom = Number.MAX_SAFE_INTEGER;
                     xcols_left = 0;
                     xcols_right = Number.MAX_SAFE_INTEGER;
                 }
                 else if (wid.model.get("_extrarows") != 0 && wid.model.get("_extracols") == 0) {
+                    //console.log("Extra Rows");
                     if (wid.model.get("_extrarows") % 2 == 0) {
                         yrows_top = parseInt(wid.model.get("_extrarows") / 2);
                         yrows_bottom = parseInt(wid.model.get("_extrarows") / 2);
@@ -323,6 +325,7 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
                     xcols_right = Number.MAX_SAFE_INTEGER;
                 }
                 else if (wid.model.get("_extrarows") == 0 && wid.model.get("_extracols") != 0) {
+                    //console.log("Extra Cols");
                     if (wid.model.get("_extracols") % 2 == 0) {
                         xcols_left = parseInt(wid.model.get("_extracols") / 2);
                         xcols_right = parseInt(wid.model.get("_extracols") / 2);
@@ -335,6 +338,7 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
                     yrows_bottom = Number.MAX_SAFE_INTEGER;
                 }
                 else {
+                    //console.log("Extra Rows/Cols");
                     if (wid.model.get("_extrarows") % 2 == 0) {
                         yrows_top = parseInt(wid.model.get("_extrarows") / 2);
                         yrows_bottom = parseInt(wid.model.get("_extrarows") / 2);
@@ -381,7 +385,7 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
           displayed in the value field.
         */
         on_pixval_change: function() {
-            console.log("Executing on_pixval_change");
+            //console.log("Executing on_pixval_change");
             if (this.$el.find(".img-offsetx").text() == "" && this.$el.find(".img-offsety").text() == "") {
                 this.$el.find(".img-value").text("");
             }
@@ -398,15 +402,20 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
         /*When _b64value changes on the backend, this function creates a new source string for the image (based
           on the new value of _b64value). This new source then replaces the old source of the image.*/
         on_img_change: function() {
-            console.log("Executing on_img_change");
+            //console.log("Executing on_img_change");
             var src = "data:image/" + this.model.get("_format") + ";base64," + this.model.get("_b64value");
             this.$el.find(".curr-img").attr("src", src);
         },
 
         calc_roi: function() {
+            //console.log(this.model.get("_ncols_currimg"), this.model.get("_extracols"));
+            //console.log(this.model.get("_nrows_currimg"), this.model.get("_extrarows"));
             var topleft = "(" + this.model.get("_xcoord_absolute") + ", " + this.model.get("_ycoord_absolute") + ")";
             var right = this.model.get("_xcoord_absolute") + this.model.get("_ncols_currimg") - this.model.get("_extracols");
             var bottom = this.model.get("_ycoord_absolute") + this.model.get("_nrows_currimg") - this.model.get("_extrarows");
+            console.log(this.model.get("_nrows_currimg"), this.model.get("_ncols_currimg"));
+            console.log(this.model.get("_nrows"), this.model.get("_ncols"));
+            console.log("\n");
             var topright = "(" + right + ", " + this.model.get("_ycoord_absolute") + ")";
             var bottomleft = "(" + this.model.get("_xcoord_absolute") + ", " + bottom + ")";
             var bottomright = "(" + right + ", " + bottom + ")";

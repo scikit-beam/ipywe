@@ -177,12 +177,12 @@ class ImageSlider(ipyw.DOMWidget):
             self.arr = self.current_img.copy().astype("float")
         else:
             self.arr = self.current_img.data.copy().astype("float")
-        self._nrows, self._ncols = self.arr.shape
-        self._nrows_currimg, self._ncols_currimg = self.arr.shape
         self.curr_img_data = self.arr.copy()
         if self.left != -1 and self.right != -1 and self.top != -1 and self.bottom != -1:
             self.handle_zoom()
             return
+        self._nrows, self._ncols = self.arr.shape
+        self._nrows_currimg, self._ncols_currimg = self.arr.shape
         self._b64value = self.getimg_bytes()
         return
 
@@ -195,6 +195,7 @@ class ImageSlider(ipyw.DOMWidget):
         self.bottom = int(self._offYbottom*1./self.height*self._nrows_currimg)
         self._xcoord_absolute += (self.left - self.xbuff)
         self._ycoord_absolute += (self.top - self.ybuff)
+        #self._nrows
         self.update_image(None)
 
     def handle_zoom(self):
@@ -221,7 +222,7 @@ class ImageSlider(ipyw.DOMWidget):
             select_width = 1
         if select_height == 0:
             select_height = 1
-        self.arr = self.curr_img_series[self.img_index].data[self._ycoord_absolute:(self._ycoord_absolute + select_height), self._xcoord_absolute:(self._xcoord_absolute + select_width)]
+        self.arr = self.arr[self._ycoord_absolute:(self._ycoord_absolute + select_height), self._xcoord_absolute:(self._xcoord_absolute + select_width)]
         self._nrows, self._ncols = self.arr.shape
         self.curr_img_data = self.arr.copy()
         if self._ncols > self._nrows:
