@@ -235,6 +235,8 @@ class ImageSlider(ipyw.DOMWidget):
                 addbottom = int(diff / 2)
             self.xbuff = 0
             self.ybuff = addtop
+            self._nrows_currimg = self._ncols
+            self._ncols_currimg = self._ncols
             extrarows_top = np.full((addtop, self._ncols), 1)
             extrarows_bottom = np.full((addbottom, self._ncols), 1)
             self.curr_img_data = np.vstack((extrarows_top, self.curr_img_data, extrarows_bottom))
@@ -248,10 +250,11 @@ class ImageSlider(ipyw.DOMWidget):
                 addright = int(diff / 2)
             self.xbuff = addleft
             self.ybuff = 0
+            self._nrows_currimg = self._nrows
+            self._ncols_currimg = self._ncols
             extrarows_left = np.full((self._nrows, addleft), 1)
             extrarows_right = np.full((self._nrows, addright), 1)
             self.curr_img_data = np.hstack((extrarows_left, self.curr_img_data, extrarows_right))
-        self._nrows_currimg, self._ncols_currimg = self.curr_img_data.shape
         if self._nrows_currimg > self._nrows:
             self._extrarows = self._nrows_currimg - self._nrows
         if self._ncols_currimg > self._ncols:
