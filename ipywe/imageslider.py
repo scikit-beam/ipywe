@@ -211,8 +211,6 @@ class ImageSlider(ipyw.DOMWidget):
 
         Finally, the zoomed image data is converted to a displayable image by calling the getimg_bytes function."""
 
-        self._extrarows = 0
-        self._extracols = 0
         select_width = self.right - self.left
         select_height = self.bottom - self.top
         if select_width == 0 and select_height == 0:
@@ -237,6 +235,8 @@ class ImageSlider(ipyw.DOMWidget):
             self.ybuff = addtop
             self._nrows_currimg = self._ncols
             self._ncols_currimg = self._ncols
+            self._extrarows = diff
+            self._extracols = 0
             extrarows_top = np.full((addtop, self._ncols), 1)
             extrarows_bottom = np.full((addbottom, self._ncols), 1)
             self.curr_img_data = np.vstack((extrarows_top, self.curr_img_data, extrarows_bottom))
@@ -251,14 +251,12 @@ class ImageSlider(ipyw.DOMWidget):
             self.xbuff = addleft
             self.ybuff = 0
             self._nrows_currimg = self._nrows
-            self._ncols_currimg = self._ncols
+            self._ncols_currimg = self._nrows
+            self._extrarows = 0
+            self._extracols = diff
             extrarows_left = np.full((self._nrows, addleft), 1)
             extrarows_right = np.full((self._nrows, addright), 1)
             self.curr_img_data = np.hstack((extrarows_left, self.curr_img_data, extrarows_right))
-        if self._nrows_currimg > self._nrows:
-            self._extrarows = self._nrows_currimg - self._nrows
-        if self._ncols_currimg > self._ncols:
-            self._extracols = self._ncols_currimg - self._ncols
         self._b64value = self.getimg_bytes()
         #self.curr_img_series[self.img_index] = self.curr_img_data
         return

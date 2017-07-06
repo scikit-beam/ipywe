@@ -413,8 +413,7 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
             var topleft = "(" + this.model.get("_xcoord_absolute") + ", " + this.model.get("_ycoord_absolute") + ")";
             var right = this.model.get("_xcoord_absolute") + this.model.get("_ncols_currimg") - this.model.get("_extracols");
             var bottom = this.model.get("_ycoord_absolute") + this.model.get("_nrows_currimg") - this.model.get("_extrarows");
-            console.log(this.model.get("_nrows_currimg"), this.model.get("_ncols_currimg"));
-            console.log(this.model.get("_nrows"), this.model.get("_ncols"));
+            console.log(this.model.get("_extrarows"), this.model.get("_extracols"));
             console.log("\n");
             var topright = "(" + right + ", " + this.model.get("_ycoord_absolute") + ")";
             var bottomleft = "(" + this.model.get("_xcoord_absolute") + ", " + bottom + ")";
