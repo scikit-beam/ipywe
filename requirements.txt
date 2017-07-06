@@ -1,4 +1,0 @@
-# list of libraries needed
-numpy
-scipy
-pillow
