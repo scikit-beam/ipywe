@@ -211,8 +211,8 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
                       box.
                     */
                     select.css({
-                        "width": width - 1,
-                        "height": height - 1,
+                        "width": width,
+                        "height": height,
                         "top": new_y,
                         "left": new_x,
                         "background": "transparent",
@@ -377,6 +377,7 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
             this.model.on("change:_pix_val", this.on_pixval_change, this);
             this.model.on("change:_b64value", this.on_img_change, this);
             this.model.on("change:_b64value", this.calc_roi, this);
+            this.model.on("change:_vslide_reset", this.reset_vslide, this);
         },
 
         /*If the text of the coordinate fields (x_coord and y_coord) contain empty strings, the value field will 
@@ -421,6 +422,11 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
             var corns = topleft + "  " + topright + "\n        " + bottomleft + "  " + bottomright;
             console.log(corns);
             this.$el.find(".roi").text(corns);
+        },
+
+        reset_vslide: function() {
+            $(".vslider").slider("values", 0, this.model.get("_img_min"));
+            $(".vslider").slider("values", 1, this.model.get("_img_max"));
         }
 	
     });

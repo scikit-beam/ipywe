@@ -44,6 +44,7 @@ class ImageSlider(ipyw.DOMWidget):
     _ncols_currimg = Integer().tag(sync=True)
     _xcoord_absolute = Integer(0).tag(sync=True)
     _ycoord_absolute = Integer(0).tag(sync=True)
+    _vslide_reset = Integer(0).tag(sync=True)
   
     
     def __init__(self, image_series, width, height):
@@ -349,6 +350,8 @@ class ImageSlider(ipyw.DOMWidget):
         self.ybuff = 0
         self._xcoord_absolute = 0
         self._ycoord_absolute = 0
+        self.get_series_minmax()
+        self._vslide_reset += 1
         self.update_image(None)
         return
 
