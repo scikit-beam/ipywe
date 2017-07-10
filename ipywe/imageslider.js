@@ -119,31 +119,6 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
                 console.log("Zoomed");
             });
 
-            //Creates and adds a button after zoom_button for zooming into all images
-            /*var zoomall_button = $('<button class="zoom-button">');
-            zoomall_button.button({
-                label: "Zoom All",
-                disabled: false
-            });
-            zoomall_button.css("margin", "10px");
-            img_vbox.append(zoomall_button);
-            /*When zoomall_button is clicked, the synced variable _zoomall_click is either incremented or
-              reset to 0. This triggers the zoomAll python function. The selection box is also removed.
-            
-            zoomall_button.click(function() {
-                var zoomall_val = wid.model.get("_zoomall_click");
-                if (zoomall_val < Number.MAX_SAFE_INTEGER) {
-                    zoomall_val++;
-                }
-                else {
-                    zoomall_val = 0;
-                }
-                wid.model.set("_zoomall_click", zoomall_val);
-                wid.touch();
-                select.remove();
-                console.log("All images zoomed");
-            });*/
-
             //Creates and adds a button after zoomall_button for reseting all displayed images.
             var reset_button = $('<button class="reset-button">')
             reset_button.button({
@@ -255,9 +230,14 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
             
             //Creates the label for the vertical slider with a static value of "Z range" (done in the same way as the other label)
             var vslide_label = $('<div class="vslabel" type="text" readonly style="border:0">');
-            vslide_label.text("Z range: " + vrange);
+            vslide_label.text("Z range: ");
             vslide_label.css("marginTop", "10px");
             vslide_label.css("marginBottom", "10px");
+            var vslide_labeldata = $('<span class="vslabel_data">');
+            var vlabel_content = "Max Range: " + vrange + "\n              Current Range: " + vrange;
+            vslide_labeldata.text(vlabel_content);
+            vslide_labeldata.css("whiteSpace", "pre");
+            vslide_label.append(vslide_labeldata);
             //Creates the vertical slider using JQuery UI
             var vslide_html = $('<div class="vslider">');
             vslide_html.slider({
@@ -267,9 +247,11 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
                 max: vrange_max,
                 values: vrange,
                 step: vrange_step,
-                /*When either handle slides, this function sets _img_min and/or _img_max on the backend to the handles' values.
+                /*When either handle slides, this function updates this slider's label to reflect the new contrast range. It also sets _img_min and/or _img_max on the backend to the handles' values.
                   This triggers the update_image function on the backend.*/
                 slide: function(event, ui) {
+                    vlabel_content = "Max Range: " + vrange + "\n              Current Range: " + ui.values;
+                    wid.$el.find(".vslabel_data").text(vlabel_content);
                     wid.model.set("_img_min", ui.values[0]);
                     wid.model.set("_img_max", ui.values[1]);
                     wid.touch();
@@ -408,25 +390,25 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
             this.$el.find(".curr-img").attr("src", src);
         },
 
+        /*When _b64value changes on the backend, this function will calculate and display the coordinates of the left, right, top, and bottom borders of the currently displayed image. Note that these coordinates are based on the original, un-zoomed image.
+         */
         calc_roi: function() {
-            //console.log(this.model.get("_ncols_currimg"), this.model.get("_extracols"));
-            //console.log(this.model.get("_nrows_currimg"), this.model.get("_extrarows"));
-            var topleft = "(" + this.model.get("_xcoord_absolute") + ", " + this.model.get("_ycoord_absolute") + ")";
+            var top = this.model.get("_ycoord_absolute");
+            var left = this.model.get("_xcoord_absolute");
             var right = this.model.get("_xcoord_absolute") + this.model.get("_ncols_currimg") - this.model.get("_extracols");
             var bottom = this.model.get("_ycoord_absolute") + this.model.get("_nrows_currimg") - this.model.get("_extrarows");
-            console.log(this.model.get("_extrarows"), this.model.get("_extracols"));
-            console.log("\n");
-            var topright = "(" + right + ", " + this.model.get("_ycoord_absolute") + ")";
-            var bottomleft = "(" + this.model.get("_xcoord_absolute") + ", " + bottom + ")";
-            var bottomright = "(" + right + ", " + bottom + ")";
-            var corns = topleft + "  " + topright + "\n        " + bottomleft + "  " + bottomright;
+            var corns = "Top = " + top + "   Bottom = " + bottom + "\n         Left = " + left + "   Right = " + right;
             console.log(corns);
             this.$el.find(".roi").text(corns);
         },
 
+        /*When the reset button is pressed, this function will reset the vertical slider's handle positions and values to what they were originally. It also resets the value of the vertical slider's label to its default.
+         */
         reset_vslide: function() {
             $(".vslider").slider("values", 0, this.model.get("_img_min"));
             $(".vslider").slider("values", 1, this.model.get("_img_max"));
+            var vrange_str = this.model.get("_img_min") + "," + this.model.get("_img_max");
+            $(".vslabel_data").text("Max Range: " + vrange_str + "\n              Current Range: " + vrange_str);
         }
 	
     });
