@@ -275,8 +275,8 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
                 /*When either handle slides, this function sets _img_min and/or _img_max on the backend to the handles' values.
                   This triggers the update_image function on the backend.*/
                 slide: function(event, ui) {
-                    vlabel_content = "Max Range: " + vrange + "\n              Current Range: " + ui.values[0] + "," + ui.values[1];
-                    this.$el.find(".vslabel_data").text(vlabel_content);
+                    vlabel_content = "Max Range: " + vrange + "\n              Current Range: " + ui.values;
+                    wid.$el.find(".vslabel_data").text(vlabel_content);
                     wid.model.set("_img_min", ui.values[0]);
                     wid.model.set("_img_max", ui.values[1]);
                     wid.touch();
@@ -416,17 +416,10 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
         },
 
         calc_roi: function() {
-            //console.log(this.model.get("_ncols_currimg"), this.model.get("_extracols"));
-            //console.log(this.model.get("_nrows_currimg"), this.model.get("_extrarows"));
             var top = this.model.get("_ycoord_absolute");
             var left = this.model.get("_xcoord_absolute");
             var right = this.model.get("_xcoord_absolute") + this.model.get("_ncols_currimg") - this.model.get("_extracols");
             var bottom = this.model.get("_ycoord_absolute") + this.model.get("_nrows_currimg") - this.model.get("_extrarows");
-            /*console.log(this.model.get("_extrarows"), this.model.get("_extracols"));
-            console.log("\n");
-            var topright = "(" + right + ", " + this.model.get("_ycoord_absolute") + ")";
-            var bottomleft = "(" + this.model.get("_xcoord_absolute") + ", " + bottom + ")";
-            var bottomright = "(" + right + ", " + bottom + ")";*/
             var corns = "Top = " + top + "   Bottom = " + bottom + "\n         Left = " + left + "   Right = " + right;
             console.log(corns);
             this.$el.find(".roi").text(corns);
@@ -435,6 +428,8 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
         reset_vslide: function() {
             $(".vslider").slider("values", 0, this.model.get("_img_min"));
             $(".vslider").slider("values", 1, this.model.get("_img_max"));
+            var vrange_str = this.model.get("_img_min") + "," + this.model.get("_img_max");
+            $(".vslabel_data").text("Max Range: " + vrange_str + "\n              Current Range: " + vrange_str);
         }
 	
     });
