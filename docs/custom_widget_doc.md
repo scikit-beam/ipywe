@@ -21,7 +21,7 @@
   * `_model_name`: the name of the model
   * `_model_module`: the module name for the model
 * All of these variables are initialized and synced with the same syntax:
-    `(_view_name/_view_module/_model_name/_model_module) = Unicode(`*Value*`).tag(sync=True)`
+    ```(_view_name/_view_module/_model_name/_model_module) = Unicode(*Value*).tag(sync=True)```
 
 ### Syncing Variables:
 * Requires the traitlets module (or the individual traits from this module) to be imported
