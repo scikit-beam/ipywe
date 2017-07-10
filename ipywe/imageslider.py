@@ -113,12 +113,15 @@ class ImageSlider(ipyw.DOMWidget):
         If an error occurs, this method calls the handle_error method and stores the result in the member variable _err."""
         
         try:
-            #arr = self.current_img.data
             col = int(self._offsetX*1./self.width * self._ncols_currimg)
             row = int(self._offsetY*1./self.height * self._nrows_currimg)
-            if col >= self.curr_img_data.shape[1]: col = self.curr_img_data.shape[1]-1
-            if row >= self.curr_img_data.shape[0]: row = self.curr_img_data.shape[0]-1
-            self._pix_val = float(self.curr_img_data[row, col])
+            if self._extrarows != 0:
+                row = row - self.ybuff
+            if self._extracols != 0:
+                col = col - self.xbuff
+            if col >= self.arr.shape[1]: col = self.arr.shape[1]-1
+            if row >= self.arr.shape[0]: row = self.arr.shape[0]-1
+            self._pix_val = float(self.arr[row, col])
             self._err = ""
         except Exception:
             self._err = self.handle_error()
