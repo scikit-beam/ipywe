@@ -53,9 +53,9 @@
     * The tag-style (decorator) observe statement should be used.
     * Requires __HasTraits__ and __observe__ to be imported from __traitlets__.
     * Decorator Syntax for the observe statement (must be on the line before the function starts):
-       '''
+       ```
        @observe(Observed_Variable(s))
-       '''
+       ```
 
 ## Frontend
 
