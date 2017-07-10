@@ -119,31 +119,6 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
                 console.log("Zoomed");
             });
 
-            //Creates and adds a button after zoom_button for zooming into all images
-            /*var zoomall_button = $('<button class="zoom-button">');
-            zoomall_button.button({
-                label: "Zoom All",
-                disabled: false
-            });
-            zoomall_button.css("margin", "10px");
-            img_vbox.append(zoomall_button);
-            /*When zoomall_button is clicked, the synced variable _zoomall_click is either incremented or
-              reset to 0. This triggers the zoomAll python function. The selection box is also removed.
-            
-            zoomall_button.click(function() {
-                var zoomall_val = wid.model.get("_zoomall_click");
-                if (zoomall_val < Number.MAX_SAFE_INTEGER) {
-                    zoomall_val++;
-                }
-                else {
-                    zoomall_val = 0;
-                }
-                wid.model.set("_zoomall_click", zoomall_val);
-                wid.touch();
-                select.remove();
-                console.log("All images zoomed");
-            });*/
-
             //Creates and adds a button after zoomall_button for reseting all displayed images.
             var reset_button = $('<button class="reset-button">')
             reset_button.button({
@@ -272,7 +247,7 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
                 max: vrange_max,
                 values: vrange,
                 step: vrange_step,
-                /*When either handle slides, this function sets _img_min and/or _img_max on the backend to the handles' values.
+                /*When either handle slides, this function updates this slider's label to reflect the new contrast range. It also sets _img_min and/or _img_max on the backend to the handles' values.
                   This triggers the update_image function on the backend.*/
                 slide: function(event, ui) {
                     vlabel_content = "Max Range: " + vrange + "\n              Current Range: " + ui.values;
@@ -415,6 +390,8 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
             this.$el.find(".curr-img").attr("src", src);
         },
 
+        /*When _b64value changes on the backend, this function will calculate and display the coordinates of the left, right, top, and bottom borders of the currently displayed image. Note that these coordinates are based on the original, un-zoomed image.
+         */
         calc_roi: function() {
             var top = this.model.get("_ycoord_absolute");
             var left = this.model.get("_xcoord_absolute");
@@ -425,6 +402,8 @@ define("imgslider", ["jupyter-js-widgets"], function(widgets) {
             this.$el.find(".roi").text(corns);
         },
 
+        /*When the reset button is pressed, this function will reset the vertical slider's handle positions and values to what they were originally. It also resets the value of the vertical slider's label to its default.
+         */
         reset_vslide: function() {
             $(".vslider").slider("values", 0, this.model.get("_img_min"));
             $(".vslider").slider("values", 1, this.model.get("_img_max"));

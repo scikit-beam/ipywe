@@ -170,11 +170,13 @@ class ImageSlider(ipyw.DOMWidget):
     #This function is called when img_index, _img_min, and/or _img_max change
     @observe("img_index", "_img_min", "_img_max")
     def update_image(self, change):
-        """The function that begins any change to the displayed image.
+        """The function that begins any change to the displayed image, besides zooming.
         
         If it is triggered by a change in img_index, it changes the current_img member variable to the new desired image.
+
+        If the zoomImg function has been called and the resetImg has not, this function will call the handle_zoom function to zoom into the image and obtain the Base64 encoding.
         
-        In all cases, this function calls the getimg_bytes method to obtain the new Base64 encoding (of either the new or old image) and stores this encoding in _b64value."""
+        In all other cases, this function calls the getimg_bytes method to obtain the new Base64 encoding (of either the new or old image) and stores this encoding in _b64value."""
         
         self.current_img = self.curr_img_series[self.img_index]
         if type(self.current_img) is np.ndarray:
@@ -193,6 +195,8 @@ class ImageSlider(ipyw.DOMWidget):
     #This function is called when _zoom_click changes.
     @observe("_zoom_click")
     def zoomImg(self, change):
+        """Sets all values necessary for zooming and then calls the update_image function."""
+
         self.left = int(self._offXtop*1./self.width * self._ncols_currimg)
         self.right = int(self._offXbottom*1./self.width*self._ncols_currimg)
         self.top = int(self._offYtop*1./self.height*self._nrows_currimg)
@@ -205,13 +209,12 @@ class ImageSlider(ipyw.DOMWidget):
     def handle_zoom(self):
         """The function that controlls zooming on a single image.
  
-        It calculates the indicies of the four corners of the region to zoom into and splices the data for the current image
-        so that it only contains the desired region.
+        It splices the image data based on the left, right, bottom, and top variables calculated in the zoomImg function.
 
         The function then copies the zoomed data and adds buffer rows/columns to the copy to insure the data used to create
         the image is a square numpy array.
 
-        Then, the number of extra rows and/or columns is calculated, and the new data for the image is added to curr_img_series.
+        Then, the number of extra rows and/or columns is calculated.
 
         Finally, the zoomed image data is converted to a displayable image by calling the getimg_bytes function."""
 
@@ -264,76 +267,6 @@ class ImageSlider(ipyw.DOMWidget):
         self._b64value = self.getimg_bytes()
         #self.curr_img_series[self.img_index] = self.curr_img_data
         return
-
-    """#This function is triggered when the value of _zoomall_click changes.
-    @observe("_zoomall_click")
-    def zoomAll(self, change):
-        ///The function that controlls zooming on all images.
-
-        The process for zooming is the same as zoomImg, but it is mostly contained within a for loop over
-        the elements of curr_img_series.
-
-        Instead of calling getimg_bytes at the end, this function calls the update_image function.///
-
-        self._extrarows = 0
-        self._extracols = 0
-        left = int(self._offXtop*1./self.width * self._ncols_currimg)
-        right = int(self._offXbottom*1./self.width*self._ncols_currimg)
-        top = int(self._offYtop*1./self.height*self._nrows_currimg)
-        bottom = int(self._offYbottom*1./self.height*self._nrows_currimg)
-        if (right - left) == 0 and (bottom - top) == 0:
-            right = left + 1
-            bottom = top + 1
-        if (right - left) == 0:
-            right = left + 1
-        if (bottom - top) == 0:
-            bottom = top + 1
-        self._xcoord_absolute += (left - self.xbuff)
-        self._ycoord_absolute += (top - self.ybuff)
-        new_series = []
-        self._nrows = bottom - top
-        self._ncols = right - left
-        for img in self.curr_img_series:
-            if type(img) is np.ndarray:
-                imgdata = img.astype("float")
-            else:
-                imgdata = img.data.copy().astype("float")
-            newimg = imgdata[top:bottom, left:right]
-            if self._ncols > self._nrows:
-                diff = self._ncols - self._nrows
-                if diff % 2 == 0:
-                    addtop = diff / 2
-                    addbottom = diff / 2
-                else:
-                    addtop = diff / 2 + 1
-                    addbottom = diff / 2
-                self.xbuff = 0
-                self.ybuff = addtop
-                extrarows_top = np.full((addtop, self._ncols), 1)
-                extrarows_bottom = np.full((addbottom, self._ncols), 1)
-                newimg = np.vstack((extrarows_top, newimg, extrarows_bottom))
-            else:
-                diff = self._nrows - self._ncols
-                if diff % 2 == 0:
-                    addleft = diff / 2
-                    addright = diff / 2
-                else:
-                    addleft = diff / 2 + 1
-                    addright = diff / 2
-                self.xbuff = addleft
-                self.ybuff = 0
-                extrarows_left = np.full((self._nrows, addleft), 1)
-                extrarows_right = np.full((self._nrows, addright), 1)
-                newimg = np.hstack((extrarows_left, newimg, extrarows_right))
-            new_series.append(newimg)
-        self._nrows_currimg, self._ncols_currimg = new_series[0].shape
-        if self._nrows_currimg > self._nrows:
-            self._extrarows = self._nrows_currimg - self._nrows
-        if self._ncols_currimg > self._ncols:
-            self._extracols = self._ncols_currimg - self._ncols
-        self.curr_img_series = list(new_series)
-        self.update_image(None)
-        return"""
 
     #This function is triggered when the value of _reset_click changes.
     @observe("_reset_click")
