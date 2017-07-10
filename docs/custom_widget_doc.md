@@ -15,27 +15,36 @@
 
 ### Connecting the Front- and Back-ends: Backend Requirements
 * To sync to two ends of the widget, the backend requires two variables to be initialized and synced with the frontend:
-  * `_view_name`: the name of the view
-  * `_view_module`: the module name for the view
+ * `_view_name`: the name of the view
+ * `_view_module`: the module name for the view
 * There are also two *optional* variables that can be initialized and synced to explicitly define the model:
-  * `_model_name`: the name of the model
-  * `_model_module`: the module name for the model
+ * `_model_name`: the name of the model
+ * `_model_module`: the module name for the model
 * All of these variables are initialized and synced with the same syntax:
     ```
     (_view_name/_view_module/_model_name/_model_module) = Unicode(Value).tag(sync=True)
     ```
+ * *Value*: the string that the variable is set to
 
 ### Syncing Variables:
 * Requires the traitlets module (or the individual traits from this module) to be imported
 * Syncing variables should be the first thing done in the widget's Python class
-  * `_view_name`, `_view_module`, `_model_name`, and/or `_model_module` should be first
+ * `_view_name`, `_view_module`, `_model_name`, and/or `_model_module` should be first
 * Syntax for Syncing Variables:
-    *variable_name* `= `__traitlets__`.`*trait_type*`.(`*Initial Trait Value*`).tag(sync=True)`
+    ```
+    Variable_Name = traitlets.Trait_Type.(Initial_Trait_Value).tag(sync=True)
+    ```
+ * *Variable_Name*: the name of the variable being synced
+ * *Trait_Type*: the trait with which *Variable_Name* is being set
+ * *Inital_Trait_Value*: the value that *Variable_Name* is being set to. This is optional.
 
 ### Adding a Custom Construction (*Optional*)
 * By default, the `__init__` constructor is entirely inherited from the DOMWidgets class.
 * To override the contructor, the following statement must be placed at the end of the custom `__init__` function:
-    `super(`*Widget Class Name*`, self).__init__()`
+    ```
+    super(Widget_Class_Name, self).__init__()
+    ```
+ * *Widget_Class_Name*: the name of the widget's Python class
 
 ### Other Functions (*Optional*)
 * Added to the backend in the same way that they would be for any other Python program
@@ -44,24 +53,28 @@
   * The tag-style (decorator) observe statement should be used.
    * Requires __HasTraits__ and __observe__ to be imported from __traitlets__.
    * Decorator Syntax for the observe statement (must be on the line before the function starts):
-         `@observe(`*Observed Variable(s)`)`
+       '''
+       @observe(Observed_Variable(s))
+       '''
 
 ## Frontend
 
 ### Connecting the Front- and Back-ends: Frontend Requirements
 * To sync the front- and back-ends, the frontend must be setup with the following format:
-    `define(`*_view_module Value*`,["jupyter-js-widgets"],function(widgets){`
-       `var` *_view_name Value*` = widgets.DOMWidgetView.extend({`
-           `render: function() {`
-       __Code for Render Function__
-            `},`
-       __Other Functions (Optional)__
-        `});`
+   ``` 
+   define(_view_module_Value,["jupyter-js-widgets"],function(widgets){
+       var _view_name_Value = widgets.DOMWidgetView.extend({
+           render: function() {
+               Code for Render Function
+           },
+           Other Functions (Optional)
+        });
 
-        `return {`
-       *_view_name Value* `:` *_view_name Value
-        `};`
-    `});`
+        return {
+            _view_name_Value : _view_name_Value
+        };
+    });
+    ```
 * *_view_module Value*: the value of the `_view_module` variable (set on the backend)
 * *_view_name Value*: the value of the `_view_name` variable (set on the backend)
 * The only functions that must be included are:
