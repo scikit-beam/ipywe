@@ -51,7 +51,7 @@ define("imgdatagraph", ["jupyter-js-widgets"], function(widgets) {
                     ctx.stroke();
                 }).on("mouseup", function(event) {
                     console.log("mouseup");
-                    canvas.off("mousedown");
+                    canvas.off("mousemove");
                 });
             });
 
