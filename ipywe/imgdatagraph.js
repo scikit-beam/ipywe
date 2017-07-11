@@ -25,9 +25,11 @@ define("imgdatagraph", ["jupyter-js-widgets"], function(widgets) {
             img_container.append(canvas);
             var can = canvas[0];
             var ctx = can.getContext('2d');
+            console.log(ctx);
 
             img.on("dragstart", false);
             
+            //For some reason, none of the canvas drawing code appears to work.
             canvas.on("mousedown", function(event) {
                 console.log("mousedown");
                 ctx.clearRect(0, 0, wid.model.get("width"), wid.model.get("height"));
@@ -44,10 +46,10 @@ define("imgdatagraph", ["jupyter-js-widgets"], function(widgets) {
                     wid.model.set("_offsetX2", currx);
                     wid.model.set("_offsetY2", curry);
                     wid.touch();
-                    ctx.lineWidth = 5;
-                    ctx.strokeStyle = "#ff0000";
                     ctx.beginPath();
                     ctx.lineTo(currx, curry);
+                    ctx.lineWidth = 5;
+                    ctx.strokeStyle = "#ff0000";
                     ctx.stroke();
                 }).on("mouseup", function(event) {
                     console.log("mouseup");
