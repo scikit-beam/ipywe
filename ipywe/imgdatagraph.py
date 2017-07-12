@@ -63,7 +63,14 @@ class ImageDataGraph(ipyw.DOMWidget):
         p1y_abs = self._offsetY1*1./self.height * self._nrows
         p2x_abs = self._offsetX2*1./self.width * self._ncols
         p2y_abs = self._offsetY2*1./self.height * self._nrows
-        slope = abs(p2y_abs - p1y_abs) / abs(p2x_abs - p1x_abs)
+        if p1x_abs > p2x_abs:
+            tempx = p2x_abs
+            tempy = p2y_abs
+            p2x_abs = p1x_abs
+            p2y_abs = p1y_abs
+            p1x_abs = tempx
+            p1y_abs = tempy
+        slope = (p2y_abs - p1y_abs) / (p2x_abs - p1x_abs)
         xcoords = []
         ycoords = []
         dists = []
@@ -74,16 +81,16 @@ class ImageDataGraph(ipyw.DOMWidget):
         curr_y = int(curr_y_abs)
         xcoords.append(curr_x)
         ycoords.append(curr_y)
-        vals.append(self.img_data[curr_x, curr_y])
-        while curr_x_abs < p2x_abs and curr_y_abs < p2y_abs:
+        vals.append(self.img_data[curr_y, curr_x])
+        while curr_x_abs < p2x_abs: #and curr_y_abs < p2y_abs:
             curr_x_abs += 1
             curr_y_abs += slope
             curr_x = int(curr_x_abs)
             curr_y = int(curr_y_abs)
-            if curr_x_abs < p2x_abs and curr_y_abs < p2y_abs:
+            if curr_x_abs < p2x_abs: #and curr_y_abs < p2y_abs:
                 xcoords.append(curr_x)
                 ycoords.append(curr_y)
-                vals.append(self.img_data[curr_x, curr_y])
+                vals.append(self.img_data[curr_y, curr_x])
         curr_x = int(p2x_abs)
         curr_y = int(p2y_abs)
         xcoords.append(curr_x)
