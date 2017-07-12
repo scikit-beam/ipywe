@@ -1,7 +1,7 @@
 import numpy as np
 import ipywidgets as ipyw
 from IPython.display import display, HTML, clear_output
-from cStringIO import StringIO
+import cStringIO
 import sys, os
 from traitlets import Unicode, Integer, Float, HasTraits, observe
 import matplotlib.pyplot as plt
@@ -13,6 +13,7 @@ class ImageDataGraph(ipyw.DOMWidget):
     _view_module = Unicode("imgdatagraph").tag(sync=True)
 
     _b64value = Unicode().tag(sync=True)
+    _graphb64 = Unicode().tag(sync=True)
     _format = Unicode().tag(sync=True)
     _nrows = Integer().tag(sync=True)
     _ncols = Integer().tag(sync=True)
@@ -51,7 +52,7 @@ class ImageDataGraph(ipyw.DOMWidget):
             upsample_ratio = 1.*view_size/size
             import scipy.misc
             img = scipy.misc.imresize(img, upsample_ratio)
-        f = StringIO()
+        f = cStringIO.StringIO()
         import PIL.Image, base64
         PIL.Image.fromarray(img).save(f, self._format)
         imgb64v = base64.b64encode(f.getvalue())
@@ -82,12 +83,12 @@ class ImageDataGraph(ipyw.DOMWidget):
         xcoords.append(curr_x)
         ycoords.append(curr_y)
         vals.append(self.img_data[curr_y, curr_x])
-        while curr_x_abs < p2x_abs: #and curr_y_abs < p2y_abs:
+        while curr_x_abs < p2x_abs:
             curr_x_abs += 1
             curr_y_abs += slope
             curr_x = int(curr_x_abs)
             curr_y = int(curr_y_abs)
-            if curr_x_abs < p2x_abs: #and curr_y_abs < p2y_abs:
+            if curr_x_abs < p2x_abs:
                 xcoords.append(curr_x)
                 ycoords.append(curr_y)
                 vals.append(self.img_data[curr_y, curr_x])
@@ -102,10 +103,16 @@ class ImageDataGraph(ipyw.DOMWidget):
         plt.plot(dists, vals)
         plt.xlim(np.min(dists) * 0.75, np.max(dists))
         plt.ylim(np.min(vals) * 0.75, np.max(vals) * 1.25)
-        #plt.axis([int(np.min(dists)) * 0.75, int(np.max(dists)), int(np.min(vals)) * 0.75, int(np.max(vals))])
         plt.xlabel("Distance from Initial Point")
         plt.ylabel("Value")
-        plt.show()
+        graph = plt.gcf()
+        import StringIO
+        graphdata = StringIO.StringIO()
+        graph.savefig(graphdata, format=self._format)
+        graphdata.seek(0)
+        import base64
+        self._graphb64 = base64.b64encode(graphdata.buf)
+        plt.clf()
         return
 
 def get_js():
