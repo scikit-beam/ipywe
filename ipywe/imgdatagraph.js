@@ -20,7 +20,11 @@ define("imgdatagraph", ["jupyter-js-widgets"], function(widgets) {
             img.width(this.model.get("width")); img.height(this.model.get("height"));
 
             var canvas = $('<canvas class="img-canvas">');
-            canvas.width(this.model.get("width")); canvas.height(this.model.get("height"));
+            canvas.prop({
+                width: this.model.get("width"),
+                height: this.model.get("height")
+            });
+            //canvas.width(this.model.get("width")); canvas.height(this.model.get("height"));
             canvas.css("position", "absolute");
             img_container.append(canvas);
             var can = canvas[0];
@@ -38,17 +42,18 @@ define("imgdatagraph", ["jupyter-js-widgets"], function(widgets) {
                 wid.model.set("_offsetX1", offx);
                 wid.model.set("_offsetY1", offy);
                 wid.touch();
-                ctx.moveTo(offx, offy);
                 canvas.on("mousemove", function(event) {
                     console.log("mousemove");
+                    ctx.clearRect(0, 0, wid.model.get("width"), wid.model.get("height"));
                     var currx = event.offsetX;
                     var curry = event.offsetY;
                     wid.model.set("_offsetX2", currx);
                     wid.model.set("_offsetY2", curry);
                     wid.touch();
                     ctx.beginPath();
+                    ctx.moveTo(offx, offy);
                     ctx.lineTo(currx, curry);
-                    ctx.lineWidth = 5;
+                    ctx.lineWidth = 2;
                     ctx.strokeStyle = "#ff0000";
                     ctx.stroke();
                 }).on("mouseup", function(event) {
@@ -57,7 +62,7 @@ define("imgdatagraph", ["jupyter-js-widgets"], function(widgets) {
                 });
             });
 
-            /*var graph_button = $('<button class="graph-button">');
+            var graph_button = $('<button class="graph-button">');
             graph_button.button({
                 label: "Graph",
                 disabled: false
@@ -75,7 +80,7 @@ define("imgdatagraph", ["jupyter-js-widgets"], function(widgets) {
                 wid.model.set("_graph_click", graph_val);
                 wid.touch();
                 ctx.clearRect(0, 0, wid.model.get("width"), wid.model.get("height"));
-            });*/
+            });
             this.model.on("change:_b64value", this.on_img_change, this);
         },
 

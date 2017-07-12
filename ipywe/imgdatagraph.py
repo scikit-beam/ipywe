@@ -63,7 +63,7 @@ class ImageDataGraph(ipyw.DOMWidget):
         p1y_abs = self._offsetY1*1./self.height * self._nrows
         p2x_abs = self._offsetX2*1./self.width * self._ncols
         p2y_abs = self._offsetY2*1./self.height * self._nrows
-        slope = abs(p2y - p1y) / abs(p2x - p1x)
+        slope = abs(p2y_abs - p1y_abs) / abs(p2x_abs - p1x_abs)
         xcoords = []
         ycoords = []
         dists = []
