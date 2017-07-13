@@ -3,6 +3,7 @@ module.exports = {};
 
 var loadModules = [
     require('./example'),
+    require('./helloworld2'),
     // require('./imgdisplay'),
 ];
 
