@@ -108,14 +108,3 @@ class ImageDisplay(ipyw.DOMWidget):
         self._b64value = self.createImg()
         return        
 
-"""
-def get_js():
-    js = open(os.path.join(os.path.dirname(__file__), "imagedisplay.js")).read()
-    return js.decode("UTF-8")
-
-def run_js():
-    js = get_js()
-    display(HTML("<script>"+js+"</script>"))
-
-run_js()
-"""
