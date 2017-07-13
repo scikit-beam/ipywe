@@ -5,10 +5,16 @@ from traitlets import Unicode, Float, Integer, HasTraits, observe
 import numpy as np
 import sys, os
 
+@ipyw.register('ipywe.ImageDisplay')
 class ImageDisplay(ipyw.DOMWidget):
 
     _view_name = Unicode("ImgDisplayView").tag(sync=True)
-    _view_module = Unicode("imgdisplay").tag(sync=True)
+    _model_name = Unicode("ImgDisplayModel").tag(sync=True)
+    
+    _view_module = Unicode('ipywe').tag(sync=True)
+    _model_module = Unicode('ipywe').tag(sync=True)
+    _view_module_version = Unicode('^0.1.0').tag(sync=True)
+    _model_module_version = Unicode('^0.1.0').tag(sync=True)
 
     _b64value = Unicode().tag(sync=True)
     _format = Unicode("png").tag(sync=True)

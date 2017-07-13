@@ -2,7 +2,7 @@ import ipywidgets as widgets
 from traitlets import Unicode
 
 
-@widgets.register('hello.Hello')
+@widgets.register('ipywe.Hello')
 class HelloWorld(widgets.DOMWidget):
     """"""
     _view_name = Unicode('HelloView').tag(sync=True)
