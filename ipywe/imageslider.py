@@ -291,7 +291,7 @@ class ImageSlider(ipyw.DOMWidget):
         self.update_image(None)
         return
 
-
+"""
 def get_js():
     """Locates, opens, and reads the imageslider.js file from the same directory as imageslider.py."""
 
@@ -306,3 +306,4 @@ def run_js():
     display(HTML("<script>"+js+"</script>"))
 
 run_js()
+"""
