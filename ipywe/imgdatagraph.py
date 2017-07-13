@@ -151,11 +151,13 @@ class ImageDataGraph(ipyw.DOMWidget):
         dists = []
         vals = []
         if p1y_abs == p2y_abs and p1x_abs != p2x_abs:
-            dists, vals = self.horizontal_integrate(p1y_abs, p1x_abs, p2x_abs)
+            dists, vals = self.get_data_horizontal(p1x_abs, p1y_abs, p2x_abs)
+            #dists, vals = self.horizontal_integrate(p1y_abs, p1x_abs, p2x_abs)
         elif p1y_abs != p2y_abs and p1x_abs == p2x_abs:
-            dists, vals = self.vertical_integrate(p1y_abs, p1x_abs, p2y_abs)
+            dists, vals = self.get_data_horizontal(p1x_abs, p1y_abs, p2y_abs)
+            #dists, vals = self.vertical_integrate(p1y_abs, p1x_abs, p2y_abs)
         else:
-            dists, vals = self.diagonal_integrate(p1x_abs, p1y_abs, p2x_abs, p2y_abs)
+            #dists, vals = self.diagonal_integrate(p1x_abs, p1y_abs, p2x_abs, p2y_abs)
         plt.plot(dists, vals)
         plt.xlim(np.min(dists) * 0.75, np.max(dists))
         plt.ylim(np.min(vals) * 0.75, np.max(vals) * 1.25)
@@ -170,8 +172,83 @@ class ImageDataGraph(ipyw.DOMWidget):
         gb64v = base64.b64encode(graphdata.buf)
         plt.clf()
         return gb64v
+
+    def get_data_horizonatal(self, x_init, y_init, x_fin):
+        xcoords = []
+        dists = []
+        vals = []
+        num_binvals = []
+        intensities = []
+        wid = self._linepix_width/self.height * self._nrows
+        top = y_init - wid/2
+        if int(top) < 0:
+            top = 0
+        bottom = y_init + wid/2
+        if int(bottom) > self._nrows - 1:
+            bottom = self._nrows - 1
+        x_abs = x_init
+        while x_abs < x_fin:
+            int_sum = 0
+            num_vals = 0
+            y_abs = top
+            curr_x = int(x_abs)
+            xcoords.append(curr_x)
+            while y_abs < bottom:
+                curr_y = int(y_abs)
+                int_sum += self.img_data[curr_y, curr_x]
+                num_vals += 1
+                y_abs += 1
+            intensities.append(int_sum)
+            num_binvals.append(num_vals)
+            x_abs += 1
+        for val, num in np.nditer([intensities, num_binvals]):
+            vals.append(val/num)
+        for x in xcoords:
+            dist = np.sqrt((x - xcoords[0])**2)
+            dists.append(dist)
+        return dists, vals
+
+    def get_data_vertical(self, x_init, y_init, y_fin):
+        ycoords = []
+        dists = []
+        vals = []
+        num_binvals = []
+        intensities = []
+        wid = self._linepix_width/self.width * self._ncols
+        left = x_init - wid/2
+        if int(left) < 0:
+            left = 0
+        right = x_init + wid/2
+        if int(right) > self._ncols - 1:
+            right = self._ncols - 1
+        y_abs = y_init
+        while y_abs < y_fin:
+            int_sum = 0
+            num_vals = 0
+            x_abs = left
+            curr_y = int(y_abs)
+            ycoords.append(curr_y)
+            while x_abs < right:
+                curr_x = int(x_abs)
+                int_sum += self.img_data[curr_y, curr_x]
+                num_vals += 1
+                x_abs += 1
+            intensities.append(int_sum)
+            num_binvals.append(num_vals)
+            y_abs += 1
+        for val, num in np.nditer([intensities, num_binvals]):
+            vals.append(val/num)
+        for y in ycoords:
+            dist = np.sqrt((y - ycoords[0])**2)
+            dists.append(dist)
+        return dists, vals
+
+    def get_data_diagonal(self, x_init, y_init, x_fin, y_fin):
+        dists = []
+        vals = []
+        
             
-    def horizontal_integrate(self, y_init, x_init, x_fin):
+    """def horizontal_integrate(self, y_init, x_init, x_fin):
         xcoords = []
         dists = []
         vals = []
@@ -375,7 +452,7 @@ class ImageDataGraph(ipyw.DOMWidget):
             curr_y_abs = tempy
         curr_x = int(curr_x_abs)
         curr_y = int(curr_y_abs)
-        slope = (y_fin - curr_y_abs) / (x_fin - curr_x_abs)
+        slope = (end_y_abs - curr_y_abs) / (end_x_abs - curr_x_abs)
         slope_inv = -1/slope
         angle = np.arctan(slope_inv)
         x_disp_px = (self._linepix_width / 2) * np.cos(angle)
@@ -496,10 +573,10 @@ class ImageDataGraph(ipyw.DOMWidget):
             dists_inv.append(dist)
         int_vals = integrate.cumtrapz(vals_inv, dists_inv, initial=0)
         vals.append(int_vals[-1])
-        for x, y in np.nditer([xcoords, ycoords])
+        for x, y in np.nditer([xcoords, ycoords]):
             dist = np.sqrt(((x - xcoords[0])**2 + (y - ycoords[0])**2))
             dists.append(dist)
-        return dists, vals
+        return dists, vals"""
             
 
 def get_js():
