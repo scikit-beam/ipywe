@@ -5,6 +5,7 @@ from traitlets import Unicode, Integer, Float, HasTraits, observe
 import sys, os
 import numpy as np
 
+@ipyw.register('ipywe.ImageSlider')
 class ImageSlider(ipyw.DOMWidget):
     """The backend python class for the custom ImageSlider widget.
     
@@ -12,7 +13,12 @@ class ImageSlider(ipyw.DOMWidget):
     It also provides the majority of the calculation-based code that runs the ImageSlider widget."""
     
     _view_name = Unicode("ImgSliderView").tag(sync=True)
-    _view_module = Unicode("imgslider").tag(sync=True)
+    _model_name = Unicode("ImgSliderModel").tag(sync=True)
+    
+    _view_module = Unicode('ipywe').tag(sync=True)
+    _model_module = Unicode('ipywe').tag(sync=True)
+    _view_module_version = Unicode('^0.1.0').tag(sync=True)
+    _model_module_version = Unicode('^0.1.0').tag(sync=True)
     
     _b64value = Unicode().tag(sync=True)
     _err = Unicode().tag(sync=True)
@@ -291,19 +297,3 @@ class ImageSlider(ipyw.DOMWidget):
         self.update_image(None)
         return
 
-"""
-def get_js():
-    """Locates, opens, and reads the imageslider.js file from the same directory as imageslider.py."""
-
-    js = open(os.path.join(os.path.dirname(__file__), 'imageslider.js')).read()
-    return js.decode("UTF-8")
-
-def run_js():
-    """Obtains the content of the imageslider.js file from get_js and runs the Javascript code."""
-
-    js = get_js()
-    # get_ipython().run_cell_magic(u'javascript', u'', js)
-    display(HTML("<script>"+js+"</script>"))
-
-run_js()
-"""

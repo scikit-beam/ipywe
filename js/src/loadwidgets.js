@@ -5,6 +5,7 @@ var loadedModules = [
     require('./example'),
     require('./helloworld2'),
     require('./imgdisplay'),
+    require('./imageslider'),
 ];
 
 for (var i in loadedModules) {
