@@ -5,6 +5,7 @@ import cStringIO
 import sys, os
 from traitlets import Unicode, Integer, Float, HasTraits, observe
 import matplotlib.pyplot as plt
+from scipy import integrate
 
 
 class ImageDataGraph(ipyw.DOMWidget):
@@ -61,6 +62,13 @@ class ImageDataGraph(ipyw.DOMWidget):
 
     @observe("_graph_click")
     def graph_data(self, change):
+        if self._linepix_width == 1:
+            self._graphb64 = self.nowidth_graph()
+        else:
+            self._graphb64 = self.width_graph()
+        return
+
+    def nowidth_graph(self):
         p1x_abs = self._offsetX1*1./self.width * self._ncols
         p1y_abs = self._offsetY1*1./self.height * self._nrows
         p2x_abs = self._offsetX2*1./self.width * self._ncols
@@ -129,9 +137,120 @@ class ImageDataGraph(ipyw.DOMWidget):
         graph.savefig(graphdata, format=self._format)
         graphdata.seek(0)
         import base64
-        self._graphb64 = base64.b64encode(graphdata.buf)
+        gb64v = base64.b64encode(graphdata.buf)
         plt.clf()
-        return
+        return gb64v
+
+    def width_graph(self):
+        p1x_abs = self._offsetX1*1./self.width * self._ncols
+        p1y_abs = self._offsetY1*1./self.height * self._nrows
+        p2x_abs = self._offsetX2*1./self.width * self._ncols
+        p2y_abs = self._offsetY2*1./self.height * self._nrows 
+        xcoords = []
+        ycoords = []
+        dists = []
+        vals = []
+        if p1y_abs == p2y_abs and p1x_abs != p2x_abs:
+            dists, vals = self.horizontal_integrate(p1y_abs, p1x_abs, p2x_abs)
+            
+    def horizontal_integrate(self, y_init, x_init, x_fin):
+        xcoords = []
+        ycoords = []
+        dists = []
+        vals = []
+        xcoords_inv = []
+        ycoords_inv = []
+        dists_inv = []
+        vals_inv = []
+        curr_x_abs = x_init
+        curr_x = int(curr_x_abs)
+        curr_y_abs = y_init
+        curr_y = int(curr_y_abs)
+        xcoords.append(curr_x)
+        ycoords.append(curr_y)
+        line_width = self._linepix_width/self.height * self._nrows
+        y1_abs_width = curr_y_abs - (line_width / 2)
+        if int(y1_abs_width) < 0:
+            y1_abs_width = 0
+        y2_abs_width = curr_y_abs + (line_width / 2)
+        if int(y2_abs_width) > self._nrows - 1
+            y2_abs_width = self._nrows -1
+        curr_y = int(y1_abs_width)
+        xcoords_inv.append(curr_x)
+        ycoords_inv.append(curr_y)
+        vals_inv.append(self.img_data[curr_y, curr_x])
+        while y1_abs_width < y2_abs_width:
+            y1_abs_width += 1
+            curr_y = int(y1_abs_width)
+            ycoords_inv.append(curr_y)
+            vals_inv.append(self.img_data[curr_y, curr_x])
+        curr_y = int(y2_abs_width)
+        ycoords_inv.append(curr_y)
+        vals_inv.append(self.img_data[curr_y, curr_x])
+        for y in ycoords_inv:
+            dist = np.sqrt((y - ycoords_inv[0])**2))
+            dists_inv.append(dist)
+        int_vals = integrate.cumtrapz(vals_inv, dists_inv, initial=0)
+        vals.append(int_vals[-1])
+        while curr_x_abs < x_fin:
+            xcoords_inv = []
+            ycoords_inv = []
+            dists_inv = []
+            vals_inv = []
+            curr_x_abs += 1
+            curr_x = int(curr_x_abs)
+            xcoords.append(curr_x)
+            y1_abs_width = curr_y_abs - (line_width / 2)
+            if int(y1_abs_width) < 0:
+                y1_abs_width = 0
+            curr_y = int(y1_abs_width)
+            xcoords_inv.append(curr_x)
+            ycoords_inv.append(curr_y)
+            vals_inv.append(self.img_data[curr_y, curr_x])
+            while y1_abs_width < y2_abs_width:
+                y1_abs_width += 1
+                curr_y = int(y1_abs_width)
+                ycoords_inv.append(curr_y)
+                vals_inv.append(self.img_data[curr_y, curr_x])
+            curr_y = int(y2_abs_width)
+            ycoords_inv.append(curr_y)
+            vals_inv.append(self.img_data[curr_y, curr_x])
+            for y in ycoords_inv:
+                dist = np.sqrt((y - ycoords_inv[0])**2))
+                dists_inv.append(dist)
+            int_vals = integrate.cumtrapz(vals_inv, dists_inv, initial=0)
+            vals.append(int_vals[-1])
+        xcoords_inv = []
+        ycoords_inv = []
+        dists_inv = []
+        vals_inv = []
+        curr_x_abs = x_fin
+        curr_x = int(curr_x_abs)
+        xcoords.append(curr_x)
+        y1_abs_width = curr_y_abs - (line_width / 2)
+        if int(y1_abs_width) < 0:
+            y1_abs_width = 0
+        curr_y = int(y1_abs_width)
+        xcoords_inv.append(curr_x)
+        ycoords_inv.append(curr_y)
+        vals_inv.append(self.img_data[curr_y, curr_x])
+        while y1_abs_width < y2_abs_width:
+            y1_abs_width += 1
+            curr_y = int(y1_abs_width)
+            ycoords_inv.append(curr_y)
+            vals_inv.append(self.img_data[curr_y, curr_x])
+        curr_y = int(y2_abs_width)
+        ycoords_inv.append(curr_y)
+        vals_inv.append(self.img_data[curr_y, curr_x])
+        for y in ycoords_inv:
+            dist = np.sqrt((y - ycoords_inv[0])**2))
+            dists_inv.append(dist)
+        int_vals = integrate.cumtrapz(vals_inv, dists_inv, initial=0)
+        vals.append(int_vals[-1])
+        for x in xcoords:
+            dist = np.sqrt((x - xcoords[0])**2)
+            dists.append(dist)
+        return dists, vals
 
 def get_js():
     js = open(os.path.join(os.path.dirname(__file__), "imgdatagraph.js")).read()
