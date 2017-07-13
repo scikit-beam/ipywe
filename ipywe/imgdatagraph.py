@@ -24,6 +24,7 @@ class ImageDataGraph(ipyw.DOMWidget):
     _img_min = Float().tag(sync=True)
     _img_max = Float().tag(sync=True)
     _graph_click = Integer(0).tag(sync=True)
+    _linepix_width = Integer(1).tag(sync=True)
     
     width = Integer().tag(sync=True)
     height = Integer().tag(sync=True)

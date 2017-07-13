@@ -49,6 +49,62 @@ define("imgdatagraph", ["jupyter-js-widgets"], function(widgets) {
             var ctx = can.getContext('2d');
             console.log(ctx);
 
+            var linewidth_label = $('<input class="lwidth-label" type="text" readonly style="border:0">');        
+ 
+            var max_linewidth;
+            if (this.model.get("width") < this.model.get("height")) {
+                max_linewidth = this.model.get("width") / 4;
+            }
+            else {
+                max_linewidth = this.model.get("height") / 4;
+            }
+            var width_slider = $('<div class="width-slider">');
+            width_slider.slider({
+                value: 1,
+                min: 1,
+                max: max_linewidth,
+                slide: function(event, ui) {
+                    linewidth_label.val("Line Width: " + ui.value + " px");
+                    wid.model.set("_linepix_width", ui.value);
+                    wid.touch();
+                }
+            });
+
+            linewidth_label.val("Line Width: " + width_slider.slider("value") + " px");
+            linewidth_label.width("40%");
+            var width_slider_handle = width_slider.find(".ui-slider-handle");
+            width_slider_handle.css("borderRadius", "50%");
+            width_slider_handle.css("background", "#0099e6");
+            width_slider.width(this.model.get("width"));
+            width_slider.css({
+                "marginLeft": "7px",
+                "marginBottom": "5px",
+                "marginTop": "20px"
+            });
+            
+            img_vbox.append(width_slider);
+            img_vbox.append(linewidth_label);
+
+            var graph_button = $('<button class="graph-button">');
+            graph_button.button({
+                label: "Graph",
+                disabled: false
+            });
+            graph_button.css("marginLeft", "10px");
+            img_vbox.append(graph_button);
+            graph_button.click(function() {
+                var graph_val = wid.model.get("_graph_click");
+                if (graph_val < Number.MAX_SAFE_INTEGER) {
+                    graph_val++;
+                }
+                else {
+                    graph_val = 0;
+                }
+                wid.model.set("_graph_click", graph_val);
+                wid.touch();
+                ctx.clearRect(0, 0, wid.model.get("width"), wid.model.get("height"));
+            });
+
             img.on("dragstart", false);
             
             //For some reason, none of the canvas drawing code appears to work.
@@ -71,33 +127,13 @@ define("imgdatagraph", ["jupyter-js-widgets"], function(widgets) {
                     ctx.beginPath();
                     ctx.moveTo(offx, offy);
                     ctx.lineTo(currx, curry);
-                    ctx.lineWidth = 2;
+                    ctx.lineWidth = wid.model.get("_linepix_width") + 1;
                     ctx.strokeStyle = "#ff0000";
                     ctx.stroke();
                 }).on("mouseup", function(event) {
                     console.log("mouseup");
                     canvas.off("mousemove");
                 });
-            });
-
-            var graph_button = $('<button class="graph-button">');
-            graph_button.button({
-                label: "Graph",
-                disabled: false
-            });
-            img_vbox.append(graph_button);
-            graph_button.css("margin", "10px");
-            graph_button.click(function() {
-                var graph_val = wid.model.get("_graph_click");
-                if (graph_val < Number.MAX_SAFE_INTEGER) {
-                    graph_val++;
-                }
-                else {
-                    graph_val = 0;
-                }
-                wid.model.set("_graph_click", graph_val);
-                wid.touch();
-                ctx.clearRect(0, 0, wid.model.get("width"), wid.model.get("height"));
             });
 
             var graph_img = $('<img class="graph-img">');
@@ -112,6 +148,7 @@ define("imgdatagraph", ["jupyter-js-widgets"], function(widgets) {
 
             this.model.on("change:_b64value", this.on_img_change, this);
             this.model.on("change:_graphb64", this.on_graph_change, this);
+            this.model.on("change:_linepix_width", this.on_linewidth_change, this);
         },
 
         on_img_change: function() {
@@ -122,6 +159,18 @@ define("imgdatagraph", ["jupyter-js-widgets"], function(widgets) {
         on_graph_change: function() {
             var src = "data:image/" + this.model.get("_format") + ";base64," + this.model.get("_graphb64");
             this.$el.find(".graph-img").attr("src", src);
+        },
+
+        on_linewidth_change: function() {
+            var canvas = this.$el.find(".img-canvas")[0];
+            var ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, this.model.get("width"), this.model.get("height"));
+            ctx.beginPath();
+            ctx.moveTo(this.model.get("_offsetX1"), this.model.get("_offsetY1"));
+            ctx.lineTo(this.model.get("_offsetX2"), this.model.get("_offsetY2"));
+            ctx.lineWidth = this.model.get("_linepix_width") + 1;
+            ctx.strokeStyle = "#ff0000";
+            ctx.stroke();
         }
 
     });
