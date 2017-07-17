@@ -1,13 +1,16 @@
 # To release a new version of ipywe on PyPI:
 
-Update _version.py (set release version, remove 'dev')
-git add and git commit
+* Update _version.py (set release version, remove 'dev')
+* git add and git commit
+* And run
 ```
 python setup.py sdist upload
 python setup.py bdist_wheel upload
 git tag -a X.X.X -m 'comment'
 ```
-Update _version.py (add 'dev' and increment minor)
+
+* Update _version.py (add 'dev' and increment minor)
+* And run
 ```
 git add and git commit
 git push
