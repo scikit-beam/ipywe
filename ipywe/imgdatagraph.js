@@ -17,11 +17,15 @@ define("imgdatagraph", ["jupyter-js-widgets"], function(widgets) {
 
             img_vbox.width(this.model.get("width") * 1.1); img_vbox.height(this.model.get("height") * 1.25); img_vbox.css("padding", "5px");
 
+            var bin_vbox = $('<div class="flex-item-bin bin-box">');
+            bin_vbox.width(150); bin_vbox.height(this.model.get("height") * 1.25); bin_vbox.css("padding", "5px");
+
             var graph_vbox = $('<div class="flex-item-graph graph-box">');
 
-            graph_vbox.width(1000 - this.model.get("width") * 1.1 - 25); graph_vbox.height(this.model.get("height") * 1.25); graph_vbox.css("padding", "5px");
+            graph_vbox.width(1000 - this.model.get("width") * 1.1 - 85); graph_vbox.height(this.model.get("height") * 1.25); graph_vbox.css("padding", "5px");
 
             widget_area.append(img_vbox);
+            widget_area.append(bin_vbox);
             widget_area.append(graph_vbox);
 
             this.$el.append(widget_area);
@@ -135,6 +139,30 @@ define("imgdatagraph", ["jupyter-js-widgets"], function(widgets) {
                     canvas.off("mousemove");
                 });
             });
+
+            var bin_slider_label = $('<input class="binslide-label" type="text" readonly style="border:0">');
+            var bin_slider = $('<div class="bin-slider">');
+            bin_slider.slider({
+                value: 1,
+                min: 1,
+                max: 100,
+                orientation: "vertical",
+                slide: function(event, ui) {
+                    wid.model.set("_num_bins", ui.value);
+                    wid.touch();
+                    bin_slider_label.val("Number of Bins: " + ui.value);
+                }
+            });
+
+            bin_slider_label.val("Number of Bins: 1");
+            bin_slider.height(this.model.get("height"));
+            var bin_slider_handle = bin_slider.find(".ui-slider-handle");
+            bin_slider_handle.css("borderRadius", "50%");
+            bin_slider_handle.css("background", "#0099e6");
+            bin_slider.css("marginTop", "5px");
+
+            bin_vbox.append(bin_slider_label);
+            bin_vbox.append(bin_slider);
 
             var graph_img = $('<img class="graph-img">');
             var graph_src = "data:image/" + this.model.get("_format") + ";base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==";
