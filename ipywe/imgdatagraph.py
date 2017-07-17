@@ -158,9 +158,9 @@ class ImageDataGraph(ipyw.DOMWidget):
             dists, vals = self.get_data_horizontal(p1x_abs, p1y_abs, p2y_abs)
             #dists, vals = self.vertical_integrate(p1y_abs, p1x_abs, p2y_abs)
         else:
-            dists, vals = self.get_data_diagonal(p1x_abs, p1y_abs, p2x_abs, p2y_abs)
+            dists, vals = self.get_data_diagonal_no_rotate(p1x_abs, p1y_abs, p2x_abs, p2y_abs)
             #dists, vals = self.diagonal_integrate(p1x_abs, p1y_abs, p2x_abs, p2y_abs)
-        plt.bar(dists, vals)
+        plt.hist(dists, bins=self._num_bins, weights=vals)
         plt.xlim(np.min(dists) * 0.75, np.max(dists))
         plt.ylim(np.min(vals) * 0.75, np.max(vals) * 1.25)
         plt.xlabel("Distance from Initial Point")
@@ -251,13 +251,13 @@ class ImageDataGraph(ipyw.DOMWidget):
         vals = []
         num_binvals = []
         intensities = []
-        wid_x = self._linepix_width/self.width * self._ncols
-        wid_y = self._linepix_width/self.height * self._nrows
+        slope = (y_fin - y_init)/(x_fin - x_init)
+        angle = np.arctan(slope)
+        wid_x = (self._linepix_width * np.cos(angle))/self.width * self._ncols
+        wid_y = (self._linepix_width * np.sin(angle))/self.height * self._nrows
         wid = np.sqrt((wid_x)**2 + (wid_y)**2)
         x_center = (self._ncols / 2) - 1
         y_center = (self._nrows / 2) - 1
-        slope = (y_fin - y_init)/(x_fin - x_init)
-        angle = np.arctan(slope)
         from skimage.transform import rotate
         rot_img_data = rotate(self.img_data, angle)
         x_cent_rot = (rot_img_data.shape[1] / 2) - 1
@@ -292,6 +292,73 @@ class ImageDataGraph(ipyw.DOMWidget):
             dist = np.sqrt((x-xcoords[0])**2)
             dists.append(dist)
         return dists, vals
+
+    def get_data_diagonal_no_rotate(self, x_init, y_init, x_fin, y_fin):
+        bins = []
+        vals = []
+        slope = (y_fin - y_init) / (x_fin - x_init)
+        angle = np.arctan(slope)
+        slope_inv = -1/slope
+        intercept_0 = y_init - slope_inv * x_init
+        intercept_1 = y_fin - slope_inv * x_fin
+        wid_x = abs((self._linepix_width * np.cos(angle))/self.width * self._ncols)
+        wid_y = abs((self._linepix_width * np.sin(angle))/self.height * self._nrows)
+        wid = np.sqrt((wid_x)**2 + (wid_y)**2)
+        left = x_init - (wid_x / 2)
+        right = x_fin + (wid_x / 2)
+        if slope > 0:
+            bottom = y_init - (wid_y / 2)
+            top = y_fin + (wid_y / 2)
+        else:
+            bottom = y_fin - (wid_y / 2)
+            top = y_init + (wid_y / 2)
+        if int(bottom) < 0:
+            bottom = 0
+        if int(top) > self._nrows - 1:
+            top = self._nrows - 1
+        if int(left) < 0:
+            left = 0
+        if int(right) > self._ncols - 1:
+            right = self._ncols - 1
+        X, Y = np.mgrid[bottom:top, left:right]
+        h_x = X - x_init
+        h_y = Y - y_init
+        norm_x = (y_init - y_fin) / np.sqrt((y_init - y_fin)**2 + (x_fin - x_init)**2)
+        norm_y = (x_fin - x_init) / np.sqrt((y_init - y_fin)**2 + (x_fin - x_init)**2)
+        dist = h_x*norm_x + h_y*norm_y
+        pos = np.sqrt((np.square(h_x) + np.square(h_y)) - np.square(dist))
+        max_dist = np.sqrt((x_fin - x_init)**2 + (y_fin - y_init)**2)
+        bin_step = max_dist / self._num_bins
+        curr_bin_min = 0
+        curr_bin_max = bin_step
+        '''bin_borders = [0]
+        for i in range(self._num_bins):
+            curr_bin_max += bin_step
+            bin_borders.append(curr_bin_max)
+        bins = np.zeros(len(bin_borders))
+        vals = np.zeros(len(bin_borders))'''
+        
+        for i in range(self._num_bins):
+            int_sum = 0
+            num_vals = 0
+            for x, y, d, p in np.nditer([X, Y, dist, pos]):
+                if d <= wid / 2:
+                    if (x <= (x_init + (wid_x / 2)) and y < (slope_inv * x + intercept_0)) or (x >= (x_fin - (wid_x / 2)) and y > (slope_inv * x + intercept_1)):
+                        continue
+                    else:
+                        if p >= curr_bin_min and p < curr_bin_max:
+                            int_sum += self.img_data[int(y), int(x)]
+                            num_vals += 1
+            vals.append(int_sum / num_vals)
+            bins.append(curr_bin_min + (bin_step / 2))
+            curr_bin_min = curr_bin_max
+            curr_bin_max += bin_step
+        '''for x, y, d, p in np.nditer([X, Y, dist, pos]):
+            if d <= wid / 2:
+                if (x <= (x_init + (wid_x / 2)) and y < (slope_inv * x + intercept_0)) or (x >= (x_fin - (wid_x / 2)) and y > (slope_inv * x + intercept_1)):
+                    continue
+                else:'''
+        return bins, vals
             
     """def horizontal_integrate(self, y_init, x_init, x_fin):
         xcoords = []
