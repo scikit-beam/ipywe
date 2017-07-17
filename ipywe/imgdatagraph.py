@@ -25,7 +25,7 @@ class ImageDataGraph(ipyw.DOMWidget):
     _img_min = Float().tag(sync=True)
     _img_max = Float().tag(sync=True)
     _graph_click = Integer(0).tag(sync=True)
-    _linepix_width = Integer(1).tag(sync=True)
+    _linepix_width = Float(1.0).tag(sync=True)
     
     width = Integer().tag(sync=True)
     height = Integer().tag(sync=True)
@@ -157,8 +157,9 @@ class ImageDataGraph(ipyw.DOMWidget):
             dists, vals = self.get_data_horizontal(p1x_abs, p1y_abs, p2y_abs)
             #dists, vals = self.vertical_integrate(p1y_abs, p1x_abs, p2y_abs)
         else:
+            dists, vals = self.get_data_diagonal(p1x_abs, p1y_abs, p2x_abs, p2y_abs)
             #dists, vals = self.diagonal_integrate(p1x_abs, p1y_abs, p2x_abs, p2y_abs)
-        plt.plot(dists, vals)
+        plt.bar(dists, vals)
         plt.xlim(np.min(dists) * 0.75, np.max(dists))
         plt.ylim(np.min(vals) * 0.75, np.max(vals) * 1.25)
         plt.xlabel("Distance from Initial Point")
@@ -244,9 +245,52 @@ class ImageDataGraph(ipyw.DOMWidget):
         return dists, vals
 
     def get_data_diagonal(self, x_init, y_init, x_fin, y_fin):
+        xcoords = []
         dists = []
         vals = []
-        
+        num_binvals = []
+        intensities = []
+        wid_x = self._linepix_width/self.width * self._ncols
+        wid_y = self._linepix_width/self.height * self._nrows
+        wid = np.sqrt((wid_x)**2 + (wid_y)**2)
+        x_center = (self._ncols / 2) - 1
+        y_center = (self._nrows / 2) - 1
+        slope = (y_fin - y_init)/(x_fin - x_init)
+        angle = np.arctan(slope)
+        from skimage.transform import rotate
+        rot_img_data = rotate(self.img_data, angle)
+        x_cent_rot = (rot_img_data.shape[1] / 2) - 1
+        y_cent_rot = (rot_img_data.shape[0] / 2) - 1
+        x_rot_init = (np.sqrt(x_fin**2 - 2*x_fin*x_init + x_init**2 + (y_fin - y_init)**2)*x_cent_rot + x_fin*(x_init - x_center) - x_init**2 + x_init*x_center + (y_fin - y_init)*(y_init - y_center))/np.sqrt(x_fin**2 - 2*x_fin*x_init + x_init**2 + (y_fin - y_init)**2)
+        x_rot_fin = x_rot_init + np.sqrt((x_fin - x_init)**2 + (y_fin - y_init)**2)
+        y_rot = y_cent_rot + np.sqrt((x_fin - x_center)**2 + (y_fin - y_center)**2 - (x_rot_init + np.sqrt((x_fin - x_init)**2 + (y_fin - y_init)**2) - x_cent_rot)**2)
+        top = y_rot - wid/2
+        if int(top) < 0:
+            top = 0
+        bottom = y_rot + wid/2
+        if int(bottom) > rot_img_data.shape[0] - 1:
+            bottom = rot_img_data.shape[0] - 1
+        x_abs = x_rot_init
+        while x_abs < x_rot_fin:
+            int_sum = 0
+            num_vals = 0
+            y_abs = top
+            curr_x = int(x_abs)
+            xcoords.append(x_abs)
+            while y_abs < bottom:
+                curr_y = int(y_abs)
+                int_sum += rot_img_data[curr_y, curr_x]
+                num_vals += 1
+                y_abs += 1
+            intensities.append(int_sum)
+            num_binvals.append(num_vals)
+            x_abs += 1
+        for val, num in np.nditer([intensities, num_binvals]):
+            vals.append(val/num)
+        for x in xcoords:
+            dist = np.sqrt((x-xcoords[0])**2)
+            dists.append(dist)
+        return dists, vals
             
     """def horizontal_integrate(self, y_init, x_init, x_fin):
         xcoords = []
