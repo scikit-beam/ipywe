@@ -21,6 +21,10 @@ git push
 git push --tags
 ```
 
+# To release a new version on PyPI:
+
+    python setup.py sdist upload
+
 # To release a new version of ipywe on NPM:
 ```
 # nuke the  `dist` and `node_modules`
