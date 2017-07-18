@@ -1,6 +1,9 @@
 # To release a new version of ipywe on conda:
 
-* Update _version.py (set release version, remove 'dev')
+* Update version numbers (set release version, remove 'dev') in 
+  - _version.py
+  - meta.yaml
+  - package.json
 * git add and git commit
 * And run
 ```
@@ -10,7 +13,7 @@ anaconda upload /path/to/ipywe-...tar.bz2
 git tag -a X.X.X -m 'comment'
 ```
 
-* Update _version.py (add 'dev' and increment minor)
+* Update version numbers (add 'dev' and increment minor)
 * And run
 ```
 git add and git commit
