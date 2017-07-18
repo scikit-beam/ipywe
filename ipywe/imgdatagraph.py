@@ -159,11 +159,11 @@ class ImageDataGraph(ipyw.DOMWidget):
             dists, vals = self.get_data_horizontal(p1x_abs, p1y_abs, p2y_abs)
             #dists, vals = self.vertical_integrate(p1y_abs, p1x_abs, p2y_abs)
         else:
-            dists, vals = self.get_data_diagonal_no_rotate(p1x_abs, p1y_abs, p2x_abs, p2y_abs)
+            dists, vals, bar_width = self.get_data_diagonal_no_rotate(p1x_abs, p1y_abs, p2x_abs, p2y_abs)
             #dists, vals = self.diagonal_integrate(p1x_abs, p1y_abs, p2x_abs, p2y_abs)
-        plt.hist(dists, bins=self._num_bins, weights=vals)
-        plt.xlim(np.min(dists) * 0.75, np.max(dists))
-        plt.ylim(np.min(vals) * 0.75, np.max(vals) * 1.25)
+        plt.bar(dists, vals, width=bar_width)
+        #plt.xlim(np.min(dists) * 0.75, np.max(dists))
+        #plt.ylim(np.min(vals) * 0.75, np.max(vals) * 1.25)
         plt.xlabel("Distance from Initial Point")
         plt.ylabel("Value")
         graph = plt.gcf()
@@ -343,10 +343,10 @@ class ImageDataGraph(ipyw.DOMWidget):
         wid_y = abs((self._linepix_width * np.sin(angle))/self.height * self._nrows)
         wid = np.sqrt((wid_x)**2 + (wid_y)**2)
         left = x0 - (wid_x / 2)
-        right = x1 + (wid_x / 2)
+        right = x1 + (wid_x / 2) + 1
         if slope > 0:
             bottom = y0 - (wid_y / 2)
-            top = y1 + (wid_y / 2)
+            top = y1 + (wid_y / 2) + 1
         else:
             bottom = y1 - (wid_y / 2)
             top = y0 + (wid_y / 2)
@@ -358,7 +358,9 @@ class ImageDataGraph(ipyw.DOMWidget):
             left = 0
         if int(right) > self._ncols - 1:
             right = self._ncols - 1
-        X, Y = np.mgrid[bottom:top, left:right]
+        print bottom, top, left, right
+        print "$$$$$\n"
+        Y, X = np.mgrid[bottom:top, left:right]
         h_x = X - x0
         h_y = Y - y0
         norm_x = (y0 - y1) / np.sqrt((y0 - y1)**2 + (x1 - x0)**2)
@@ -405,6 +407,7 @@ class ImageDataGraph(ipyw.DOMWidget):
                                 num_binvals[ind] = num_binvals[ind] + 1
                                 break
         for i, n in np.nditer([intensities, num_binvals]):
+            ind = np.where(intensities==i)
             if n == 0:
                 vals.append(0)
             else:
@@ -412,7 +415,7 @@ class ImageDataGraph(ipyw.DOMWidget):
         bins = bin_borders
         tend = time.time()
         print tend - tstart
-        return bins, vals
+        return bins, vals, bin_step
             
     """def horizontal_integrate(self, y_init, x_init, x_fin):
         xcoords = []
