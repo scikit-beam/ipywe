@@ -6,6 +6,7 @@ import sys, os
 from traitlets import Unicode, Integer, Float, HasTraits, observe
 import matplotlib.pyplot as plt
 from scipy import integrate
+import time
 
 
 class ImageDataGraph(ipyw.DOMWidget):
@@ -246,11 +247,12 @@ class ImageDataGraph(ipyw.DOMWidget):
         return dists, vals
 
     def get_data_diagonal(self, x_init, y_init, x_fin, y_fin):
+        tstart = time.time()
         xcoords = []
         dists = []
         vals = []
-        num_binvals = []
-        intensities = []
+        #num_binvals = []
+        #intensities = []
         slope = (y_fin - y_init)/(x_fin - x_init)
         angle = np.arctan(slope)
         wid_x = (self._linepix_width * np.cos(angle))/self.width * self._ncols
@@ -272,46 +274,82 @@ class ImageDataGraph(ipyw.DOMWidget):
         if int(bottom) > rot_img_data.shape[0] - 1:
             bottom = rot_img_data.shape[0] - 1
         x_abs = x_rot_init
+        max_dist = np.sqrt((x_rot_fin - x_rot_init)**2)
+        bin_step = max_dist / self._num_bins
+        curr_bin_max = 0
+        bin_borders = [0]
+        for i in range(self._num_bins):
+            curr_bin_max += bin_step
+            bin_borders.append(curr_bin_max)
+        intensities = np.zeros(len(bin_borders))
+        num_binvals = np.zeros(len(bin_borders))
         while x_abs < x_rot_fin:
-            int_sum = 0
-            num_vals = 0
+            #int_sum = 0
+            #num_vals = 0
             y_abs = top
             curr_x = int(x_abs)
-            xcoords.append(x_abs)
-            while y_abs < bottom:
+            #xcoords.append(x_abs)
+            for b in bin_borders:
+                ind = bin_borders.index(b)
+                if ind < len(bin_borders) - 1:
+                    if x_abs >= (b + x_rot_init) and x_abs < (bin_borders[ind + 1] + x_rot_init):
+                        while y_abs < bottom:
+                            curr_y = int(y_abs)
+                            intensities[ind] = intensities[ind] + rot_img_data[curr_y, curr_x]
+                            num_binvals[ind] = intensities[ind] + 1
+                            y_abs += 1
+                        break
+            '''while y_abs < bottom:
                 curr_y = int(y_abs)
                 int_sum += rot_img_data[curr_y, curr_x]
                 num_vals += 1
                 y_abs += 1
             intensities.append(int_sum)
-            num_binvals.append(num_vals)
+            num_binvals.append(num_vals)'''
             x_abs += 1
         for val, num in np.nditer([intensities, num_binvals]):
-            vals.append(val/num)
-        for x in xcoords:
+            if num == 0:
+                vals.append(0)
+            else:
+                vals.append(val/num)
+        '''for x in xcoords:
             dist = np.sqrt((x-xcoords[0])**2)
-            dists.append(dist)
-        return dists, vals
+            dists.append(dist)'''
+        tend = time.time()
+        print tend - tstart
+        return bin_borders, vals
 
     def get_data_diagonal_no_rotate(self, x_init, y_init, x_fin, y_fin):
+        tstart = time.time()
         bins = []
         vals = []
-        slope = (y_fin - y_init) / (x_fin - x_init)
+        x0 = x_init
+        x1 = x_fin
+        y0 = y_init
+        y1 = y_fin
+        if x0 > x1:
+            tempx = x1
+            tempy = y1
+            x1 = x0
+            y1 = y0
+            x0 = tempx
+            y0 = tempy
+        slope = (y1 - y0) / (x1 - x0)
         angle = np.arctan(slope)
         slope_inv = -1/slope
-        intercept_0 = y_init - slope_inv * x_init
-        intercept_1 = y_fin - slope_inv * x_fin
+        intercept_0 = y0 - slope_inv * x0
+        intercept_1 = y1 - slope_inv * x1
         wid_x = abs((self._linepix_width * np.cos(angle))/self.width * self._ncols)
         wid_y = abs((self._linepix_width * np.sin(angle))/self.height * self._nrows)
         wid = np.sqrt((wid_x)**2 + (wid_y)**2)
-        left = x_init - (wid_x / 2)
-        right = x_fin + (wid_x / 2)
+        left = x0 - (wid_x / 2)
+        right = x1 + (wid_x / 2)
         if slope > 0:
-            bottom = y_init - (wid_y / 2)
-            top = y_fin + (wid_y / 2)
+            bottom = y0 - (wid_y / 2)
+            top = y1 + (wid_y / 2)
         else:
-            bottom = y_fin - (wid_y / 2)
-            top = y_init + (wid_y / 2)
+            bottom = y1 - (wid_y / 2)
+            top = y0 + (wid_y / 2)
         if int(bottom) < 0:
             bottom = 0
         if int(top) > self._nrows - 1:
@@ -321,24 +359,23 @@ class ImageDataGraph(ipyw.DOMWidget):
         if int(right) > self._ncols - 1:
             right = self._ncols - 1
         X, Y = np.mgrid[bottom:top, left:right]
-        h_x = X - x_init
-        h_y = Y - y_init
-        norm_x = (y_init - y_fin) / np.sqrt((y_init - y_fin)**2 + (x_fin - x_init)**2)
-        norm_y = (x_fin - x_init) / np.sqrt((y_init - y_fin)**2 + (x_fin - x_init)**2)
+        h_x = X - x0
+        h_y = Y - y0
+        norm_x = (y0 - y1) / np.sqrt((y0 - y1)**2 + (x1 - x0)**2)
+        norm_y = (x1 - x0) / np.sqrt((y0 - y1)**2 + (x1 - x0)**2)
         dist = h_x*norm_x + h_y*norm_y
         pos = np.sqrt((np.square(h_x) + np.square(h_y)) - np.square(dist))
-        max_dist = np.sqrt((x_fin - x_init)**2 + (y_fin - y_init)**2)
+        max_dist = np.sqrt((x1 - x0)**2 + (y1 - y0)**2)
         bin_step = max_dist / self._num_bins
-        curr_bin_min = 0
-        curr_bin_max = bin_step
-        '''bin_borders = [0]
+        #curr_bin_min = 0
+        curr_bin_max = 0 #bin_step
+        bin_borders = [0]
         for i in range(self._num_bins):
             curr_bin_max += bin_step
             bin_borders.append(curr_bin_max)
-        bins = np.zeros(len(bin_borders))
-        vals = np.zeros(len(bin_borders))'''
-        
-        for i in range(self._num_bins):
+        intensities = np.zeros(len(bin_borders))
+        num_binvals = np.zeros(len(bin_borders))
+        '''for i in range(self._num_bins):
             int_sum = 0
             num_vals = 0
             for x, y, d, p in np.nditer([X, Y, dist, pos]):
@@ -352,12 +389,27 @@ class ImageDataGraph(ipyw.DOMWidget):
             vals.append(int_sum / num_vals)
             bins.append(curr_bin_min + (bin_step / 2))
             curr_bin_min = curr_bin_max
-            curr_bin_max += bin_step
-        '''for x, y, d, p in np.nditer([X, Y, dist, pos]):
+            curr_bin_max += bin_step'''
+        for x, y, d, p in np.nditer([X, Y, dist, pos]):
             if d <= wid / 2:
-                if (x <= (x_init + (wid_x / 2)) and y < (slope_inv * x + intercept_0)) or (x >= (x_fin - (wid_x / 2)) and y > (slope_inv * x + intercept_1)):
+                if (x <= (x0 + (wid_x / 2)) and y < (slope_inv * x + intercept_0)) or (x >= (x1 - (wid_x / 2)) and y > (slope_inv * x + intercept_1)):
                     continue
-                else:'''
+                else:
+                    for b in bin_borders:
+                        ind = bin_borders.index(b)
+                        if ind < len(bin_borders) - 1:
+                            if p >= b and p < bin_borders[ind + 1]:
+                                intensities[ind] = intensities[ind] + self.img_data[int(y), int(x)]
+                                num_binvals[ind] = num_binvals[ind] + 1
+                                break
+        for i, n in np.nditer([intensities, num_binvals]):
+            if n == 0:
+                vals.append(0)
+            else:
+                vals.append(i/n)
+        bins = bin_borders
+        tend = time.time()
+        print tend - tstart
         return bins, vals
             
     """def horizontal_integrate(self, y_init, x_init, x_fin):
