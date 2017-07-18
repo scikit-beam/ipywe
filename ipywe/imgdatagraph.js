@@ -106,7 +106,6 @@ define("imgdatagraph", ["jupyter-js-widgets"], function(widgets) {
                 }
                 wid.model.set("_graph_click", graph_val);
                 wid.touch();
-                ctx.clearRect(0, 0, wid.model.get("width"), wid.model.get("height"));
             });
 
             img.on("dragstart", false);
