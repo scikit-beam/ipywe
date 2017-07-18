@@ -363,8 +363,10 @@ class ImageDataGraph(ipyw.DOMWidget):
         h_y = Y - y0
         norm_x = (y0 - y1) / np.sqrt((y0 - y1)**2 + (x1 - x0)**2)
         norm_y = (x1 - x0) / np.sqrt((y0 - y1)**2 + (x1 - x0)**2)
+        e_x = (x1 - x0) / np.sqrt((x1 - x0)**2 +(y1 - y0)**2)
+        e_y = (y1 - y0) / np.sqrt((x1 - x0)**2 +(y1 - y0)**2)
         dist = h_x*norm_x + h_y*norm_y
-        pos = np.sqrt((np.square(h_x) + np.square(h_y)) - np.square(dist))
+        pos = h_x*e_x + h_y*e_y
         max_dist = np.sqrt((x1 - x0)**2 + (y1 - y0)**2)
         bin_step = max_dist / self._num_bins
         #curr_bin_min = 0
@@ -392,7 +394,7 @@ class ImageDataGraph(ipyw.DOMWidget):
             curr_bin_max += bin_step'''
         for x, y, d, p in np.nditer([X, Y, dist, pos]):
             if d <= wid / 2:
-                if (x <= (x0 + (wid_x / 2)) and y < (slope_inv * x + intercept_0)) or (x >= (x1 - (wid_x / 2)) and y > (slope_inv * x + intercept_1)):
+                if p < 0 or p > max_dist:
                     continue
                 else:
                     for b in bin_borders:
