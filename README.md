@@ -5,7 +5,11 @@ Widgets etc extending ipywidgets. See [tests](tests) for usage.
 Installation
 ------------
 
-To install use pip:
+To install using conda:
+
+    $ conda install ipywe
+    
+To install using pip:
 
     $ pip install ipywe
     $ jupyter nbextension enable --py --sys-prefix ipywe
