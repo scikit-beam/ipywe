@@ -1,11 +1,12 @@
-# To release a new version of ipywe on PyPI:
+# To release a new version of ipywe on conda:
 
 * Update _version.py (set release version, remove 'dev')
 * git add and git commit
 * And run
 ```
-python setup.py sdist upload
-python setup.py bdist_wheel upload
+conda build conda-recipes
+anaconda login
+anaconda upload /path/to/ipywe-...tar.bz2
 git tag -a X.X.X -m 'comment'
 ```
 
