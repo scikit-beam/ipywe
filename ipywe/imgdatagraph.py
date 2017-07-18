@@ -162,8 +162,6 @@ class ImageDataGraph(ipyw.DOMWidget):
             dists, vals, bar_width = self.get_data_diagonal_no_rotate(p1x_abs, p1y_abs, p2x_abs, p2y_abs)
             #dists, vals = self.diagonal_integrate(p1x_abs, p1y_abs, p2x_abs, p2y_abs)
         plt.bar(dists, vals, width=bar_width)
-        #plt.xlim(np.min(dists) * 0.75, np.max(dists))
-        #plt.ylim(np.min(vals) * 0.75, np.max(vals) * 1.25)
         plt.xlabel("Distance from Initial Point")
         plt.ylabel("Value")
         graph = plt.gcf()
@@ -358,8 +356,6 @@ class ImageDataGraph(ipyw.DOMWidget):
             left = 0
         if int(right) > self._ncols - 1:
             right = self._ncols - 1
-        print bottom, top, left, right
-        print "$$$$$\n"
         Y, X = np.mgrid[bottom:top, left:right]
         h_x = X - x0
         h_y = Y - y0
