@@ -1,4 +1,5 @@
 import ipywidgets as ipyw
+from . import base
 from IPython.display import display, HTML, clear_output
 from cStringIO import StringIO
 from traitlets import Unicode, Integer, Float, HasTraits, observe
@@ -6,7 +7,7 @@ import sys, os
 import numpy as np
 
 @ipyw.register('ipywe.ImageSlider')
-class ImageSlider(ipyw.DOMWidget):
+class ImageSlider(base.DOMWidget):
     """The backend python class for the custom ImageSlider widget.
     
     This class declares and initializes all of the data that is synced between the front- and back-ends of the widget code.
@@ -14,11 +15,6 @@ class ImageSlider(ipyw.DOMWidget):
     
     _view_name = Unicode("ImgSliderView").tag(sync=True)
     _model_name = Unicode("ImgSliderModel").tag(sync=True)
-    
-    _view_module = Unicode('ipywe').tag(sync=True)
-    _model_module = Unicode('ipywe').tag(sync=True)
-    _view_module_version = Unicode('^0.1.0').tag(sync=True)
-    _model_module_version = Unicode('^0.1.0').tag(sync=True)
     
     _b64value = Unicode().tag(sync=True)
     _err = Unicode().tag(sync=True)

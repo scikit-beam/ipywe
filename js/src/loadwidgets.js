@@ -2,8 +2,6 @@
 module.exports = {};
 
 var loadedModules = [
-    require('./example'),
-    require('./helloworld2'),
     require('./imgdisplay'),
     require('./imageslider'),
 ];

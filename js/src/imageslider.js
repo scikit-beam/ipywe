@@ -1,5 +1,6 @@
 var widgets = require('jupyter-js-widgets');
 var _ = require('underscore');
+var semver_range = "^" + require("../package.json").version;
 
 var ImgSliderModel = widgets.DOMWidgetModel.extend({
     defaults: _.extend(_.result(this, 'widgets.DOMWidgetModel.prototype.defaults'), {
@@ -7,8 +8,8 @@ var ImgSliderModel = widgets.DOMWidgetModel.extend({
         _view_name : 'ImgSliderView',
         _model_module : 'ipywe',
         _view_module : 'ipywe',
-        _model_module_version : '0.1.0',
-        _view_module_version : '0.1.0',
+        _model_module_version : semver_range,
+        _view_module_version : semver_range
     })
 });
 
