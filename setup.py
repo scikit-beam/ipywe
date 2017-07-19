@@ -130,10 +130,10 @@ setup_args = {
     ],
     'install_requires': [
         'ipywidgets>=6.0.0',
-        "numpy",
         "traitlets",
-        "scipy",
-        "pillow",
+        #"numpy",
+        #"scipy",
+        #"pillow",
     ],
     'packages': find_packages(exclude=["tests"]),
     'package_dir': {'': "."},
