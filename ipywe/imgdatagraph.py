@@ -159,7 +159,7 @@ class ImageDataGraph(ipyw.DOMWidget):
             dists, vals = self.get_data_horizontal(p1x_abs, p1y_abs, p2y_abs)
             #dists, vals = self.vertical_integrate(p1y_abs, p1x_abs, p2y_abs)
         else:
-            dists, vals, bar_width = self.get_data_diagonal_no_rotate(p1x_abs, p1y_abs, p2x_abs, p2y_abs)
+            dists, vals, bar_width = self.get_data_diagonal(p1x_abs, p1y_abs, p2x_abs, p2y_abs)
             #dists, vals = self.diagonal_integrate(p1x_abs, p1y_abs, p2x_abs, p2y_abs)
         plt.bar(dists, vals, width=bar_width)
         plt.xlabel("Distance from Initial Point")
@@ -244,7 +244,7 @@ class ImageDataGraph(ipyw.DOMWidget):
             dists.append(dist)
         return dists, vals
 
-    def get_data_diagonal(self, x_init, y_init, x_fin, y_fin):
+    '''def get_data_diagonal(self, x_init, y_init, x_fin, y_fin):
         tstart = time.time()
         xcoords = []
         dists = []
@@ -297,27 +297,27 @@ class ImageDataGraph(ipyw.DOMWidget):
                             num_binvals[ind] = intensities[ind] + 1
                             y_abs += 1
                         break
-            '''while y_abs < bottom:
+            while y_abs < bottom:
                 curr_y = int(y_abs)
                 int_sum += rot_img_data[curr_y, curr_x]
                 num_vals += 1
                 y_abs += 1
             intensities.append(int_sum)
-            num_binvals.append(num_vals)'''
+            num_binvals.append(num_vals)
             x_abs += 1
         for val, num in np.nditer([intensities, num_binvals]):
             if num == 0:
                 vals.append(0)
             else:
                 vals.append(val/num)
-        '''for x in xcoords:
+        for x in xcoords:
             dist = np.sqrt((x-xcoords[0])**2)
-            dists.append(dist)'''
+            dists.append(dist)
         tend = time.time()
         print tend - tstart
-        return bin_borders, vals
+        return bin_borders, vals'''
 
-    def get_data_diagonal_no_rotate(self, x_init, y_init, x_fin, y_fin):
+    def get_data_diagonal(self, x_init, y_init, x_fin, y_fin):
         tstart = time.time()
         bins = []
         vals = []
