@@ -124,6 +124,15 @@ define("imgdatagraph", ["jupyter-js-widgets"], function(widgets) {
                     ctx.clearRect(0, 0, wid.model.get("width"), wid.model.get("height"));
                     var currx = event.offsetX;
                     var curry = event.offsetY;
+                    var slope = Math.abs((curry - offy) / (currx - offx))
+                    if (event.ctrlKey) {
+                        if (slope <= 1) {
+                            curry = offy
+                        }
+                        else {
+                            currx = offx
+                        }
+                    }
                     wid.model.set("_offsetX2", currx);
                     wid.model.set("_offsetY2", curry);
                     wid.touch();
