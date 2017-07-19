@@ -6,8 +6,6 @@ import cStringIO
 import sys, os
 from traitlets import Unicode, Integer, Float, HasTraits, observe
 import matplotlib.pyplot as plt
-from scipy import integrate
-import time
 
 @ipyw.register('ipywe.ImageDataGraph')
 class ImageDataGraph(base.DOMWidget):
