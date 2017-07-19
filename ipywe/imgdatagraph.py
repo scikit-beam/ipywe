@@ -15,7 +15,7 @@ class ImageDataGraph(base.DOMWidget):
     It also provides the majority of the mathematical calculations that run this widget."""
     
     _view_name = Unicode("ImgDataGraphView").tag(sync=True)
-    _view_module = Unicode("imgdatagraph").tag(sync=True)
+    _model_name = Unicode("ImgDataGraphModel").tag(sync=True)
 
     _b64value = Unicode().tag(sync=True)
     _graphb64 = Unicode().tag(sync=True)
