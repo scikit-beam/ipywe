@@ -153,7 +153,7 @@ class ImageDataGraph(ipyw.DOMWidget):
         dists = []
         vals = []
         if p1y_abs == p2y_abs and p1x_abs != p2x_abs:
-            dists, vals = self.get_data_horizontal(p1x_abs, p1y_abs, p2x_abs)
+            dists, vals, bar_width = self.get_data_horizontal(p1x_abs, p1y_abs, p2x_abs)
             #dists, vals = self.horizontal_integrate(p1y_abs, p1x_abs, p2x_abs)
         elif p1y_abs != p2y_abs and p1x_abs == p2x_abs:
             dists, vals = self.get_data_horizontal(p1x_abs, p1y_abs, p2y_abs)
@@ -174,12 +174,12 @@ class ImageDataGraph(ipyw.DOMWidget):
         plt.clf()
         return gb64v
 
-    def get_data_horizonatal(self, x_init, y_init, x_fin):
-        xcoords = []
-        dists = []
+    def get_data_horizontal(self, x_init, y_init, x_fin):
+        #xcoords = []
+        #dists = []
         vals = []
-        num_binvals = []
-        intensities = []
+        #num_binvals = []
+        #intensities = []
         wid = self._linepix_width/self.height * self._nrows
         top = y_init - wid/2
         if int(top) < 0:
@@ -187,27 +187,55 @@ class ImageDataGraph(ipyw.DOMWidget):
         bottom = y_init + wid/2
         if int(bottom) > self._nrows - 1:
             bottom = self._nrows - 1
-        x_abs = x_init
-        while x_abs < x_fin:
-            int_sum = 0
-            num_vals = 0
+        #x_abs = x_init
+        max_dist = np.sqrt((x_fin - x_init)**2)
+        bin_step = max_dist / self._num_bins
+        bins = [0]
+        curr_bin_max = 0
+        for i in range(self._num_bins):
+            curr_bin_max += bin_step
+            bins.append(curr_bin_max)
+        intensities = np.zeros(len(bins))
+        num_binvals = np.zeros(len(bins))
+        Y, X = np.mgrid[top:(bottom+1),x_init:(x_fin+1)]
+        for x, y in np.nditer([X, Y]):
+            for b in bins:
+                ind = bins.index(b)
+                if ind < len(bins) - 1:
+                    if x >= b + x_init and x < bins[ind+1] + x_init:
+                        intensities[ind] = intensities[ind] + self.img_data[int(y), int(x)]
+                        num_binvals[ind] = num_binvals[ind] + 1
+                        break
+        '''while x_abs < x_fin:
+            #int_sum = 0
+            #num_vals = 0
             y_abs = top
             curr_x = int(x_abs)
-            xcoords.append(curr_x)
-            while y_abs < bottom:
-                curr_y = int(y_abs)
-                int_sum += self.img_data[curr_y, curr_x]
-                num_vals += 1
-                y_abs += 1
-            intensities.append(int_sum)
-            num_binvals.append(num_vals)
-            x_abs += 1
+            #xcoords.append(curr_x)
+            for b in bins:
+                ind = bins.index(b)
+                if ind < len(bins) - 1:
+                    if x_abs >= b and x_abs < bins[ind + 1]:
+                        while y_abs < bottom:
+                            curr_y = int(y_abs)
+                            #int_sum +=
+                            intensities[ind] = intensities[ind] + self.img_data[curr_y, curr_x]
+                            #num_vals +=
+                            num_binvals[ind] = num_binvals[ind] + 1
+                            y_abs += 1
+                        break
+            #intensities.append(int_sum)
+            #num_binvals.append(num_vals)
+            x_abs += 1'''
         for val, num in np.nditer([intensities, num_binvals]):
-            vals.append(val/num)
-        for x in xcoords:
+            if num == 0:
+                vals.append(0)
+            else:
+                vals.append(val/num)
+        '''for x in xcoords:
             dist = np.sqrt((x - xcoords[0])**2)
-            dists.append(dist)
-        return dists, vals
+            dists.append(dist)'''
+        return bins, vals, bin_step
 
     def get_data_vertical(self, x_init, y_init, y_fin):
         ycoords = []
