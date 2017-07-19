@@ -156,7 +156,7 @@ class ImageDataGraph(ipyw.DOMWidget):
             dists, vals, bar_width = self.get_data_horizontal(p1x_abs, p1y_abs, p2x_abs)
             #dists, vals = self.horizontal_integrate(p1y_abs, p1x_abs, p2x_abs)
         elif p1y_abs != p2y_abs and p1x_abs == p2x_abs:
-            dists, vals = self.get_data_horizontal(p1x_abs, p1y_abs, p2y_abs)
+            dists, vals, bar_width = self.get_data_vertical(p1x_abs, p1y_abs, p2y_abs)
             #dists, vals = self.vertical_integrate(p1y_abs, p1x_abs, p2y_abs)
         else:
             dists, vals, bar_width = self.get_data_diagonal(p1x_abs, p1y_abs, p2x_abs, p2y_abs)
@@ -180,15 +180,21 @@ class ImageDataGraph(ipyw.DOMWidget):
         vals = []
         #num_binvals = []
         #intensities = []
+        x0 = x_init
+        x1 = x_fin
+        if x0 > x1:
+            tempx = x1
+            x1 = x0
+            x0 = tempx
         wid = self._linepix_width/self.height * self._nrows
         top = y_init - wid/2
         if int(top) < 0:
             top = 0
-        bottom = y_init + wid/2
+        bottom = y_init + wid/2 + 1
         if int(bottom) > self._nrows - 1:
             bottom = self._nrows - 1
         #x_abs = x_init
-        max_dist = np.sqrt((x_fin - x_init)**2)
+        max_dist = np.sqrt((x1 - x0)**2)
         bin_step = max_dist / self._num_bins
         bins = [0]
         curr_bin_max = 0
@@ -197,12 +203,12 @@ class ImageDataGraph(ipyw.DOMWidget):
             bins.append(curr_bin_max)
         intensities = np.zeros(len(bins))
         num_binvals = np.zeros(len(bins))
-        Y, X = np.mgrid[top:(bottom+1),x_init:(x_fin+1)]
+        Y, X = np.mgrid[top:bottom,x0:(x1+1)]
         for x, y in np.nditer([X, Y]):
             for b in bins:
                 ind = bins.index(b)
                 if ind < len(bins) - 1:
-                    if x >= b + x_init and x < bins[ind+1] + x_init:
+                    if x >= b + x0 and x < bins[ind+1] + x0:
                         intensities[ind] = intensities[ind] + self.img_data[int(y), int(x)]
                         num_binvals[ind] = num_binvals[ind] + 1
                         break
@@ -238,20 +244,44 @@ class ImageDataGraph(ipyw.DOMWidget):
         return bins, vals, bin_step
 
     def get_data_vertical(self, x_init, y_init, y_fin):
-        ycoords = []
-        dists = []
+        #ycoords = []
+        #dists = []
         vals = []
-        num_binvals = []
-        intensities = []
+        #num_binvals = []
+        #intensities = []
+        y0 = y_init
+        y1 = y_fin
+        if y0 > y1:
+            tempy = y1
+            y1 = y0
+            y0 = tempy
         wid = self._linepix_width/self.width * self._ncols
         left = x_init - wid/2
         if int(left) < 0:
             left = 0
-        right = x_init + wid/2
+        right = x_init + wid/2 + 1
         if int(right) > self._ncols - 1:
             right = self._ncols - 1
-        y_abs = y_init
-        while y_abs < y_fin:
+        #y_abs = y_init
+        max_dist = np.sqrt((y1 - y0)**2)
+        bin_step = max_dist / self._num_bins
+        bins = [0]
+        curr_bin_max = 0
+        for i in range(self._num_bins):
+            curr_bin_max += bin_step
+            bins.append(curr_bin_max)
+        intensities = np.zeros(len(bins))
+        num_binvals = np.zeros(len(bins))
+        Y, X = np.mgrid[y0:(y1+1),left:right]
+        for x, y in np.nditer([X, Y]):
+            for b in bins:
+                ind = bins.index(b)
+                if ind < len(bins) - 1:
+                    if y >= b + y0 and y < bins[ind+1] + y0:
+                        intensities[ind] = intensities[ind] + self.img_data[int(y), int(x)]
+                        num_binvals[ind] = num_binvals[ind] + 1
+                        break
+        '''while y_abs < y_fin:
             int_sum = 0
             num_vals = 0
             x_abs = left
@@ -264,13 +294,16 @@ class ImageDataGraph(ipyw.DOMWidget):
                 x_abs += 1
             intensities.append(int_sum)
             num_binvals.append(num_vals)
-            y_abs += 1
+            y_abs += 1'''
         for val, num in np.nditer([intensities, num_binvals]):
-            vals.append(val/num)
-        for y in ycoords:
+            if num == 0:
+                vals.append(0)
+            else:
+                vals.append(val/num)
+        '''for y in ycoords:
             dist = np.sqrt((y - ycoords[0])**2)
-            dists.append(dist)
-        return dists, vals
+            dists.append(dist)'''
+        return bins, vals, bin_step
 
     '''def get_data_diagonal(self, x_init, y_init, x_fin, y_fin):
         tstart = time.time()
@@ -346,7 +379,6 @@ class ImageDataGraph(ipyw.DOMWidget):
         return bin_borders, vals'''
 
     def get_data_diagonal(self, x_init, y_init, x_fin, y_fin):
-        tstart = time.time()
         bins = []
         vals = []
         x0 = x_init
@@ -437,8 +469,6 @@ class ImageDataGraph(ipyw.DOMWidget):
             else:
                 vals.append(i/n)
         bins = bin_borders
-        tend = time.time()
-        print tend - tstart
         return bins, vals, bin_step
             
     """def horizontal_integrate(self, y_init, x_init, x_fin):
