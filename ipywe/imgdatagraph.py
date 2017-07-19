@@ -10,6 +10,10 @@ import time
 
 
 class ImageDataGraph(ipyw.DOMWidget):
+    """The backend python class for the custom ImageDataGraph widget.
+
+    This class declares and initializes all of the data that is synced between the front- and back-ends of the widget code.
+    It also provides the majority of the mathematical calculations that run this widget."""
     
     _view_name = Unicode("ImgDataGraphView").tag(sync=True)
     _view_module = Unicode("imgdatagraph").tag(sync=True)
@@ -33,6 +37,15 @@ class ImageDataGraph(ipyw.DOMWidget):
     height = Integer().tag(sync=True)
 
     def __init__(self, image, width, height, uformat="png"):
+        """Constructor method for setting the necessary member variables (including synced ones). This function also calls the getimg_bytes() method to create provide the image data to create the widget.
+
+        Parameters:
+
+        * image: an ImageFile object (see https://github.com/ornlneutronimaging/iMars3D/blob/master/python/imars3d/ImageFile.py for more details) that stores the data for the image to be used in this widget.
+        * width: an integer that is used to set the width of the image and UI elements.
+        * height: an integer that is used to set the height of the image and UI elements.
+        * uformat: a string indicating the type of image that the displayed image and graph will be. By default, this is set to "png"."""
+
         self.img = image
         self.img_data = image.data.copy()
         self.width = width
@@ -45,6 +58,8 @@ class ImageDataGraph(ipyw.DOMWidget):
         return
 
     def getimg_bytes(self):
+        """Encodes the image's data into Base64."""        
+
         img = ((self.img_data-self._img_min)/(self._img_max-self._img_min)*(2**8-1)).astype("uint8")
         size = np.max(img.shape)
         view_size = np.max((self.width, self.height))
@@ -62,8 +77,11 @@ class ImageDataGraph(ipyw.DOMWidget):
         imgb64v = base64.b64encode(f.getvalue())
         return imgb64v
 
+    #This function is called when the value of _graph_click changes
     @observe("_graph_click")
     def graph_data(self, change):
+        """Determines whether the graph calculations should include width or not and calls the appropriate function."""
+
         if self._linepix_width == 1:
             self._graphb64 = self.nowidth_graph()
         else:
@@ -71,6 +89,8 @@ class ImageDataGraph(ipyw.DOMWidget):
         return
 
     def nowidth_graph(self):
+        """Collects the data for a line with no width. Then, creates a matplotlib graph of the data, and encodes the graph into Base64 for the JavaScript code to display."""
+
         p1x_abs = self._offsetX1*1./self.width * self._ncols
         p1y_abs = self._offsetY1*1./self.height * self._nrows
         p2x_abs = self._offsetX2*1./self.width * self._ncols
@@ -144,6 +164,8 @@ class ImageDataGraph(ipyw.DOMWidget):
         return gb64v
 
     def width_graph(self):
+        """Creates the graph for a line with width. First, it calculates the endpoints of the drawn line. Then, depending on whether the line is horizontal, vertical, or diagonal, it calls the corresponding function to get the data needed for graphing. Finally, it creates the matplotlib graph and encodes it into Base64."""
+
         p1x_abs = self._offsetX1*1./self.width * self._ncols
         p1y_abs = self._offsetY1*1./self.height * self._nrows
         p2x_abs = self._offsetX2*1./self.width * self._ncols
@@ -154,13 +176,10 @@ class ImageDataGraph(ipyw.DOMWidget):
         vals = []
         if p1y_abs == p2y_abs and p1x_abs != p2x_abs:
             dists, vals, bar_width = self.get_data_horizontal(p1x_abs, p1y_abs, p2x_abs)
-            #dists, vals = self.horizontal_integrate(p1y_abs, p1x_abs, p2x_abs)
         elif p1y_abs != p2y_abs and p1x_abs == p2x_abs:
             dists, vals, bar_width = self.get_data_vertical(p1x_abs, p1y_abs, p2y_abs)
-            #dists, vals = self.vertical_integrate(p1y_abs, p1x_abs, p2y_abs)
         else:
             dists, vals, bar_width = self.get_data_diagonal(p1x_abs, p1y_abs, p2x_abs, p2y_abs)
-            #dists, vals = self.diagonal_integrate(p1x_abs, p1y_abs, p2x_abs, p2y_abs)
         plt.bar(dists, vals, width=bar_width)
         plt.xlabel("Distance from Initial Point")
         plt.ylabel("Value")
@@ -175,11 +194,15 @@ class ImageDataGraph(ipyw.DOMWidget):
         return gb64v
 
     def get_data_horizontal(self, x_init, y_init, x_fin):
-        #xcoords = []
-        #dists = []
+        """Calculates the graphing data for a horizontal line with width.
+
+        Parameters:
+
+        * x_init: a float containing the exact mathematical x coordinate of the first point of the line.
+        * y_init: a float containing the exact mathematical y coordinate of the first point of the line.
+        * x_fin: a float containing the exact mathematical x coordinate of the last point of the line."""
+
         vals = []
-        #num_binvals = []
-        #intensities = []
         x0 = x_init
         x1 = x_fin
         if x0 > x1:
@@ -193,7 +216,6 @@ class ImageDataGraph(ipyw.DOMWidget):
         bottom = y_init + wid/2 + 1
         if int(bottom) > self._nrows - 1:
             bottom = self._nrows - 1
-        #x_abs = x_init
         max_dist = np.sqrt((x1 - x0)**2)
         bin_step = max_dist / self._num_bins
         bins = [0]
@@ -212,43 +234,23 @@ class ImageDataGraph(ipyw.DOMWidget):
                         intensities[ind] = intensities[ind] + self.img_data[int(y), int(x)]
                         num_binvals[ind] = num_binvals[ind] + 1
                         break
-        '''while x_abs < x_fin:
-            #int_sum = 0
-            #num_vals = 0
-            y_abs = top
-            curr_x = int(x_abs)
-            #xcoords.append(curr_x)
-            for b in bins:
-                ind = bins.index(b)
-                if ind < len(bins) - 1:
-                    if x_abs >= b and x_abs < bins[ind + 1]:
-                        while y_abs < bottom:
-                            curr_y = int(y_abs)
-                            #int_sum +=
-                            intensities[ind] = intensities[ind] + self.img_data[curr_y, curr_x]
-                            #num_vals +=
-                            num_binvals[ind] = num_binvals[ind] + 1
-                            y_abs += 1
-                        break
-            #intensities.append(int_sum)
-            #num_binvals.append(num_vals)
-            x_abs += 1'''
         for val, num in np.nditer([intensities, num_binvals]):
             if num == 0:
                 vals.append(0)
             else:
                 vals.append(val/num)
-        '''for x in xcoords:
-            dist = np.sqrt((x - xcoords[0])**2)
-            dists.append(dist)'''
         return bins, vals, bin_step
 
     def get_data_vertical(self, x_init, y_init, y_fin):
-        #ycoords = []
-        #dists = []
+        """Calculates the graphing data for a vertical line with width.
+
+        Parameters:
+
+        * x_init: a float containing the exact mathematical x coordinate of the first point of the line.
+        * y_init: a float containing the exact mathematical y coordinate of the first point of the line.
+        * y_fin: a float containing the exact mathematical y coordinate of the last point of the line."""
+
         vals = []
-        #num_binvals = []
-        #intensities = []
         y0 = y_init
         y1 = y_fin
         if y0 > y1:
@@ -262,7 +264,6 @@ class ImageDataGraph(ipyw.DOMWidget):
         right = x_init + wid/2 + 1
         if int(right) > self._ncols - 1:
             right = self._ncols - 1
-        #y_abs = y_init
         max_dist = np.sqrt((y1 - y0)**2)
         bin_step = max_dist / self._num_bins
         bins = [0]
@@ -281,104 +282,23 @@ class ImageDataGraph(ipyw.DOMWidget):
                         intensities[ind] = intensities[ind] + self.img_data[int(y), int(x)]
                         num_binvals[ind] = num_binvals[ind] + 1
                         break
-        '''while y_abs < y_fin:
-            int_sum = 0
-            num_vals = 0
-            x_abs = left
-            curr_y = int(y_abs)
-            ycoords.append(curr_y)
-            while x_abs < right:
-                curr_x = int(x_abs)
-                int_sum += self.img_data[curr_y, curr_x]
-                num_vals += 1
-                x_abs += 1
-            intensities.append(int_sum)
-            num_binvals.append(num_vals)
-            y_abs += 1'''
         for val, num in np.nditer([intensities, num_binvals]):
             if num == 0:
                 vals.append(0)
             else:
                 vals.append(val/num)
-        '''for y in ycoords:
-            dist = np.sqrt((y - ycoords[0])**2)
-            dists.append(dist)'''
         return bins, vals, bin_step
 
-    '''def get_data_diagonal(self, x_init, y_init, x_fin, y_fin):
-        tstart = time.time()
-        xcoords = []
-        dists = []
-        vals = []
-        #num_binvals = []
-        #intensities = []
-        slope = (y_fin - y_init)/(x_fin - x_init)
-        angle = np.arctan(slope)
-        wid_x = (self._linepix_width * np.cos(angle))/self.width * self._ncols
-        wid_y = (self._linepix_width * np.sin(angle))/self.height * self._nrows
-        wid = np.sqrt((wid_x)**2 + (wid_y)**2)
-        x_center = (self._ncols / 2) - 1
-        y_center = (self._nrows / 2) - 1
-        from skimage.transform import rotate
-        rot_img_data = rotate(self.img_data, angle)
-        x_cent_rot = (rot_img_data.shape[1] / 2) - 1
-        y_cent_rot = (rot_img_data.shape[0] / 2) - 1
-        x_rot_init = (np.sqrt(x_fin**2 - 2*x_fin*x_init + x_init**2 + (y_fin - y_init)**2)*x_cent_rot + x_fin*(x_init - x_center) - x_init**2 + x_init*x_center + (y_fin - y_init)*(y_init - y_center))/np.sqrt(x_fin**2 - 2*x_fin*x_init + x_init**2 + (y_fin - y_init)**2)
-        x_rot_fin = x_rot_init + np.sqrt((x_fin - x_init)**2 + (y_fin - y_init)**2)
-        y_rot = y_cent_rot + np.sqrt((x_fin - x_center)**2 + (y_fin - y_center)**2 - (x_rot_init + np.sqrt((x_fin - x_init)**2 + (y_fin - y_init)**2) - x_cent_rot)**2)
-        top = y_rot - wid/2
-        if int(top) < 0:
-            top = 0
-        bottom = y_rot + wid/2
-        if int(bottom) > rot_img_data.shape[0] - 1:
-            bottom = rot_img_data.shape[0] - 1
-        x_abs = x_rot_init
-        max_dist = np.sqrt((x_rot_fin - x_rot_init)**2)
-        bin_step = max_dist / self._num_bins
-        curr_bin_max = 0
-        bin_borders = [0]
-        for i in range(self._num_bins):
-            curr_bin_max += bin_step
-            bin_borders.append(curr_bin_max)
-        intensities = np.zeros(len(bin_borders))
-        num_binvals = np.zeros(len(bin_borders))
-        while x_abs < x_rot_fin:
-            #int_sum = 0
-            #num_vals = 0
-            y_abs = top
-            curr_x = int(x_abs)
-            #xcoords.append(x_abs)
-            for b in bin_borders:
-                ind = bin_borders.index(b)
-                if ind < len(bin_borders) - 1:
-                    if x_abs >= (b + x_rot_init) and x_abs < (bin_borders[ind + 1] + x_rot_init):
-                        while y_abs < bottom:
-                            curr_y = int(y_abs)
-                            intensities[ind] = intensities[ind] + rot_img_data[curr_y, curr_x]
-                            num_binvals[ind] = intensities[ind] + 1
-                            y_abs += 1
-                        break
-            while y_abs < bottom:
-                curr_y = int(y_abs)
-                int_sum += rot_img_data[curr_y, curr_x]
-                num_vals += 1
-                y_abs += 1
-            intensities.append(int_sum)
-            num_binvals.append(num_vals)
-            x_abs += 1
-        for val, num in np.nditer([intensities, num_binvals]):
-            if num == 0:
-                vals.append(0)
-            else:
-                vals.append(val/num)
-        for x in xcoords:
-            dist = np.sqrt((x-xcoords[0])**2)
-            dists.append(dist)
-        tend = time.time()
-        print tend - tstart
-        return bin_borders, vals'''
-
     def get_data_diagonal(self, x_init, y_init, x_fin, y_fin):
+        """Calculates the graphing data for a vertical line with width.
+
+        Parameters:
+
+        * x_init: a float containing the exact mathematical x coordinate of the first point of the line.
+        * y_init: a float containing the exact mathematical y coordinate of the first point of the line.
+        * x_fin: a float containing the exact mathematical x coordinate of the last point of the line.
+        * y_fin: a float containing the exact mathematical y coordinate of the last point of the line."""
+
         bins = []
         vals = []
         x0 = x_init
@@ -427,29 +347,13 @@ class ImageDataGraph(ipyw.DOMWidget):
         pos = h_x*e_x + h_y*e_y
         max_dist = np.sqrt((x1 - x0)**2 + (y1 - y0)**2)
         bin_step = max_dist / self._num_bins
-        #curr_bin_min = 0
-        curr_bin_max = 0 #bin_step
+        curr_bin_max = 0
         bin_borders = [0]
         for i in range(self._num_bins):
             curr_bin_max += bin_step
             bin_borders.append(curr_bin_max)
         intensities = np.zeros(len(bin_borders))
         num_binvals = np.zeros(len(bin_borders))
-        '''for i in range(self._num_bins):
-            int_sum = 0
-            num_vals = 0
-            for x, y, d, p in np.nditer([X, Y, dist, pos]):
-                if d <= wid / 2:
-                    if (x <= (x_init + (wid_x / 2)) and y < (slope_inv * x + intercept_0)) or (x >= (x_fin - (wid_x / 2)) and y > (slope_inv * x + intercept_1)):
-                        continue
-                    else:
-                        if p >= curr_bin_min and p < curr_bin_max:
-                            int_sum += self.img_data[int(y), int(x)]
-                            num_vals += 1
-            vals.append(int_sum / num_vals)
-            bins.append(curr_bin_min + (bin_step / 2))
-            curr_bin_min = curr_bin_max
-            curr_bin_max += bin_step'''
         for x, y, d, p in np.nditer([X, Y, dist, pos]):
             if d <= wid / 2:
                 if p < 0 or p > max_dist:
@@ -471,337 +375,7 @@ class ImageDataGraph(ipyw.DOMWidget):
         bins = bin_borders
         return bins, vals, bin_step
             
-    """def horizontal_integrate(self, y_init, x_init, x_fin):
-        xcoords = []
-        dists = []
-        vals = []
-        ycoords_inv = []
-        dists_inv = []
-        vals_inv = []
-        curr_x_abs = x_init
-        curr_x = int(curr_x_abs)
-        curr_y_abs = y_init
-        curr_y = int(curr_y_abs)
-        xcoords.append(curr_x)
-        line_width = self._linepix_width/self.height * self._nrows
-        y1_abs_width = curr_y_abs - (line_width / 2)
-        if int(y1_abs_width) < 0:
-            y1_abs_width = 0
-        y2_abs_width = curr_y_abs + (line_width / 2)
-        if int(y2_abs_width) > self._nrows - 1:
-            y2_abs_width = self._nrows -1
-        curr_y = int(y1_abs_width)
-        ycoords_inv.append(curr_y)
-        vals_inv.append(self.img_data[curr_y, curr_x])
-        while y1_abs_width < y2_abs_width:
-            y1_abs_width += 1
-            curr_y = int(y1_abs_width)
-            ycoords_inv.append(curr_y)
-            vals_inv.append(self.img_data[curr_y, curr_x])
-        curr_y = int(y2_abs_width)
-        ycoords_inv.append(curr_y)
-        vals_inv.append(self.img_data[curr_y, curr_x])
-        for y in ycoords_inv:
-            dist = np.sqrt((y - ycoords_inv[0])**2)
-            dists_inv.append(dist)
-        int_vals = integrate.cumtrapz(vals_inv, dists_inv, initial=0)
-        vals.append(int_vals[-1])
-        while curr_x_abs < x_fin:
-            ycoords_inv = []
-            dists_inv = []
-            vals_inv = []
-            curr_x_abs += 1
-            curr_x = int(curr_x_abs)
-            xcoords.append(curr_x)
-            y1_abs_width = curr_y_abs - (line_width / 2)
-            if int(y1_abs_width) < 0:
-                y1_abs_width = 0
-            curr_y = int(y1_abs_width)
-            ycoords_inv.append(curr_y)
-            vals_inv.append(self.img_data[curr_y, curr_x])
-            while y1_abs_width < y2_abs_width:
-                y1_abs_width += 1
-                curr_y = int(y1_abs_width)
-                ycoords_inv.append(curr_y)
-                vals_inv.append(self.img_data[curr_y, curr_x])
-            curr_y = int(y2_abs_width)
-            ycoords_inv.append(curr_y)
-            vals_inv.append(self.img_data[curr_y, curr_x])
-            for y in ycoords_inv:
-                dist = np.sqrt((y - ycoords_inv[0])**2)
-                dists_inv.append(dist)
-            int_vals = integrate.cumtrapz(vals_inv, dists_inv, initial=0)
-            vals.append(int_vals[-1])
-        ycoords_inv = []
-        dists_inv = []
-        vals_inv = []
-        curr_x_abs = x_fin
-        curr_x = int(curr_x_abs)
-        xcoords.append(curr_x)
-        y1_abs_width = curr_y_abs - (line_width / 2)
-        if int(y1_abs_width) < 0:
-            y1_abs_width = 0
-        curr_y = int(y1_abs_width)
-        ycoords_inv.append(curr_y)
-        vals_inv.append(self.img_data[curr_y, curr_x])
-        while y1_abs_width < y2_abs_width:
-            y1_abs_width += 1
-            curr_y = int(y1_abs_width)
-            ycoords_inv.append(curr_y)
-            vals_inv.append(self.img_data[curr_y, curr_x])
-        curr_y = int(y2_abs_width)
-        ycoords_inv.append(curr_y)
-        vals_inv.append(self.img_data[curr_y, curr_x])
-        for y in ycoords_inv:
-            dist = np.sqrt((y - ycoords_inv[0])**2)
-            dists_inv.append(dist)
-        int_vals = integrate.cumtrapz(vals_inv, dists_inv, initial=0)
-        vals.append(int_vals[-1])
-        for x in xcoords:
-            dist = np.sqrt((x - xcoords[0])**2)
-            dists.append(dist)
-        return dists, vals
-
-    def vertical_integrate(self, y_init, x_init, y_fin):
-        ycoords = []
-        dists = []
-        vals = []
-        xcoords_inv = []
-        dists_inv = []
-        vals_inv = []
-        curr_x_abs = x_init
-        curr_y_abs = y_init
-        curr_x = int(curr_x_abs)
-        curr_y = int(curr_y_abs)
-        ycoords.append(curr_y)
-        line_width = self._linepix_width/self.width * self._ncols
-        x1_abs_width = curr_x_abs - (line_width / 2)
-        if int(x1_abs_width) < 0:
-            x1_abs_width = 0
-        x2_abs_width = curr_x_abs + (line_width / 2)
-        if int(x2_abs_width) > self._ncols - 1:
-            x2_abs_width = self._ncols - 1
-        curr_x = int(x1_abs_width)
-        xcoords_inv.append(curr_x)
-        vals_inv.append(self.img_data[curr_y, curr_x])
-        while x1_abs_width < x2_abs_width:
-            x1_abs_width += 1
-            curr_x = int(x1_abs_width)
-            xcoords_inv.append(curr_x)
-            vals_inv.append(self.img_data[curr_y, curr_x])
-        curr_x = int(x2_abs_width)
-        xcoords_inv.append(curr_x)
-        vals_inv.append(self.img_data[curr_y, curr_x])
-        for x in xcoords_inv:
-            dist = np.sqrt((x - xcoords_inv[0])**2)
-            dists_inv.append(dist)
-        int_vals = integrate.cumtrapz(vals_inv, dists_inv, initial=0)
-        vals.append(int_vals[-1])
-        while curr_y_abs < y_fin:
-            xcoords_inv = []
-            dists_inv = []
-            vals_inv = []
-            curr_y_abs += 1
-            curr_y = int(curr_y_abs)
-            ycoords.append(curr_y)
-            x1_abs_width = curr_x_abs - (line_width / 2)
-            if int(x1_abs_width) < 0:
-                x1_abs_width = 0
-            curr_x = int(x1_abs_width)
-            xcoords_inv.append(curr_x)
-            vals_inv.append(self.img_data[curr_y, curr_x])
-            while x1_abs_width < x2_abs_width:
-                x1_abs_width += 1
-                curr_x = int(x1_abs_width)
-                xcoords_inv.append(curr_x)
-                vals_inv.append(self.img_data[curr_y, curr_x])
-            curr_x = int(x2_abs_width)
-            xcoords_inv.append(curr_x)
-            vals_inv.append(self.img_data[curr_y, curr_x])
-            for x in xcoords_inv:
-                dist = np.sqrt((x - xcoords_inv[0])**2)
-                dists_inv.append(dist)
-            int_vals = integrate.cumtrapz(vals_inv, dists_inv, initial=0)
-            vals.append(int_vals)
-        xcoords_inv = []
-        dists_inv = []
-        vals_inv = []
-        curr_y_abs = y_fin
-        curr_y = int(curr_y_abs)
-        ycoords.append(curr_y)
-        x1_abs_width = curr_x_abs - (line_width / 2)
-        if int(x1_abs_width) < 0:
-            x1_abs_width = 0
-        curr_x = int(x1_abs_width)
-        xcoords_inv.append(curr_x)
-        vals_inv.append(self.img_data[curr_y, curr_x])
-        while x1_abs_width < x2_abs_width:
-            x1_abs_width += 1
-            curr_x = int(x1_abs_width)
-            xcoords_inv.append(curr_x)
-            vals_inv.append(self.img_data[curr_y, curr_x])
-        curr_x = int(x2_abs_width)
-        xcoords_inv.append(curr_x)
-        vals_inv.append(self.img_data[curr_y, curr_x])
-        for x in xcoords_inv:
-            dist = np.sqrt((x - xcoords_inv[0])**2)
-            dists_inv.append(dist)
-        int_vals = integrate.cumtrapz(vals_inv, dists_inv, initial=0)
-        vals.append(int_vals[-1])
-        for y in ycoords:
-            dist = np.sqrt((y - ycoords[0])**2)
-            dists.append(dist)
-        return dists, vals
-
-    def diagonal_integrate(self, x_init, y_init, x_fin, y_fin):
-        xcoords = []
-        ycoords = []
-        dists = []
-        vals = []
-        xcoords_inv = []
-        ycoords_inv = []
-        dists_inv = []
-        vals_inv = []
-        curr_x_abs = x_init
-        curr_y_abs = y_init
-        end_x_abs = x_fin
-        end_y_abs = y_fin
-        if curr_x_abs > end_x_abs:
-            tempx = end_x_abs
-            tempy = end_y_abs
-            end_x_abs = curr_x_abs
-            end_y_abs = curr_y_abs
-            curr_x_abs = tempx
-            curr_y_abs = tempy
-        curr_x = int(curr_x_abs)
-        curr_y = int(curr_y_abs)
-        slope = (end_y_abs - curr_y_abs) / (end_x_abs - curr_x_abs)
-        slope_inv = -1/slope
-        angle = np.arctan(slope_inv)
-        x_disp_px = (self._linepix_width / 2) * np.cos(angle)
-        y_disp_px = (self._linepix_width / 2) * np.sin(angle)
-        x_disp = x_disp_px / self.width * self._ncols
-        y_disp = y_disp_px / self.height * self._nrows
-        xcoords.append(curr_x)
-        ycoords.append(curr_y)
-        p1_x_abs = curr_x_abs - x_disp
-        p2_x_abs = curr_x_abs + x_disp
-        if slope > 0:
-            p1_y_abs = curr_y_abs + y_disp
-            p2_y_abs = curr_y_abs - y_disp
-        else:
-            p1_y_abs = curr_y_abs - y_disp
-            p2_y_abs = curr_y_abs + y_disp
-        curr_x = int(p1_x_abs)
-        curr_y = int(p1_y_abs)
-        xcoords_inv.append(curr_x)
-        ycoords_inv.append(curr_y)
-        vals_inv.append(self.img_data[curr_y, curr_x])
-        while p1_x_abs < p2_x_abs:
-            p1_x_abs += 1
-            p1_y_abs += slope_inv
-            curr_x = int(p1_x_abs)
-            curr_y = int(p1_y_abs)
-            xcoords_inv.append(curr_x)
-            ycoords_inv.append(curr_y)
-            vals_inv.append(self.img_data[curr_y, curr_x])
-        curr_x = int(p2_x_abs)
-        curr_y = int(p2_y_abs)
-        xcoords_inv.append(curr_x)
-        ycoords_inv.append(curr_y)
-        vals_inv.append(self.img_data[curr_y, curr_x])
-        for x, y in np.nditer([xcoords_inv, ycoords_inv]):
-            dist = np.sqrt(((x - xcoords_inv[0])**2 + (y - ycoords_inv[0])**2))
-            dists_inv.append(dist)
-        int_vals = integrate.cumtrapz(vals_inv, dists_inv, initial=0)
-        vals.append(int_vals[-1])
-        while curr_x_abs < end_x_abs:
-            xcoords_inv = []
-            ycoords_inv = []
-            dists_inv = []
-            vals_inv = []
-            curr_x_abs += 1
-            curr_y_abs += slope
-            curr_x = int(curr_x_abs)
-            curr_y = int(curr_y_abs)
-            xcoords.append(curr_x)
-            ycoords.append(curr_y)
-            p1_x_abs = curr_x_abs - x_disp
-            p2_x_abs = curr_x_abs + x_disp
-            if slope > 0:
-                p1_y_abs = curr_y_abs + y_disp
-                p2_y_abs = curr_y_abs - y_disp
-            else:
-                p1_y_abs = curr_y_abs - y_disp
-                p2_y_abs = curr_y_abs + y_disp
-            curr_x = int(p1_x_abs)
-            curr_y = int(p1_y_abs)
-            xcoords_inv.append(curr_x)
-            ycoords_inv.append(curr_y)
-            vals_inv.append(self.img_data[curr_y, curr_x])
-            while p1_x_abs < p2_x_abs:
-                p1_x_abs += 1
-                p1_y_abs += slope_inv
-                curr_x = int(p1_x_abs)
-                curr_y = int(p1_y_abs)
-                xcoords_inv.append(curr_x)
-                ycoords_inv.append(curr_y)
-                vals_inv.append(self.img_data[curr_y, curr_x])
-            curr_x = int(p2_x_abs)
-            curr_y = int(p2_y_abs)
-            xcoords_inv.append(curr_x)
-            ycoords_inv.append(curr_y)
-            vals_inv.append(self.img_data[curr_y, curr_x])
-            for x, y in np.nditer([xcoords_inv, ycoords_inv]):
-                dist = np.sqrt(((x - xcoords_inv[0])**2 + (y - ycoords_inv[0])**2))
-                dists_inv.append(dist)
-            int_vals = integrate.cumtrapz(vals_inv, dists_inv, initial=0)
-            vals.append(int_vals[-1])
-        xcoords_inv = []
-        ycoords_inv = []
-        dists_inv = []
-        vals_inv = []
-        curr_x = int(end_x_abs)
-        curr_y = int(end_y_abs)
-        xcoords.append(curr_x)
-        ycoords.append(curr_y)
-        p1_x_abs = end_x_abs - x_disp
-        p2_x_abs = end_x_abs + x_disp
-        if slope > 0:
-            p1_y_abs = end_y_abs + y_disp
-            p2_y_abs = end_y_abs - y_disp
-        else:
-            p1_y_abs = end_y_abs - y_disp
-            p2_y_abs = end_y_abs + y_disp
-        curr_x = int(p1_x_abs)
-        curr_y = int(p1_y_abs)
-        xcoords_inv.append(curr_x)
-        ycoords_inv.append(curr_y)
-        vals_inv.append(self.img_data[curr_y, curr_x])
-        while p1_x_abs < p2_x_abs:
-            p1_x_abs += 1
-            p1_y_abs += slope_inv
-            curr_x = int(p1_x_abs)
-            curr_y = int(p1_y_abs)
-            xcoords_inv.append(curr_x)
-            ycoords_inv.append(curr_y)
-            vals_inv.append(self.img_data[curr_y, curr_x])
-        curr_x = int(p2_x_abs)
-        curr_y = int(p2_y_abs)
-        xcoords_inv.append(curr_x)
-        ycoords_inv.append(curr_y)
-        vals_inv.append(self.img_data[curr_y, curr_x])
-        for x, y in np.nditer([xcoords_inv, ycoords_inv]):
-            dist = np.sqrt(((x - xcoords_inv[0])**2 + (y - ycoords_inv[0])**2))
-            dists_inv.append(dist)
-        int_vals = integrate.cumtrapz(vals_inv, dists_inv, initial=0)
-        vals.append(int_vals[-1])
-        for x, y in np.nditer([xcoords, ycoords]):
-            dist = np.sqrt(((x - xcoords[0])**2 + (y - ycoords[0])**2))
-            dists.append(dist)
-        return dists, vals"""
-            
-
+#All code after this point is for creating the widget outside of a distribution
 def get_js():
     js = open(os.path.join(os.path.dirname(__file__), "imgdatagraph.js")).read()
     return js.decode("UTF-8")
