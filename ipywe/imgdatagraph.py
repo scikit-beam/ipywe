@@ -1,5 +1,6 @@
 import numpy as np
 import ipywidgets as ipyw
+from . import base
 from IPython.display import display, HTML, clear_output
 import cStringIO
 import sys, os
@@ -8,8 +9,8 @@ import matplotlib.pyplot as plt
 from scipy import integrate
 import time
 
-
-class ImageDataGraph(ipyw.DOMWidget):
+@ipyw.register('ipywe.ImageDataGraph')
+class ImageDataGraph(base.DOMWidget):
     """The backend python class for the custom ImageDataGraph widget.
 
     This class declares and initializes all of the data that is synced between the front- and back-ends of the widget code.
@@ -374,14 +375,3 @@ class ImageDataGraph(ipyw.DOMWidget):
                 vals.append(i/n)
         bins = bin_borders
         return bins, vals, bin_step
-            
-#All code after this point is for creating the widget outside of a distribution
-def get_js():
-    js = open(os.path.join(os.path.dirname(__file__), "imgdatagraph.js")).read()
-    return js.decode("UTF-8")
-
-def run_js():
-    js = get_js()
-    display(HTML("<script>"+js+"</script>"))
-
-run_js()
