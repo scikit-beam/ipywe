@@ -89,6 +89,13 @@ class ImageSlider(base.DOMWidget):
         super(ImageSlider, self).__init__()
         return
 
+    def return_roi(self):
+        top_bound = self._ycoord_absolute
+        left_bound = self._xcoord_absolute
+        right_bound = self._xcoord_absolute + self._ncols_currimg - self._extracols
+        bottom_bound = self._ycoord_absolute + self._nrows_currimg - self._extrarows
+        return left_bound, top_bound, right_bound, bottom_bound
+
     def get_series_minmax(self, sample_size=10):
         """Determines the absolute minimum and maximum image values of either all the images in self.image_series
         or of 'sample_size' random images from self.image_series

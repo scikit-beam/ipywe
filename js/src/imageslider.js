@@ -276,7 +276,12 @@ var ImgSliderView = widgets.DOMWidgetView.extend({
         vslide_bar.siblings().css("borderRadius", "50%");
         vslide_bar.siblings().css("background", "#0099e6");
         //Adds vslide_label and vslide_html to data_vbox. At this point, the widget can be successfully displayed.
-        vslide_html.height(this.model.get("height") * 0.7);
+        if (this.model.get("height") >= 150) {
+            vslide_html.height(this.model.get("height") - 100);
+        }
+        else {
+            vslide_html.height(50);
+        }
         data_vbox.append(vslide_label);
         data_vbox.append(vslide_html);
         console.log(data_vbox);
