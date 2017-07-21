@@ -1,22 +1,21 @@
 import numpy as np
 import ipywidgets as ipyw
+from . import base
 from IPython.display import display, HTML, clear_output
 import cStringIO
 import sys, os
 from traitlets import Unicode, Integer, Float, HasTraits, observe
 import matplotlib.pyplot as plt
-from scipy import integrate
-import time
 
-
-class ImageDataGraph(ipyw.DOMWidget):
+@ipyw.register('ipywe.ImageDataGraph')
+class ImageDataGraph(base.DOMWidget):
     """The backend python class for the custom ImageDataGraph widget.
 
     This class declares and initializes all of the data that is synced between the front- and back-ends of the widget code.
     It also provides the majority of the mathematical calculations that run this widget."""
     
     _view_name = Unicode("ImgDataGraphView").tag(sync=True)
-    _view_module = Unicode("imgdatagraph").tag(sync=True)
+    _model_name = Unicode("ImgDataGraphModel").tag(sync=True)
 
     _b64value = Unicode().tag(sync=True)
     _graphb64 = Unicode().tag(sync=True)
@@ -374,14 +373,3 @@ class ImageDataGraph(ipyw.DOMWidget):
                 vals.append(i/n)
         bins = bin_borders
         return bins, vals, bin_step
-            
-#All code after this point is for creating the widget outside of a distribution
-def get_js():
-    js = open(os.path.join(os.path.dirname(__file__), "imgdatagraph.js")).read()
-    return js.decode("UTF-8")
-
-def run_js():
-    js = get_js()
-    display(HTML("<script>"+js+"</script>"))
-
-run_js()
