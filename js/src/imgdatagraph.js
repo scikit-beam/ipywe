@@ -180,11 +180,11 @@ var ImgDataGraphView = widgets.DOMWidgetView.extend({
                 ctx.lineWidth = wid.model.get("_linepix_width") + 1;
                 ctx.strokeStyle = "#ff0000";
                 ctx.stroke();
-             ).on("mouseup", function(event) {
+            }).on("mouseup", function(event) {
                 //Ends the mousemove event
                 console.log("mouseup");
                 canvas.off("mousemove");
-             );
+            });
         });
 
         //Creats the vertical slider label
@@ -267,6 +267,6 @@ var ImgDataGraphView = widgets.DOMWidgetView.extend({
 
 module.exports = {
     ImgDataGraphView : ImgDataGraphView,
-    ImgSliderModel : ImgSliderModel
+    ImgDataGraphModel : ImgDataGraphModel
 };
 
