@@ -7,7 +7,7 @@ Installation
 
 To install using conda:
 
-    $ conda install ipywe
+    $ conda install -c neutrons ipywe
     
 To install using pip:
 
