@@ -26,6 +26,8 @@ class ImageDisplay(base.DOMWidget):
     _ncols_currimg = Integer().tag(sync=True)
     _extrarows = Integer(0).tag(sync=True)
     _extracols = Integer(0).tag(sync=True)
+    _xcoord_max_roi = Integer().tag(sync=True)
+    _ycoord_max_roi = Integer().tag(sync=True)
 
     height = Integer().tag(sync=True)
     width = Integer().tag(sync=True)
@@ -39,6 +41,7 @@ class ImageDisplay(base.DOMWidget):
         self._img_min, self._img_max = int(np.min(self.arr)), int(np.max(self.arr))
         self._nrows, self._ncols = self.arr.shape
         self._nrows_currimg, self._ncols_currimg = self.arr.shape
+        self._ycoord_max_roi, self._xcoord_max_roi = self.arr.shape
         self.curr_img_data = self.arr.copy()
         self.xbuff = 0
         self.ybuff = 0
@@ -70,6 +73,7 @@ class ImageDisplay(base.DOMWidget):
 
     @observe("_zoom_click")
     def zoomImg(self, change):
+        self.arr = self.curr_img.data.copy()
         left = int(self._offXtop*1./self.width * self._ncols_currimg)
         right = int(self._offXbottom*1./self.width*self._ncols_currimg)
         top = int(self._offYtop*1./self.height*self._nrows_currimg)
@@ -119,6 +123,8 @@ class ImageDisplay(base.DOMWidget):
             extrarows_left = np.full((self._nrows, addleft), 1)
             extrarows_right = np.full((self._nrows, addright), 1)
             self.curr_img_data = np.hstack((extrarows_left, self.curr_img_data, extrarows_right))
+        self._xcoord_max_roi = self._xcoord_absolute + self._ncols_currimg - self._extracols
+        self._ycoord_max_roi = self._ycoord_absolute + self._nrows_currimg - self._extrarows
         self._b64value = self.createImg()
         return
     
@@ -127,6 +133,7 @@ class ImageDisplay(base.DOMWidget):
         self.arr = self.curr_img.data.copy()
         self._nrows, self._ncols = self.arr.shape
         self._nrows_currimg, self._ncols_currimg = self.arr.shape
+        self._ycoord_max_roi, self._xcoord_max_roi = self.arr.shape
         self.xbuff = 0
         self.ybuff = 0
         self._xcoord_absolute = 0
