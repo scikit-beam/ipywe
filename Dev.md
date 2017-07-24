@@ -24,3 +24,5 @@ After making a change to a widget's Javascript code (must be in the ipywe direct
 
     $ chmod -x dev_js_update.sh
     $ ./dev_js_update.sh
+
+Note that the Jupyter server must be restarted after running these commands.
