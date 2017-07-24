@@ -19,8 +19,27 @@ var ImgDisplayView = widgets.DOMWidgetView.extend({
     render: function() {
         var wid = this;
 
+        var widget_area = $('<div class="flex-container">');
+
+        widget_area.css("display", "-webkit-flex"); widget_area.css("display", "flex");
+        widget_area.css("jusitfyContent", "flex-start"); widget_area.width(1000);
+        widget_area.height(this.model.get("height") * 1.3);
+
+        var img_vbox = $('<div class="flex-item-img img-box">');
+
+        img_vbox.width(this.model.get("width") * 1.1); img_vbox.height(this.model.get("height") * 1.25); img_vbox.css("padding", "5px");
+
+        var roi_vbox = $('<div class="flex-item-roi roi-box">');
+
+        roi_vbox.width(1000 - (this.model.get("width") * 1.1) - 25); roi_vbox.height(this.model.get("height") * 1.25); roi_vbox.css("padding", "5px");
+
+        widget_area.append(img_vbox);
+        widget_area.append(roi_vbox);
+
+        this.$el.append(widget_area);
+
         var img_container = $('<div class="img-container">');
-        this.$el.append(img_container);
+        img_vbox.append(img_container);
         img_container.css({
             position: "relative",
             width: this.model.get("width"),
@@ -41,7 +60,7 @@ var ImgDisplayView = widgets.DOMWidgetView.extend({
         });
         zoom_button.css("margin", "10px");
         zoom_button.css("marginLeft", "0px");
-        this.$el.append(zoom_button);
+        img_vbox.append(zoom_button);
         zoom_button.click(function() {
             var zoom_val = wid.model.get("_zoom_click");
             if (zoom_val < Number.MAX_SAFE_INTEGER) {
@@ -62,7 +81,7 @@ var ImgDisplayView = widgets.DOMWidgetView.extend({
             disabled: false
         });
         reset_button.css("margin", "10px");
-        this.$el.append(reset_button);
+        img_vbox.append(reset_button);
         reset_button.click(function() {
             var reset_val = wid.model.get("_reset_click");
             if (reset_val < Number.MAX_SAFE_INTEGER) {
@@ -109,8 +128,8 @@ var ImgDisplayView = widgets.DOMWidgetView.extend({
                 new_y = (move_y < click_y) ? (click_y - height) : click_y;
 
                 select.css({
-                    "width": width - 1,
-                    "height": height - 1,
+                    "width": width,
+                    "height": height,
                     "top": new_y,
                     "left": new_x,
                     "background": "transparent",
@@ -128,13 +147,32 @@ var ImgDisplayView = widgets.DOMWidgetView.extend({
                 img.off("mousemove");
             });
         });
+
+        var roi = $("<div>"); roi.text("ROI: ");
+        var corners = $('<span class="roi">');
+        roi.append(corners);
+        corners.css("whiteSpace", "pre");
+        roi_vbox.append(roi);
+
+        this.calc_roi();
         
+        this.model.on("change:_b64value", this.calc_roi, this);
         this.model.on("change:_b64value", this.on_img_change, this);
     },
 
     on_img_change: function() {
         var src = "data:image/" + this.model.get("_format") + ";base64," + this.model.get("_b64value");
         this.$el.find(".curr-img").attr("src", src);
+    },
+
+    calc_roi: function() {
+        /*var top = this.model.get("_ycoord_absolute");
+        var left = this.model.get("_xcoord_absolute");
+        var right = this.model.get("_xcoord_absolute") + this.model.get("_ncols_currimg") - this.model.get("_extracols");
+        var bottom = this.model.get("_ycoord_absolute") + this.model.get("_nrows_currimg") - this.model.get("_extrarows");*/
+        var corns = "Top = " + this.model.get("_ycoord_absolute") + "   Bottom = " + this.model.get("_ycoord_max_roi") + "\n         Left = " + this.model.get("_xcoord_absolute") + "   Right = " + this.model.get("_xcoord_max_roi");
+        console.log(corns);
+        this.$el.find(".roi").text(corns);
     }
 
 });

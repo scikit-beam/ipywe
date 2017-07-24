@@ -47,6 +47,8 @@ class ImageSlider(base.DOMWidget):
     _xcoord_absolute = Integer(0).tag(sync=True)
     _ycoord_absolute = Integer(0).tag(sync=True)
     _vslide_reset = Integer(0).tag(sync=True)
+    _xcoord_max_roi = Integer().tag(sync=True)
+    _ycoord_max_roi = Integer().tag(sync=True)
   
     
     def __init__(self, image_series, width, height):
@@ -78,6 +80,7 @@ class ImageSlider(base.DOMWidget):
         self.curr_img_data = self.arr.copy()
         self._nrows, self._ncols = self.arr.shape
         self._nrows_currimg, self._ncols_currimg = self.arr.shape
+        self._ycoord_max_roi, self._xcoord_max_roi = self.arr.shape
         self.ybuff = 0
         self.xbuff = 0
         self.left = -1
@@ -88,6 +91,13 @@ class ImageSlider(base.DOMWidget):
         self.update_image(None)
         super(ImageSlider, self).__init__()
         return
+
+    '''def return_roi(self):
+        top_bound = self._ycoord_absolute
+        left_bound = self._xcoord_absolute
+        right_bound = self._xcoord_absolute + self._ncols_currimg - self._extracols
+        bottom_bound = self._ycoord_absolute + self._nrows_currimg - self._extrarows
+        return left_bound, top_bound, right_bound, bottom_bound'''
 
     def get_series_minmax(self, sample_size=10):
         """Determines the absolute minimum and maximum image values of either all the images in self.image_series
@@ -190,6 +200,7 @@ class ImageSlider(base.DOMWidget):
             self.handle_zoom()
             return
         self._nrows, self._ncols = self.arr.shape
+        self._ycoord_max_roi, self._xcoord_max_roi = self.arr.shape
         self._nrows_currimg, self._ncols_currimg = self.arr.shape
         self._b64value = self.getimg_bytes()
         return
@@ -266,6 +277,8 @@ class ImageSlider(base.DOMWidget):
             extrarows_left = np.full((self._nrows, addleft), 1)
             extrarows_right = np.full((self._nrows, addright), 1)
             self.curr_img_data = np.hstack((extrarows_left, self.curr_img_data, extrarows_right))
+        self._xcoord_max_roi = self._xcoord_absolute + self._ncols_currimg - self._extracols
+        self._ycoord_max_roi = self._ycoord_absolute + self._nrows_currimg - self._extrarows
         self._b64value = self.getimg_bytes()
         #self.curr_img_series[self.img_index] = self.curr_img_data
         return
@@ -288,6 +301,7 @@ class ImageSlider(base.DOMWidget):
         self.ybuff = 0
         self._xcoord_absolute = 0
         self._ycoord_absolute = 0
+        #self._ycoord_max_roi, self._xcoord_max_roi
         self.get_series_minmax()
         self._vslide_reset += 1
         self.update_image(None)

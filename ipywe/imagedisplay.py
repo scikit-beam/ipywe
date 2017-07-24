@@ -20,6 +20,14 @@ class ImageDisplay(base.DOMWidget):
     _offYbottom = Float().tag(sync=True)
     _zoom_click = Integer(0).tag(sync=True)
     _reset_click = Integer(0).tag(sync=True)
+    _xcoord_absolute = Integer(0).tag(sync=True)
+    _ycoord_absolute = Integer(0).tag(sync=True)
+    _nrows_currimg = Integer().tag(sync=True)
+    _ncols_currimg = Integer().tag(sync=True)
+    _extrarows = Integer(0).tag(sync=True)
+    _extracols = Integer(0).tag(sync=True)
+    _xcoord_max_roi = Integer().tag(sync=True)
+    _ycoord_max_roi = Integer().tag(sync=True)
 
     height = Integer().tag(sync=True)
     width = Integer().tag(sync=True)
@@ -29,16 +37,24 @@ class ImageDisplay(base.DOMWidget):
         self.width = width
         self.height = height
         self.curr_img = image
-        self.arr = self.curr_img.data.copy()
+        self.arr = self.curr_img.data.copy().astype("float")
         self._img_min, self._img_max = int(np.min(self.arr)), int(np.max(self.arr))
         self._nrows, self._ncols = self.arr.shape
-        self.curr_img_data = self.arr
+        self._nrows_currimg, self._ncols_currimg = self.arr.shape
+        self._ycoord_max_roi, self._xcoord_max_roi = self.arr.shape
+        self.curr_img_data = self.arr.copy()
+        self.xbuff = 0
+        self.ybuff = 0
         self._b64value = self.createImg()
         super(ImageDisplay, self).__init__()
         return
 
+    #def return_roi(self):
+
     def createImg(self):
-        img = ((self.curr_img_data-self._img_min)/(self._img_max-self._img_min)*(2**15-1)).astype('int32')
+        if self._img_min >= self._img_max:
+            self._img_max = self._img_min + abs(self._img_max - self._img_min) * 1e-5
+        img = ((self.curr_img_data-self._img_min)/(self._img_max-self._img_min)*(2**8-1)).astype('uint8')
         size = np.max(img.shape)
         view_size = np.max((self.width, self.height))
         if size>view_size:
@@ -57,20 +73,22 @@ class ImageDisplay(base.DOMWidget):
 
     @observe("_zoom_click")
     def zoomImg(self, change):
-        left = int(self._offXtop*1./self.width * self._ncols)
-        right = int(self._offXbottom*1./self.width*self._ncols)
-        top = int(self._offYtop*1./self.height*self._nrows)
-        bottom = int(self._offYbottom*1./self.height*self._nrows)
-        if (right - left) == 0 and (bottom - top) == 0:
-            right = left + 1
-            bottom = top + 1
-        if (right - left) == 0:
-            right = left + 1
-        if (bottom - top) == 0:
-            bottom = top + 1
-        self.arr = self.arr[top:bottom, left:right]
+        self.arr = self.curr_img.data.copy()
+        left = int(self._offXtop*1./self.width * self._ncols_currimg)
+        right = int(self._offXbottom*1./self.width*self._ncols_currimg)
+        top = int(self._offYtop*1./self.height*self._nrows_currimg)
+        bottom = int(self._offYbottom*1./self.height*self._nrows_currimg)
+        select_width = right - left
+        select_height = bottom - top
+        self._xcoord_absolute += (left - self.xbuff)
+        self._ycoord_absolute += (top - self.ybuff)
+        if select_width == 0:
+            select_width = 1
+        if select_height == 0:
+            select_height = 1
+        self.arr = self.arr[self._ycoord_absolute:(self._ycoord_absolute + select_height), self._xcoord_absolute:(self._xcoord_absolute + select_width)]
         self._nrows, self._ncols = self.arr.shape
-        self.curr_img_data = self.arr
+        self.curr_img_data = self.arr.copy()
         if self._ncols > self._nrows:
             diff = self._ncols - self._nrows
             if diff % 2 == 0:
@@ -79,6 +97,12 @@ class ImageDisplay(base.DOMWidget):
             else:
                 addtop = diff / 2 + 1
                 addbottom = diff / 2
+            self.xbuff = 0
+            self.ybuff = addtop
+            self._nrows_currimg = self._ncols
+            self._ncols_currimg = self._ncols
+            self._extrarows = diff
+            self._extracols = 0
             extrarows_top = np.full((addtop, self._ncols), 1)
             extrarows_bottom = np.full((addbottom, self._ncols), 1)
             self.curr_img_data = np.vstack((extrarows_top, self.curr_img_data, extrarows_bottom))
@@ -90,9 +114,17 @@ class ImageDisplay(base.DOMWidget):
             else:
                 addleft = diff / 2 + 1
                 addright = diff / 2
+            self.xbuff = addleft
+            self.ybuff = 0
+            self._nrows_currimg = self._nrows
+            self._ncols_currimg = self._nrows
+            self._extrarows = 0
+            self._extracols = diff
             extrarows_left = np.full((self._nrows, addleft), 1)
             extrarows_right = np.full((self._nrows, addright), 1)
             self.curr_img_data = np.hstack((extrarows_left, self.curr_img_data, extrarows_right))
+        self._xcoord_max_roi = self._xcoord_absolute + self._ncols_currimg - self._extracols
+        self._ycoord_max_roi = self._ycoord_absolute + self._nrows_currimg - self._extrarows
         self._b64value = self.createImg()
         return
     
@@ -100,7 +132,15 @@ class ImageDisplay(base.DOMWidget):
     def resetImg(self, change):
         self.arr = self.curr_img.data.copy()
         self._nrows, self._ncols = self.arr.shape
-        self.curr_img_data = self.arr
+        self._nrows_currimg, self._ncols_currimg = self.arr.shape
+        self._ycoord_max_roi, self._xcoord_max_roi = self.arr.shape
+        self.xbuff = 0
+        self.ybuff = 0
+        self._xcoord_absolute = 0
+        self._ycoord_absolute = 0
+        self._extrarows = 0
+        self._extracols = 0
+        self.curr_img_data = self.arr.copy()
         self._b64value = self.createImg()
         return        
 
