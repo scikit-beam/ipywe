@@ -200,6 +200,7 @@ class ImageSlider(base.DOMWidget):
             self.handle_zoom()
             return
         self._nrows, self._ncols = self.arr.shape
+        self._ycoord_max_roi, self._xcoord_max_roi = self.arr.shape
         self._nrows_currimg, self._ncols_currimg = self.arr.shape
         self._b64value = self.getimg_bytes()
         return
@@ -300,6 +301,7 @@ class ImageSlider(base.DOMWidget):
         self.ybuff = 0
         self._xcoord_absolute = 0
         self._ycoord_absolute = 0
+        #self._ycoord_max_roi, self._xcoord_max_roi
         self.get_series_minmax()
         self._vslide_reset += 1
         self.update_image(None)
