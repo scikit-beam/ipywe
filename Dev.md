@@ -22,9 +22,5 @@ For a development installation (requires npm),
 
 After making a change to a widget's Javascript code (must be in the ipywe directory),
 
-* On first execution,
     $ chmod -x dev_js_update.sh
-* On all executions,
     $ ./dev_js_update.sh
-    or
-    $ sh dev_js_update.sh
