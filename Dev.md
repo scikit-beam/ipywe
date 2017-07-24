@@ -17,3 +17,12 @@ For a development installation (requires npm),
     $ pip install -e .
     $ jupyter nbextension install --py --symlink --sys-prefix ipywe
     $ jupyter nbextension enable --py --sys-prefix ipywe
+
+## Updating JavaScript Code in a Dev Install
+
+After making a change to a widget's Javascript code (must be in the ipywe directory),
+
+    $ chmod -x dev_js_update.sh
+    $ ./dev_js_update.sh
+
+Note that the Jupyter server must be restarted after running these commands.
