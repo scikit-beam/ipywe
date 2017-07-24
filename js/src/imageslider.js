@@ -409,11 +409,11 @@ var ImgSliderView = widgets.DOMWidgetView.extend({
     /*When _b64value changes on the backend, this function will calculate and display the coordinates of the left, right, top, and bottom borders of the currently displayed image. Note that these coordinates are based on the original, un-zoomed image.
      */
     calc_roi: function() {
-        var top = this.model.get("_ycoord_absolute");
+        /*var top = this.model.get("_ycoord_absolute");
         var left = this.model.get("_xcoord_absolute");
         var right = this.model.get("_xcoord_absolute") + this.model.get("_ncols_currimg") - this.model.get("_extracols");
-        var bottom = this.model.get("_ycoord_absolute") + this.model.get("_nrows_currimg") - this.model.get("_extrarows");
-        var corns = "Top = " + top + "   Bottom = " + bottom + "\n         Left = " + left + "   Right = " + right;
+        var bottom = this.model.get("_ycoord_absolute") + this.model.get("_nrows_currimg") - this.model.get("_extrarows");*/
+        var corns = "Top = " + this.model.get("_ycoord_absolute") + "   Bottom = " + this.model.get("_ycoord_max_roi") + "\n         Left = " + this.model.get("_xcoord_absolute") + "   Right = " + this.model.get("_xcoord_max_roi");
         console.log(corns);
         this.$el.find(".roi").text(corns);
     },
