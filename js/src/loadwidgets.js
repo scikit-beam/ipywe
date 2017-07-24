@@ -4,6 +4,7 @@ module.exports = {};
 var loadedModules = [
     require('./imgdisplay'),
     require('./imageslider'),
+    require('./imgdatagraph'),
 ];
 
 for (var i in loadedModules) {
