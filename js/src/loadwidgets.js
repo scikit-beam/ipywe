@@ -2,6 +2,7 @@
 module.exports = {};
 
 var loadedModules = [
+    require('./example'),
     require('./imgdisplay'),
     require('./imageslider'),
     require('./imgdatagraph'),
