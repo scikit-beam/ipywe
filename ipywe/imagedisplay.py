@@ -46,6 +46,7 @@ class ImageDisplay(base.DOMWidget):
         self.xbuff = 0
         self.ybuff = 0
         if init_roi != None:
+            assert (type(init_roi) is list or type(init_roi) is tuple)
             self._offXtop = init_roi[0]*1./self._ncols_currimg * self.width
             self._offXbottom = init_roi[1]*1./self._ncols_currimg * self.width
             self._offYtop = init_roi[2]*1./self._nrows_currimg * self.height
