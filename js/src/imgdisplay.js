@@ -97,6 +97,27 @@ var ImgDisplayView = widgets.DOMWidgetView.extend({
         });
 
         var select = $('<div class="selection-box">');
+        select.appendTo(img_container);
+
+        if (this.model.get("_offXtop") != 0 && this.model.get("_offXbottom") != 0 && this.model.get("_offYtop") != 0 && this.model.get("_offYbottom") != 0) {
+            //console.log(this.model.get("_offXtop"));
+            //console.log(this.model.get("_offXbottom"));
+            //console.log(this.model.get("_offYtop"));
+            //console.log(this.model.get("_offYbottom"));
+            console.log("entered")
+            var sel_width = this.model.get("_offXbottom") - this.model.get("_offXtop");
+            var sel_height = this.model.get("_offYbottom") - this.model.get("_offYtop");
+            select.css({
+                "top": this.model.get("_offYtop"),
+                "left": this.model.get("_offXtop"),
+                "width": sel_width,
+                "height": sel_height,
+                "position": "absolute",
+                "pointerEvents": "none",
+                "background": "transparent",
+                "border": "2px solid red"
+            });
+        }
 
         img.on("dragstart", false);
 
@@ -113,7 +134,7 @@ var ImgDisplayView = widgets.DOMWidgetView.extend({
                 "position": "absolute",
                 "pointerEvents": "none"
             });
-            
+
             select.appendTo(img_container);
 
             img.on("mousemove", function(event) {
@@ -135,6 +156,8 @@ var ImgDisplayView = widgets.DOMWidgetView.extend({
                     "background": "transparent",
                     "border": "2px solid red"
                 });
+
+                console.log(select);
 
                 wid.model.set("_offXtop", parseInt(select.css("left"), 10));
                 wid.model.set("_offYtop", parseInt(select.css("top"), 10));
