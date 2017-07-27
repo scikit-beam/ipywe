@@ -4,6 +4,7 @@ from traitlets import Unicode
 devel = 1
 # devel = 0
 
+
 @widgets.register('hello.Hello')
 class HelloWorld(widgets.DOMWidget):
     """"""
@@ -22,9 +23,11 @@ class HelloWorld(widgets.DOMWidget):
 
 if devel:
     from IPython.display import display, HTML
+
     def get_js():
         import os
-        js = open(os.path.join(os.path.dirname(__file__), "..", "js", "src", "example.js")).read()
+        js = open(os.path.join(os.path.dirname(__file__),
+                               "..", "js", "src", "example.js")).read()
         return js.decode("UTF-8")
 
     def run_js():
