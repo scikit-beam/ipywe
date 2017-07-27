@@ -1,17 +1,16 @@
 import ipywidgets as ipyw
 from . import base
-from IPython.display import display, HTML, clear_output
 from cStringIO import StringIO
 from traitlets import Unicode, Float, Integer, HasTraits, observe
 import numpy as np
-import sys, os
+
 
 @ipyw.register('ipywe.ImageDisplay')
 class ImageDisplay(base.DOMWidget):
 
     _view_name = Unicode("ImgDisplayView").tag(sync=True)
     _model_name = Unicode("ImgDisplayModel").tag(sync=True)
-    
+
     _b64value = Unicode().tag(sync=True)
     _format = Unicode("png").tag(sync=True)
     _offXtop = Float().tag(sync=True)
@@ -32,7 +31,6 @@ class ImageDisplay(base.DOMWidget):
     height = Integer().tag(sync=True)
     width = Integer().tag(sync=True)
 
-    
     def __init__(self, image, width, height):
         self.width = width
         self.height = height
@@ -49,15 +47,13 @@ class ImageDisplay(base.DOMWidget):
         super(ImageDisplay, self).__init__()
         return
 
-    #def return_roi(self):
-
     def createImg(self):
         if self._img_min >= self._img_max:
             self._img_max = self._img_min + abs(self._img_max - self._img_min) * 1e-5
         img = ((self.curr_img_data-self._img_min)/(self._img_max-self._img_min)*(2**8-1)).astype('uint8')
         size = np.max(img.shape)
         view_size = np.max((self.width, self.height))
-        if size>view_size:
+        if size > view_size:
             downsample_ratio = 1.*view_size/size
             import scipy.misc
             img = scipy.misc.imresize(img, downsample_ratio)
@@ -86,7 +82,8 @@ class ImageDisplay(base.DOMWidget):
             select_width = 1
         if select_height == 0:
             select_height = 1
-        self.arr = self.arr[self._ycoord_absolute:(self._ycoord_absolute + select_height), self._xcoord_absolute:(self._xcoord_absolute + select_width)]
+        self.arr = self.arr[self._ycoord_absolute:(self._ycoord_absolute + select_height),
+                            self._xcoord_absolute:(self._xcoord_absolute + select_width)]
         self._nrows, self._ncols = self.arr.shape
         self.curr_img_data = self.arr.copy()
         if self._ncols > self._nrows:
