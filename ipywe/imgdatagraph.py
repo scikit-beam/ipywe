@@ -1,19 +1,19 @@
 import numpy as np
 import ipywidgets as ipyw
 from . import base
-from IPython.display import display, HTML, clear_output
 import cStringIO
-import sys, os
 from traitlets import Unicode, Integer, Float, HasTraits, observe
 import matplotlib.pyplot as plt
+
 
 @ipyw.register('ipywe.ImageDataGraph')
 class ImageDataGraph(base.DOMWidget):
     """The backend python class for the custom ImageDataGraph widget.
 
-    This class declares and initializes all of the data that is synced between the front- and back-ends of the widget code.
+    This class declares and initializes all of the data that is synced
+        between the front- and back-ends of the widget code.
     It also provides the majority of the mathematical calculations that run this widget."""
-    
+
     _view_name = Unicode("ImgDataGraphView").tag(sync=True)
     _model_name = Unicode("ImgDataGraphModel").tag(sync=True)
 
@@ -31,19 +31,27 @@ class ImageDataGraph(base.DOMWidget):
     _graph_click = Integer(0).tag(sync=True)
     _linepix_width = Float(1.0).tag(sync=True)
     _num_bins = Integer(1).tag(sync=True)
-    
+
     width = Integer().tag(sync=True)
     height = Integer().tag(sync=True)
 
     def __init__(self, image, width, height, uformat="png"):
-        """Constructor method for setting the necessary member variables (including synced ones). This function also calls the getimg_bytes() method to create provide the image data to create the widget.
+        """Constructor method for setting the necessary
+               member variables (including synced ones).
+               This function also calls the getimg_bytes() method
+               to create provide the image data to create the widget.
 
         Parameters:
 
-        * image: an ImageFile object (see https://github.com/ornlneutronimaging/iMars3D/blob/master/python/imars3d/ImageFile.py for more details) that stores the data for the image to be used in this widget.
+        * image: an ImageFile object (see
+              https://github.com/ornlneutronimaging/iMars3D/blob/master/python/imars3d/ImageFile.py
+              for more details) that stores the data
+              for the image to be used in this widget.
         * width: an integer that is used to set the width of the image and UI elements.
         * height: an integer that is used to set the height of the image and UI elements.
-        * uformat: a string indicating the type of image that the displayed image and graph will be. By default, this is set to "png"."""
+        * uformat: a string indicating the type of image
+              that the displayed image and graph will be.
+              By default, this is set to "png"."""
 
         self.img = image
         self.img_data = image.data.copy()
@@ -51,13 +59,13 @@ class ImageDataGraph(base.DOMWidget):
         self.height = height
         self._format = uformat
         self._nrows, self._ncols = self.img_data.shape
-        self._img_min, self._img_max = int(np.min(self.img_data)), int(np.max(self.img_data));
+        self._img_min, self._img_max = int(np.min(self.img_data)), int(np.max(self.img_data))
         self._b64value = self.getimg_bytes()
         super(ImageDataGraph, self).__init__()
         return
 
     def getimg_bytes(self):
-        """Encodes the image's data into Base64."""        
+        """Encodes the image's data into Base64."""
 
         img = ((self.img_data-self._img_min)/(self._img_max-self._img_min)*(2**8-1)).astype("uint8")
         size = np.max(img.shape)
@@ -79,7 +87,8 @@ class ImageDataGraph(base.DOMWidget):
     #This function is called when the value of _graph_click changes
     @observe("_graph_click")
     def graph_data(self, change):
-        """Determines whether the graph calculations should include width or not and calls the appropriate function."""
+        """Determines whether the graph calculations should
+               include width or not and calls the appropriate function."""
 
         if self._linepix_width == 1:
             self._graphb64 = self.nowidth_graph()
@@ -88,7 +97,9 @@ class ImageDataGraph(base.DOMWidget):
         return
 
     def nowidth_graph(self):
-        """Collects the data for a line with no width. Then, creates a matplotlib graph of the data, and encodes the graph into Base64 for the JavaScript code to display."""
+        """Collects the data for a line with no width.
+               Then, creates a matplotlib graph of the data,
+               and encodes the graph into Base64 for the JavaScript code to display."""
 
         p1x_abs = self._offsetX1*1./self.width * self._ncols
         p1y_abs = self._offsetY1*1./self.height * self._nrows
@@ -127,7 +138,7 @@ class ImageDataGraph(base.DOMWidget):
                 curr_y = int(curr_y_abs)
                 xcoords.append(curr_x)
                 ycoords.append(curr_y)
-                vals.append(self.img_data[curr_y, curr_x]);
+                vals.append(self.img_data[curr_y, curr_x])
         else:
             while curr_x_abs < p2x_abs:
                 slope = (p2y_abs - p1y_abs) / (p2x_abs - p1x_abs)
@@ -163,14 +174,17 @@ class ImageDataGraph(base.DOMWidget):
         return gb64v
 
     def width_graph(self):
-        """Creates the graph for a line with width. First, it calculates the endpoints of the drawn line. Then, depending on whether the line is horizontal, vertical, or diagonal, it calls the corresponding function to get the data needed for graphing. Finally, it creates the matplotlib graph and encodes it into Base64."""
+        """Creates the graph for a line with width.
+               First, it calculates the endpoints of the drawn line.
+               Then, depending on whether the line is horizontal,
+               vertical, or diagonal, it calls the corresponding function
+               to get the data needed for graphing. Finally, it creates
+               the matplotlib graph and encodes it into Base64."""
 
         p1x_abs = self._offsetX1*1./self.width * self._ncols
         p1y_abs = self._offsetY1*1./self.height * self._nrows
         p2x_abs = self._offsetX2*1./self.width * self._ncols
-        p2y_abs = self._offsetY2*1./self.height * self._nrows 
-        xcoords = []
-        ycoords = []
+        p2y_abs = self._offsetY2*1./self.height * self._nrows
         dists = []
         vals = []
         if p1y_abs == p2y_abs and p1x_abs != p2x_abs:
@@ -197,9 +211,12 @@ class ImageDataGraph(base.DOMWidget):
 
         Parameters:
 
-        * x_init: a float containing the exact mathematical x coordinate of the first point of the line.
-        * y_init: a float containing the exact mathematical y coordinate of the first point of the line.
-        * x_fin: a float containing the exact mathematical x coordinate of the last point of the line."""
+        * x_init: a float containing the exact mathematical
+              x coordinate of the first point of the line.
+        * y_init: a float containing the exact mathematical
+              y coordinate of the first point of the line.
+        * x_fin: a float containing the exact mathematical
+              x coordinate of the last point of the line."""
 
         vals = []
         x0 = x_init
@@ -224,7 +241,7 @@ class ImageDataGraph(base.DOMWidget):
             bins.append(curr_bin_max)
         intensities = np.zeros(len(bins))
         num_binvals = np.zeros(len(bins))
-        Y, X = np.mgrid[top:bottom,x0:(x1+1)]
+        Y, X = np.mgrid[top:bottom, x0:(x1+1)]
         for x, y in np.nditer([X, Y]):
             for b in bins:
                 ind = bins.index(b)
@@ -245,9 +262,12 @@ class ImageDataGraph(base.DOMWidget):
 
         Parameters:
 
-        * x_init: a float containing the exact mathematical x coordinate of the first point of the line.
-        * y_init: a float containing the exact mathematical y coordinate of the first point of the line.
-        * y_fin: a float containing the exact mathematical y coordinate of the last point of the line."""
+        * x_init: a float containing the exact mathematical
+              x coordinate of the first point of the line.
+        * y_init: a float containing the exact mathematical
+              y coordinate of the first point of the line.
+        * y_fin: a float containing the exact mathematical
+              y coordinate of the last point of the line."""
 
         vals = []
         y0 = y_init
@@ -272,7 +292,7 @@ class ImageDataGraph(base.DOMWidget):
             bins.append(curr_bin_max)
         intensities = np.zeros(len(bins))
         num_binvals = np.zeros(len(bins))
-        Y, X = np.mgrid[y0:(y1+1),left:right]
+        Y, X = np.mgrid[y0:(y1+1), left:right]
         for x, y in np.nditer([X, Y]):
             for b in bins:
                 ind = bins.index(b)
@@ -293,10 +313,14 @@ class ImageDataGraph(base.DOMWidget):
 
         Parameters:
 
-        * x_init: a float containing the exact mathematical x coordinate of the first point of the line.
-        * y_init: a float containing the exact mathematical y coordinate of the first point of the line.
-        * x_fin: a float containing the exact mathematical x coordinate of the last point of the line.
-        * y_fin: a float containing the exact mathematical y coordinate of the last point of the line."""
+        * x_init: a float containing the exact mathematical
+              x coordinate of the first point of the line.
+        * y_init: a float containing the exact mathematical
+              y coordinate of the first point of the line.
+        * x_fin: a float containing the exact mathematical
+              x coordinate of the last point of the line.
+        * y_fin: a float containing the exact mathematical
+              y coordinate of the last point of the line."""
 
         bins = []
         vals = []
@@ -313,9 +337,6 @@ class ImageDataGraph(base.DOMWidget):
             y0 = tempy
         slope = (y1 - y0) / (x1 - x0)
         angle = np.arctan(slope)
-        slope_inv = -1/slope
-        intercept_0 = y0 - slope_inv * x0
-        intercept_1 = y1 - slope_inv * x1
         wid_x = abs((self._linepix_width * np.cos(angle))/self.width * self._ncols)
         wid_y = abs((self._linepix_width * np.sin(angle))/self.height * self._nrows)
         wid = np.sqrt((wid_x)**2 + (wid_y)**2)
@@ -340,8 +361,8 @@ class ImageDataGraph(base.DOMWidget):
         h_y = Y - y0
         norm_x = (y0 - y1) / np.sqrt((y0 - y1)**2 + (x1 - x0)**2)
         norm_y = (x1 - x0) / np.sqrt((y0 - y1)**2 + (x1 - x0)**2)
-        e_x = (x1 - x0) / np.sqrt((x1 - x0)**2 +(y1 - y0)**2)
-        e_y = (y1 - y0) / np.sqrt((x1 - x0)**2 +(y1 - y0)**2)
+        e_x = (x1 - x0) / np.sqrt((x1 - x0)**2 + (y1 - y0)**2)
+        e_y = (y1 - y0) / np.sqrt((x1 - x0)**2 + (y1 - y0)**2)
         dist = h_x*norm_x + h_y*norm_y
         pos = h_x*e_x + h_y*e_y
         max_dist = np.sqrt((x1 - x0)**2 + (y1 - y0)**2)
@@ -366,7 +387,7 @@ class ImageDataGraph(base.DOMWidget):
                                 num_binvals[ind] = num_binvals[ind] + 1
                                 break
         for i, n in np.nditer([intensities, num_binvals]):
-            ind = np.where(intensities==i)
+            ind = np.where(intensities == i)
             if n == 0:
                 vals.append(0)
             else:
