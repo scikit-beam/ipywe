@@ -33,7 +33,7 @@ class ImageDisplay(base.DOMWidget):
     width = Integer().tag(sync=True)
 
     
-    def __init__(self, image, width, height):
+    def __init__(self, image, width, height, init_roi=None):
         self.width = width
         self.height = height
         self.curr_img = image
@@ -45,6 +45,12 @@ class ImageDisplay(base.DOMWidget):
         self.curr_img_data = self.arr.copy()
         self.xbuff = 0
         self.ybuff = 0
+        if init_roi != None:
+            assert (type(init_roi) is list or type(init_roi) is tuple)
+            self._offXtop = init_roi[0]*1./self._ncols_currimg * self.width
+            self._offXbottom = init_roi[1]*1./self._ncols_currimg * self.width
+            self._offYtop = init_roi[2]*1./self._nrows_currimg * self.height
+            self._offYbottom = init_roi[3]*1./self._nrows_currimg * self.height
         self._b64value = self.createImg()
         super(ImageDisplay, self).__init__()
         return
