@@ -8,7 +8,7 @@ if sys.version_info < (3, 0):
 else:
     from io import StringIO
 
-    
+
 @ipyw.register('ipywe.ImageDisplay')
 class ImageDisplay(base.DOMWidget):
 
@@ -35,6 +35,7 @@ class ImageDisplay(base.DOMWidget):
     height = Integer().tag(sync=True)
     width = Integer().tag(sync=True)
 
+    
     def __init__(self, image, width, height, init_roi=None):
         self.width = width
         self.height = height
