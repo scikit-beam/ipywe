@@ -1,3 +1,4 @@
+#Allows for Python 3-style division in Python 2.7
 from __future__ import division
 
 import ipywidgets as ipyw
@@ -70,6 +71,10 @@ class ImageDisplay(base.DOMWidget):
             upsample_ratio = 1.*view_size/size
             import scipy.misc
             img = scipy.misc.imresize(img, upsample_ratio)
+        """Chooses the correct string IO method based on 
+               which version of Python is being used.
+           Once Python 2.7 support ends, this can be replaced
+               with just the content of the else statement."""
         if sys.version_info < (3, 0):
             from cStringIO import StringIO
             f = StringIO()
