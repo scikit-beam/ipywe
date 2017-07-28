@@ -1,12 +1,11 @@
+#Allows Python 3-style division in Python 2.7
+from __future__ import division
+
 import ipywidgets as ipyw
 from . import base
 from traitlets import Unicode, Integer, Float, HasTraits, observe
 import numpy as np
 import sys
-if sys.version_info < (3, 0):
-    from cStringIO import StringIO
-else:
-    from io import StringIO
 
 
 @ipyw.register('ipywe.ImageSlider')
@@ -44,7 +43,6 @@ class ImageSlider(base.DOMWidget):
     _offYbottom = Float().tag(sync=True)
     _zoom_click = Integer(0).tag(sync=True)
     _reset_click = Integer(0).tag(sync=True)
-    #_zoomall_click = Integer(0).tag(sync=True)
     _extrarows = Integer(0).tag(sync=True)
     _extracols = Integer(0).tag(sync=True)
     _nrows_currimg = Integer().tag(sync=True)
@@ -144,8 +142,8 @@ class ImageSlider(base.DOMWidget):
             and stores the result in the member variable _err."""
 
         try:
-            col = int(self._offsetX*1./self.width * self._ncols_currimg)
-            row = int(self._offsetY*1./self.height * self._nrows_currimg)
+            col = int(self._offsetX/self.width * self._ncols_currimg)
+            row = int(self._offsetY/self.height * self._nrows_currimg)
             if self._extrarows != 0:
                 row = row - self.ybuff
             if self._extracols != 0:
@@ -175,14 +173,23 @@ class ImageSlider(base.DOMWidget):
         size = np.max(img.shape)
         view_size = np.max((self.width, self.height))
         if size > view_size:
-            downsample_ratio = 1.*view_size/size
+            downsample_ratio = view_size/size
             import scipy.misc
             img = scipy.misc.imresize(img, downsample_ratio)
         else:
-            upsample_ratio = 1.*view_size/size
+            upsample_ratio = view_size/size
             import scipy.misc
             img = scipy.misc.imresize(img, upsample_ratio)
-        f = StringIO()
+        """Allows the correct string IO module to be used
+               based on the version of Python.
+           Once support for Python 2.7 ends, this if-else statement
+               can be replaced by just the contents of the else statement."""
+        if sys.version_info < (3, 0):
+            from cStringIO import StringIO
+            f = StringIO()
+        else:
+            from io import BytesIO
+            f = BytesIO()
         import PIL.Image, base64
         PIL.Image.fromarray(img).save(f, self._format)
         imgb64v = base64.b64encode(f.getvalue())
@@ -238,10 +245,10 @@ class ImageSlider(base.DOMWidget):
     def zoomImg(self, change):
         """Sets all values necessary for zooming and then calls the update_image function."""
 
-        self.left = int(self._offXtop*1./self.width * self._ncols_currimg)
-        self.right = int(self._offXbottom*1./self.width*self._ncols_currimg)
-        self.top = int(self._offYtop*1./self.height*self._nrows_currimg)
-        self.bottom = int(self._offYbottom*1./self.height*self._nrows_currimg)
+        self.left = int(self._offXtop/self.width * self._ncols_currimg)
+        self.right = int(self._offXbottom/self.width*self._ncols_currimg)
+        self.top = int(self._offYtop/self.height*self._nrows_currimg)
+        self.bottom = int(self._offYbottom/self.height*self._nrows_currimg)
         self._xcoord_absolute += (self.left - self.xbuff)
         self._ycoord_absolute += (self.top - self.ybuff)
         self.update_image(None)
@@ -277,11 +284,11 @@ class ImageSlider(base.DOMWidget):
         if self._ncols > self._nrows:
             diff = self._ncols - self._nrows
             if diff % 2 == 0:
-                addtop = int(diff / 2)
-                addbottom = int(diff / 2)
+                addtop = diff // 2
+                addbottom = diff // 2
             else:
-                addtop = int(diff / 2 + 1)
-                addbottom = int(diff / 2)
+                addtop = diff // 2 + 1
+                addbottom = diff // 2
             self.xbuff = 0
             self.ybuff = addtop
             self._nrows_currimg = self._ncols
@@ -294,11 +301,11 @@ class ImageSlider(base.DOMWidget):
         else:
             diff = self._nrows - self._ncols
             if diff % 2 == 0:
-                addleft = int(diff / 2)
-                addright = int(diff / 2)
+                addleft = diff // 2
+                addright = diff // 2
             else:
-                addleft = int(diff / 2 + 1)
-                addright = int(diff / 2)
+                addleft = diff // 2 + 1
+                addright = diff // 2
             self.xbuff = addleft
             self.ybuff = 0
             self._nrows_currimg = self._nrows
