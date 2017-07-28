@@ -97,6 +97,23 @@ var ImgDisplayView = widgets.DOMWidgetView.extend({
         });
 
         var select = $('<div class="selection-box">');
+        select.appendTo(img_container);
+ 
+        if (this.model.get("_offXtop") != 0 && this.model.get("_offXbottom") != 0 && this.model.get("_offYtop") != 0 && this.model.get("_offYbottom") != 0) {
+            console.log("entered")
+            var sel_width = this.model.get("_offXbottom") - this.model.get("_offXtop");
+            var sel_height = this.model.get("_offYbottom") - this.model.get("_offYtop");
+            select.css({
+                "top": this.model.get("_offYtop"),
+                "left": this.model.get("_offXtop"),
+                "width": sel_width,
+                "height": sel_height,
+                "position": "absolute",
+                "pointerEvents": "none",
+                "background": "transparent",
+                "border": "2px solid red"
+            });
+        }
 
         img.on("dragstart", false);
 

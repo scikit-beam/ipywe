@@ -1,8 +1,8 @@
 import ipywidgets as widgets
 from traitlets import Unicode
 
-devel = 1
-# devel = 0
+# devel = 1
+devel = 0
 
 
 @widgets.register('hello.Hello')
