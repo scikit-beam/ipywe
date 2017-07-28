@@ -1,8 +1,9 @@
 # coding: utf-8
 
-import os, glob, time
+import os
+import time
 import ipywidgets as ipyw
-from IPython.display import display, HTML, clear_output
+from IPython.display import display, HTML
 # This try-except should not be necessary anymore.
 # The testing is now done in ../tests.
 try:
@@ -13,18 +14,18 @@ except Exception:
 
 class FileSelectorPanel:
 
-    """Files and directories selector
-    """
+    """Files and directories selector"""
     
     #If ipywidgets version 5.3 or higher is used, the "width="
     #statement should change the width of the file selector. "width="
     #doesn't appear to work in earlier versions.
     select_layout = ipyw.Layout(width="750px")
-    select_multiple_layout = ipyw.Layout(width="750px", display="flex", flex_flow="column")
+    select_multiple_layout = ipyw.Layout(width="750px", 
+                                         display="flex", flex_flow="column")
     button_layout = ipyw.Layout(margin="5px 40px")
     label_layout = ipyw.Layout(width="250px")
     layout = ipyw.Layout()
-    
+
     def __init__(self, instruction, start_dir=".", type='file', next=None, multiple=False):
         """
         Create FileSelectorPanel instance
@@ -42,7 +43,7 @@ class FileSelectorPanel:
         next : function
             callback function to execute after the selection is selected
         """
-        if not type in ['file', 'directory']:
+        if type not in ['file', 'directory']:
             raise ValueError("type must be either file or directory")
         self.instruction = instruction
         self.type = type
@@ -53,7 +54,7 @@ class FileSelectorPanel:
 
     def createPanel(self, curdir):
         self.curdir = curdir
-        explanation = ipyw.Label(self.instruction,layout=self.label_layout)
+        explanation = ipyw.Label(self.instruction, layout=self.label_layout)
         entries_files = sorted(os.listdir(curdir))
         entries_paths = [os.path.join(curdir, e) for e in entries_files]
         entries_ftime = create_file_times(entries_paths)
@@ -90,13 +91,13 @@ class FileSelectorPanel:
         buttons = ipyw.HBox(children=[self.enterdir, self.ok])
         self.widgets = [explanation, self.select, buttons]
         self.panel = ipyw.VBox(children=self.widgets, layout=self.layout)
-        return	
-    
+        return
+
     def handle_enterdir(self, s):
         v = self.select.value
         v = del_ftime(v)
         if self.multiple:
-            if len(v)!=1:
+            if len(v) != 1:
                 js_alert("Please select a directory")
                 return
             v = v[0]
@@ -106,7 +107,7 @@ class FileSelectorPanel:
             self.createPanel(p)
             self.show()
         return
-    
+
     def validate(self, s):
         v = self.select.value
         v = del_ftime(v)
@@ -152,12 +153,13 @@ class FileSelectorPanel:
         display(self.panel)
 
     def remove(self):
-        for w in self.widgets: w.close()
+        for w in self.widgets:
+            w.close()
         self.panel.close()
 
 
 def create_file_times(paths):
-    "returns a list of file modify time"
+    """returns a list of file modify time"""
     ftimes = []
     for f in paths:
         if os.path.isdir(f):
@@ -169,16 +171,19 @@ def create_file_times(paths):
             ftimes.append(ftime)
     return ftimes
 
+
 def create_nametime_labels(entries, ftimes):
-    if not entries: return []
+    if not entries: 
+        return []
     max_len = max(len(e) for e in entries)
     n_spaces = 5
     fmt_str = ' %-' + str(max_len+n_spaces) + "s|" + ' '*n_spaces + '%s'
     label_list = [fmt_str % (e, f) for e, f in zip(entries, ftimes)]
     return label_list
 
+
 def del_ftime(file_label):
-    "file_label is either a str or a tuple of strings"
+    """file_label is either a str or a tuple of strings"""
     if isinstance(file_label, tuple):
         return tuple(del_ftime(s) for s in file_label)
     else:    
@@ -187,11 +192,13 @@ def del_ftime(file_label):
             file_label_new = file_label_new.split("|")[0].rstrip()
     return(file_label_new)
 
+
 def test1():
     panel = FileSelectorPanel("instruction", start_dir=".")
-    print '\n'.join(panel._entries)
+    print('\n'.join(panel._entries))
     panel.handle_enterdir(".")
     return
+
 
 def test2():
     s = " __init__.py          |     Tue Jun 13 23:24:05 2017"
@@ -212,7 +219,5 @@ def main():
     test2()
     return
 
+
 if __name__ == '__main__': main()
-
-
-
