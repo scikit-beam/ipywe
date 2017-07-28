@@ -5,6 +5,6 @@
 // already be loaded by the notebook otherwise.
 
 // add ligher styles here
-// module.exports = require('./loadwidgets');
-module.exports = require('./example.js');
+module.exports = require('./loadwidgets');
+// module.exports = require('./example.js');
 module.exports['version'] = require('../package.json').version;

@@ -1,9 +1,12 @@
 import ipywidgets as ipyw
 from . import base
-from cStringIO import StringIO
 from traitlets import Unicode, Integer, Float, HasTraits, observe
-import sys
 import numpy as np
+import sys
+if sys.version_info < (3, 0):
+    from cStringIO import StringIO
+else:
+    from io import StringIO
 
 
 @ipyw.register('ipywe.ImageSlider')
@@ -11,8 +14,9 @@ class ImageSlider(base.DOMWidget):
     """The backend python class for the custom ImageSlider widget.
 
     This class declares and initializes all of the data that is synced
-    between the front- and back-ends of the widget code.
-    It also provides the majority of the calculation-based code that runs the ImageSlider widget."""
+        between the front- and back-ends of the widget code.
+        It also provides the majority of the calculation-based code
+        that runs the ImageSlider widget."""
 
     _view_name = Unicode("ImgSliderView").tag(sync=True)
     _model_name = Unicode("ImgSliderModel").tag(sync=True)
@@ -61,7 +65,7 @@ class ImageSlider(base.DOMWidget):
                  passed by the image_series parameter.
                  This variable is not changed in the code to preserve the original data.
             *curr_img_series: the list containing the image series that is
-                 currently being displayed by the widget. 
+                 currently being displayed by the widget.
                  Contains image objects (if no images have been changed or if they've been reset),
                  numpy arrays corresponding to zoomed images,
                  or a combination of the two (if only single images have been changed)
@@ -74,13 +78,15 @@ class ImageSlider(base.DOMWidget):
             *xbuff and ybuff: the number of buffer rows in the previously displayed image
 
         Parameters:
-        
-            *image_series: a list of ImageFile objects 
-                 (see https://github.com/ornlneutronimaging/iMars3D/blob/master/python/imars3d/ImageFile.py for more details).
-                 This list is used to give the widget access to the images that are to be viewed.
+
+            *image_series: a list of ImageFile objects (see
+                 https://github.com/ornlneutronimaging/iMars3D/blob/master/python/imars3d/ImageFile.py
+                 for more details).
+                 This list is used to give the widget access
+                 to the images that are to be viewed.
             *width: an integer that is used to set the width of the image and UI elements.
             *height: an integer that is used to set the height of the image and UI elements."""
-        
+
         assert len(image_series), "Image series cannot be empty"
         self.image_series = image_series
         self.curr_img_series = list(self.image_series)
@@ -121,11 +127,14 @@ class ImageSlider(base.DOMWidget):
         else:
             indexes = np.random.choice(N, sample_size, replace=False)
             data = [img_series[i].data for i in indexes]
-        self._img_min = float(np.min(data))
+        if float(np.min(data)) >= 0.00001:
+            self._img_min = float(np.min(data))
+        else:
+            self._img_min = 0
         self._img_max = float(np.max(data))
         return
 
-    #This function is called when the values of _offsetX and/or _offsetY change.
+    #This function is called when the values of _offsetX and/or _offsetY change
     @observe("_offsetX", "_offsetY")
     def get_val(self, change):
         """Tries to calculate the value of the image at the mouse position
@@ -133,7 +142,7 @@ class ImageSlider(base.DOMWidget):
 
         If an error occurs, this method calls the handle_error method
             and stores the result in the member variable _err."""
-        
+
         try:
             col = int(self._offsetX*1./self.width * self._ncols_currimg)
             row = int(self._offsetY*1./self.height * self._nrows_currimg)

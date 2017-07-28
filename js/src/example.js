@@ -1,5 +1,5 @@
-var devel=1;
-// var devel=0;
+// var devel=1;
+var devel=0;
 var widgets = require('jupyter-js-widgets');
 var _ = require('underscore');
 

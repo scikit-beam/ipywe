@@ -1,7 +1,7 @@
 import numpy as np
 import ipywidgets as ipyw
 from . import base
-import cStringIO
+import sys
 from traitlets import Unicode, Integer, Float, HasTraits, observe
 import matplotlib.pyplot as plt
 
@@ -78,7 +78,11 @@ class ImageDataGraph(base.DOMWidget):
             upsample_ratio = 1.*view_size/size
             import scipy.misc
             img = scipy.misc.imresize(img, upsample_ratio)
-        f = cStringIO.StringIO()
+        if sys.version_info < (3, 0):
+            from cStringIO import StringIO
+        else:
+            from io import StringIO
+        f = StringIO()
         import PIL.Image, base64
         PIL.Image.fromarray(img).save(f, self._format)
         imgb64v = base64.b64encode(f.getvalue())
@@ -164,8 +168,11 @@ class ImageDataGraph(base.DOMWidget):
         plt.xlabel("Distance from Initial Point")
         plt.ylabel("Value")
         graph = plt.gcf()
-        import StringIO
-        graphdata = StringIO.StringIO()
+        if sys.version_info < (3, 0):
+            from StringIO import StringIO
+        else:
+            from io import StringIO
+        graphdata = StringIO()
         graph.savefig(graphdata, format=self._format)
         graphdata.seek(0)
         import base64
@@ -197,8 +204,11 @@ class ImageDataGraph(base.DOMWidget):
         plt.xlabel("Distance from Initial Point")
         plt.ylabel("Value")
         graph = plt.gcf()
-        import StringIO
-        graphdata = StringIO.StringIO()
+        if sys.version_info < (3, 0):
+            from StringIO import StringIO
+        else:
+            from io import StringIO
+        graphdata = StringIO()
         graph.savefig(graphdata, format=self._format)
         graphdata.seek(0)
         import base64

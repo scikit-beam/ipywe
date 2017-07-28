@@ -176,6 +176,7 @@ var ImgSliderView = widgets.DOMWidgetView.extend({
                 "position": "absolute",
                 "pointerEvents": "none"
             });
+
             
             select.appendTo(img_container);
 
