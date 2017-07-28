@@ -1,12 +1,10 @@
+from __future__ import division
+
 import ipywidgets as ipyw
 from . import base
 from traitlets import Unicode, Float, Integer, HasTraits, observe
 import numpy as np
 import sys
-if sys.version_info < (3, 0):
-    from cStringIO import StringIO
-else:
-    from io import StringIO
 
 
 @ipyw.register('ipywe.ImageDisplay')
@@ -50,10 +48,10 @@ class ImageDisplay(base.DOMWidget):
         self.ybuff = 0
         if init_roi != None:
             assert (type(init_roi) is list or type(init_roi) is tuple)
-            self._offXtop = init_roi[0]*1./self._ncols_currimg * self.width
-            self._offXbottom = init_roi[1]*1./self._ncols_currimg * self.width
-            self._offYtop = init_roi[2]*1./self._nrows_currimg * self.height
-            self._offYbottom = init_roi[3]*1./self._nrows_currimg * self.height
+            self._offXtop = init_roi[0]/self._ncols_currimg * self.width
+            self._offXbottom = init_roi[1]/self._ncols_currimg * self.width
+            self._offYtop = init_roi[2]/self._nrows_currimg * self.height
+            self._offYbottom = init_roi[3]/self._nrows_currimg * self.height
         self._b64value = self.createImg()
         super(ImageDisplay, self).__init__()
         return
@@ -72,7 +70,12 @@ class ImageDisplay(base.DOMWidget):
             upsample_ratio = 1.*view_size/size
             import scipy.misc
             img = scipy.misc.imresize(img, upsample_ratio)
-        f = StringIO()
+        if sys.version_info < (3, 0):
+            from cStringIO import StringIO
+            f = StringIO()
+        else:
+            from io import BytesIO
+            f = BytesIO()
         import PIL.Image, base64
         PIL.Image.fromarray(img).save(f, self._format)
         imgb64v = base64.b64encode(f.getvalue())
@@ -81,10 +84,10 @@ class ImageDisplay(base.DOMWidget):
     @observe("_zoom_click")
     def zoomImg(self, change):
         self.arr = self.curr_img.data.copy()
-        left = int(self._offXtop*1./self.width * self._ncols_currimg)
-        right = int(self._offXbottom*1./self.width*self._ncols_currimg)
-        top = int(self._offYtop*1./self.height*self._nrows_currimg)
-        bottom = int(self._offYbottom*1./self.height*self._nrows_currimg)
+        left = int(self._offXtop/self.width * self._ncols_currimg)
+        right = int(self._offXbottom/self.width*self._ncols_currimg)
+        top = int(self._offYtop/self.height*self._nrows_currimg)
+        bottom = int(self._offYbottom/self.height*self._nrows_currimg)
         select_width = right - left
         select_height = bottom - top
         self._xcoord_absolute += (left - self.xbuff)
@@ -100,11 +103,11 @@ class ImageDisplay(base.DOMWidget):
         if self._ncols > self._nrows:
             diff = self._ncols - self._nrows
             if diff % 2 == 0:
-                addtop = diff / 2
-                addbottom = diff / 2
+                addtop = diff // 2
+                addbottom = diff // 2
             else:
-                addtop = diff / 2 + 1
-                addbottom = diff / 2
+                addtop = diff // 2 + 1
+                addbottom = diff // 2
             self.xbuff = 0
             self.ybuff = addtop
             self._nrows_currimg = self._ncols
@@ -117,11 +120,11 @@ class ImageDisplay(base.DOMWidget):
         else:
             diff = self._nrows - self._ncols
             if diff % 2 == 0:
-                addleft = diff / 2
-                addright = diff / 2
+                addleft = diff // 2
+                addright = diff // 2
             else:
-                addleft = diff / 2 + 1
-                addright = diff / 2
+                addleft = diff // 2 + 1
+                addright = diff // 2
             self.xbuff = addleft
             self.ybuff = 0
             self._nrows_currimg = self._nrows
