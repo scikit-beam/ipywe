@@ -100,6 +100,10 @@ var ImgDisplayView = widgets.DOMWidgetView.extend({
         select.appendTo(img_container);
  
         if (this.model.get("_offXtop") != 0 && this.model.get("_offXbottom") != 0 && this.model.get("_offYtop") != 0 && this.model.get("_offYbottom") != 0) {
+            //console.log(this.model.get("_offXtop"));
+            //console.log(this.model.get("_offXbottom"));
+            //console.log(this.model.get("_offYtop"));
+            //console.log(this.model.get("_offYbottom"));
             console.log("entered")
             var sel_width = this.model.get("_offXbottom") - this.model.get("_offXtop");
             var sel_height = this.model.get("_offYbottom") - this.model.get("_offYtop");
