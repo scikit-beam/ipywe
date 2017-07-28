@@ -8,6 +8,7 @@ if sys.version_info < (3, 0):
 else:
     from io import StringIO
 
+    
 @ipyw.register('ipywe.ImageDisplay')
 class ImageDisplay(base.DOMWidget):
 

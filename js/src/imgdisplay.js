@@ -98,7 +98,7 @@ var ImgDisplayView = widgets.DOMWidgetView.extend({
 
         var select = $('<div class="selection-box">');
         select.appendTo(img_container);
- 
+
         if (this.model.get("_offXtop") != 0 && this.model.get("_offXbottom") != 0 && this.model.get("_offYtop") != 0 && this.model.get("_offYbottom") != 0) {
             //console.log(this.model.get("_offXtop"));
             //console.log(this.model.get("_offXbottom"));
