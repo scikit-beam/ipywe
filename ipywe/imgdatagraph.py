@@ -1,3 +1,6 @@
+#Allows Python 3-style division in Python 2.7
+from __future__ import division
+
 import numpy as np
 import ipywidgets as ipyw
 from . import base
@@ -71,18 +74,19 @@ class ImageDataGraph(base.DOMWidget):
         size = np.max(img.shape)
         view_size = np.max((self.width, self.height))
         if size > view_size:
-            downsample_ratio = 1.*view_size/size
+            downsample_ratio = view_size/size
             import scipy.misc
             img = scipy.misc.imresize(img, downsample_ratio)
         else:
-            upsample_ratio = 1.*view_size/size
+            upsample_ratio = view_size/size
             import scipy.misc
             img = scipy.misc.imresize(img, upsample_ratio)
         if sys.version_info < (3, 0):
             from cStringIO import StringIO
+            f = StringIO()
         else:
-            from io import StringIO
-        f = StringIO()
+            from io import BytesIO
+            f = BytesIO()
         import PIL.Image, base64
         PIL.Image.fromarray(img).save(f, self._format)
         imgb64v = base64.b64encode(f.getvalue())
@@ -105,10 +109,10 @@ class ImageDataGraph(base.DOMWidget):
                Then, creates a matplotlib graph of the data,
                and encodes the graph into Base64 for the JavaScript code to display."""
 
-        p1x_abs = self._offsetX1*1./self.width * self._ncols
-        p1y_abs = self._offsetY1*1./self.height * self._nrows
-        p2x_abs = self._offsetX2*1./self.width * self._ncols
-        p2y_abs = self._offsetY2*1./self.height * self._nrows
+        p1x_abs = self._offsetX1/self.width * self._ncols
+        p1y_abs = self._offsetY1/self.height * self._nrows
+        p2x_abs = self._offsetX2/self.width * self._ncols
+        p2y_abs = self._offsetY2/self.height * self._nrows
         if p1x_abs > p2x_abs:
             tempx = p2x_abs
             tempy = p2y_abs
@@ -170,13 +174,14 @@ class ImageDataGraph(base.DOMWidget):
         graph = plt.gcf()
         if sys.version_info < (3, 0):
             from StringIO import StringIO
+            graphdata = StringIO()
         else:
-            from io import StringIO
-        graphdata = StringIO()
+            from io import BytesIO
+            graphdata = BytesIO()
         graph.savefig(graphdata, format=self._format)
         graphdata.seek(0)
         import base64
-        gb64v = base64.b64encode(graphdata.buf)
+        gb64v = base64.b64encode(graphdata.read())
         plt.clf()
         return gb64v
 
@@ -188,10 +193,10 @@ class ImageDataGraph(base.DOMWidget):
                to get the data needed for graphing. Finally, it creates
                the matplotlib graph and encodes it into Base64."""
 
-        p1x_abs = self._offsetX1*1./self.width * self._ncols
-        p1y_abs = self._offsetY1*1./self.height * self._nrows
-        p2x_abs = self._offsetX2*1./self.width * self._ncols
-        p2y_abs = self._offsetY2*1./self.height * self._nrows
+        p1x_abs = self._offsetX1/self.width * self._ncols
+        p1y_abs = self._offsetY1/self.height * self._nrows
+        p2x_abs = self._offsetX2/self.width * self._ncols
+        p2y_abs = self._offsetY2/self.height * self._nrows
         dists = []
         vals = []
         if p1y_abs == p2y_abs and p1x_abs != p2x_abs:
@@ -206,13 +211,14 @@ class ImageDataGraph(base.DOMWidget):
         graph = plt.gcf()
         if sys.version_info < (3, 0):
             from StringIO import StringIO
+            graphdata = StringIO()
         else:
-            from io import StringIO
-        graphdata = StringIO()
+            from io import BytesIO
+            graphdata = BytesIO()
         graph.savefig(graphdata, format=self._format)
         graphdata.seek(0)
         import base64
-        gb64v = base64.b64encode(graphdata.buf)
+        gb64v = base64.b64encode(graphdata.read())
         plt.clf()
         return gb64v
 
@@ -235,11 +241,11 @@ class ImageDataGraph(base.DOMWidget):
             tempx = x1
             x1 = x0
             x0 = tempx
-        wid = self._linepix_width/self.height * self._nrows
-        top = y_init - wid/2
+        wid = self._linepix_width//self.height * self._nrows
+        top = y_init - wid//2
         if int(top) < 0:
             top = 0
-        bottom = y_init + wid/2 + 1
+        bottom = y_init + wid//2 + 1
         if int(bottom) > self._nrows - 1:
             bottom = self._nrows - 1
         max_dist = np.sqrt((x1 - x0)**2)
@@ -286,11 +292,11 @@ class ImageDataGraph(base.DOMWidget):
             tempy = y1
             y1 = y0
             y0 = tempy
-        wid = self._linepix_width/self.width * self._ncols
-        left = x_init - wid/2
+        wid = self._linepix_width//self.width * self._ncols
+        left = x_init - wid//2
         if int(left) < 0:
             left = 0
-        right = x_init + wid/2 + 1
+        right = x_init + wid//2 + 1
         if int(right) > self._ncols - 1:
             right = self._ncols - 1
         max_dist = np.sqrt((y1 - y0)**2)
@@ -350,14 +356,14 @@ class ImageDataGraph(base.DOMWidget):
         wid_x = abs((self._linepix_width * np.cos(angle))/self.width * self._ncols)
         wid_y = abs((self._linepix_width * np.sin(angle))/self.height * self._nrows)
         wid = np.sqrt((wid_x)**2 + (wid_y)**2)
-        left = x0 - (wid_x / 2)
-        right = x1 + (wid_x / 2) + 1
+        left = x0 - (wid_x // 2)
+        right = x1 + (wid_x // 2) + 1
         if slope > 0:
-            bottom = y0 - (wid_y / 2)
-            top = y1 + (wid_y / 2) + 1
+            bottom = y0 - (wid_y // 2)
+            top = y1 + (wid_y // 2) + 1
         else:
-            bottom = y1 - (wid_y / 2)
-            top = y0 + (wid_y / 2)
+            bottom = y1 - (wid_y // 2)
+            top = y0 + (wid_y // 2)
         if int(bottom) < 0:
             bottom = 0
         if int(top) > self._nrows - 1:
