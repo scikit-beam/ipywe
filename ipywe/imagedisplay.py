@@ -48,11 +48,14 @@ class ImageDisplay(base.DOMWidget):
         self.xbuff = 0
         self.ybuff = 0
         if init_roi != None:
+            """The division in here should be Python 3-compliant,
+                   but GitHub refused to let the other changes merge
+                   without leaving this as is."""
             assert (type(init_roi) is list or type(init_roi) is tuple)
-            self._offXtop = init_roi[0]/self._ncols_currimg * self.width
-            self._offXbottom = init_roi[1]/self._ncols_currimg * self.width
-            self._offYtop = init_roi[2]/self._nrows_currimg * self.height
-            self._offYbottom = init_roi[3]/self._nrows_currimg * self.height
+            self._offXtop = init_roi[0]*1./self._ncols_currimg * self.width
+            self._offXbottom = init_roi[1]*1./self._ncols_currimg * self.width
+            self._offYtop = init_roi[2]*1./self._nrows_currimg * self.height
+            self._offYbottom = init_roi[3]*1./self._nrows_currimg * self.height
         self._b64value = self.createImg()
         super(ImageDisplay, self).__init__()
         return
