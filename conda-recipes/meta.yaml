@@ -1,4 +1,4 @@
-{% set version = "0.1.1a1" %}
+{% set version = "0.1.1a2" %}
 {% set git_rev = "master" %}
 
 package:
@@ -22,9 +22,9 @@ requirements:
     - python
     - ipywidgets >=6.0.0
     - traitlets >=4.3.0
-#    - pillow
-#    - numpy
-#    - scipy
+    - pillow
+    - numpy
+    - scipy
     
 test:
   imports:

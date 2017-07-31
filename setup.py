@@ -131,9 +131,9 @@ setup_args = {
     'install_requires': [
         'ipywidgets>=6.0.0',
         "traitlets",
-        #"numpy",
-        #"scipy",
-        #"pillow",
+        "pillow",
+        "numpy",
+        "scipy",
     ],
     'packages': find_packages(exclude=["tests"]),
     'package_dir': {'': "."},

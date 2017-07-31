@@ -1,6 +1,6 @@
 {
   "name": "ipywe",
-  "version": "0.1.1-alpha.1",
+  "version": "0.1.1-alpha.2",
   "description": "ipywidgets extensions",
   "author": "ipywe team",
   "main": "src/index.js",
