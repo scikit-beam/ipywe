@@ -14,7 +14,7 @@ git tag -a X.X.X -m 'comment'
 git push
 git push --tags
 ```
-* And run
+* build and upload
 ```
 conda build conda-recipes
 anaconda login
