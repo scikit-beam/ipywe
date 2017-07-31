@@ -5,20 +5,20 @@
   - meta.yaml
   - package.json
 * git add and git commit
+* tag
+```
+git tag -a X.X.X -m 'comment'
+```
+* push
+```
+git push
+git push --tags
+```
 * And run
 ```
 conda build conda-recipes
 anaconda login
 anaconda upload /path/to/ipywe-...tar.bz2
-git tag -a X.X.X -m 'comment'
-```
-
-* Update version numbers (add 'dev' and increment minor)
-* And run
-```
-git add and git commit
-git push
-git push --tags
 ```
 
 # To release a new version on PyPI:
