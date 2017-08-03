@@ -162,13 +162,16 @@ def create_file_times(paths):
     """returns a list of file modify time"""
     ftimes = []
     for f in paths:
-        if os.path.isdir(f):
-            ftimes.append("Directory")
-        else:
-            ftime_sec = os.path.getmtime(f)
-            ftime_tuple = time.localtime(ftime_sec)
-            ftime = time.asctime(ftime_tuple)
-            ftimes.append(ftime)
+        try:
+            if os.path.isdir(f):
+                ftimes.append("Directory")
+            else:
+                ftime_sec = os.path.getmtime(f)
+                ftime_tuple = time.localtime(ftime_sec)
+                ftime = time.asctime(ftime_tuple)
+                ftimes.append(ftime)
+        except OSError:
+            ftimes.append("Unknown or Permission Denied")
     return ftimes
 
 
@@ -193,7 +196,7 @@ def del_ftime(file_label):
     return(file_label_new)
 
 
-def test1():
+'''def test1():
     panel = FileSelectorPanel("instruction", start_dir=".")
     print('\n'.join(panel._entries))
     panel.handle_enterdir(".")
@@ -220,4 +223,4 @@ def main():
     return
 
 
-if __name__ == '__main__': main()
+if __name__ == '__main__': main()'''
