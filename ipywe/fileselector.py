@@ -171,7 +171,7 @@ def create_file_times(paths):
                 ftime = time.asctime(ftime_tuple)
                 ftimes.append(ftime)
         except OSError:
-            ftimes.append("Unknown")
+            ftimes.append("Unknown or Permission Denied")
     return ftimes
 
 
