@@ -9,9 +9,4 @@ To install using conda:
 
     $ conda install -c neutrons ipywe
     
-To install using pip:
-
-    $ pip install ipywe
-    $ jupyter nbextension enable --py --sys-prefix ipywe
-
 For dev installation, see [Dev.md](Dev.md)
