@@ -53,6 +53,9 @@ class FileSelectorPanel:
         return
 
     def createPanel(self, curdir):
+        wait = ipyw.HTML("Please wait...")
+        display(wait)
+        
         self.curdir = curdir
         explanation = ipyw.Label(self.instruction, layout=self.label_layout)
         entries_files = sorted(os.listdir(curdir))
@@ -91,6 +94,7 @@ class FileSelectorPanel:
         buttons = ipyw.HBox(children=[self.enterdir, self.ok])
         self.widgets = [explanation, self.select, buttons]
         self.panel = ipyw.VBox(children=self.widgets, layout=self.layout)
+        wait.close()
         return
 
     def handle_enterdir(self, s):
