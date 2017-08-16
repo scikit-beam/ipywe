@@ -16,15 +16,20 @@
 ### Connecting the Front- and Back-ends: Backend Requirements
 * To sync to two ends of the widget, the backend requires two variables to be initialized and synced with the frontend:
     * `_view_name`: the name of the view
-    * `_view_module`: the module name for the view
+    * `_view_module`: the module name for the view (_**not** required for full distribution packaging_)
 * There are also two *optional* variables that can be initialized and synced to explicitly define the model:
-    * `_model_name`: the name of the model
+    * `_model_name`: the name of the model (_required for full distribution packaging_)
     * `_model_module`: the module name for the model
 * All of these variables are initialized and synced with the same syntax:
     ```
     (_view_name/_view_module/_model_name/_model_module) = Unicode(Value).tag(sync=True)
     ```
     * *Value*: the string that the variable is set to
+* If the code is part of a full distribution package, an ipywidgets.register decorator must be added before the start fo the class. The decorator syntax is as follows:
+    ```
+    @ipywidgets.register(ipywidgets.className)
+    class className
+    ```
 
 ### Syncing Variables:
 * Requires the traitlets module (or the individual traits from this module) to be imported
@@ -81,6 +86,7 @@
         * The function that begins in the define statement
         * The render function
     * By convention, all other functions should be used for events.
+    * Note that this does __not__ apply for code in a full distribution package. For an example of the format for a full distribution file, see <https://github.com/neutrons/ipywe/blob/master/js/src/imgdisplay.js>.
 
 ### The Render Function
 * Essentially, the "main" function of the frontend.
@@ -119,6 +125,7 @@
 * What allows the widget to be rendered on-screen
 * Always contains two copies of the value of `_view_name` seperated by a comma.
 * It should never contain anything else.
+* Again, this only applies if the file is __not__ going to be in a full distribution package.
 
 ## Packaging the Widget
 
@@ -143,6 +150,7 @@
 
 ### Full Distribution Packaging
 * To make a Custom Widget fully distributable through pip and npm, use the [IPyWidgets Cookiecutter template](https://github.com/jupyter-widgets/widget-cookiecutter "Cookiecutter Homepage").
+* An example of this type of packaging can be found at <https://github.com/neutrons/ipywe>.
 
 ## Displaying the Widget
 * For full distribution packaging, ensure the distribution has been downloaded through pip or npm (the widget's GitHub page will have download instructions).
