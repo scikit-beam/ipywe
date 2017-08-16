@@ -7,7 +7,7 @@ from IPython.display import display, HTML, clear_output
 from ._utils import js_alert
 
 
-class Config:
+class Context:
     pass
 
 
@@ -17,9 +17,9 @@ class Step(traitlets.HasTraits):
                          margin='5px', padding='15px')
     button_layout = ipyw.Layout(margin='10px 5px 5px 5px')
 
-    def __init__(self, config):
+    def __init__(self, context):
         super(Step, self).__init__()
-        self.config = config
+        self.context = context
         self.panel = self.createPanel()
         return
 
@@ -46,6 +46,7 @@ class Step(traitlets.HasTraits):
 
 
 def close(w):
+    "recursively close a widget"
     if hasattr(w, 'children'):
         for c in w.children:
             close(c)
