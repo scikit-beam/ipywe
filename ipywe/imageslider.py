@@ -245,7 +245,7 @@ class ImageSlider(base.DOMWidget):
         """Sets all values necessary for zooming into a Region of Interest
         and then calls the update_image_div_data function."""
         Xtop, Ytop, Xbottom, Ybottom = self._ROI
-        if Xtop < 0:
+        if Xtop < 0: # invalid ROI means reset
             self._zoom = False
             return self.reset_image()
         self._zoom = True
