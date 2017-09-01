@@ -150,6 +150,7 @@ class ImageSlider(base.DOMWidget):
             self._pix_val = float(self.arr[row, col])
             self._err = ""
         except Exception:
+            self._pix_val = float(np.nan)
             self._err = self.handle_error()
             return
 
@@ -167,14 +168,11 @@ class ImageSlider(base.DOMWidget):
         img = ((self.curr_img_data-self._img_min)/(self._img_max-self._img_min)*(2**8-1)).astype('uint8')
         size = np.max(img.shape)
         view_size = np.max((self.width, self.height))
-        if size > view_size:
-            downsample_ratio = view_size/size
+        # resample if necessary
+        resample_ratio = view_size/size
+        if resample_ratio != 1.:
             import scipy.misc
-            img = scipy.misc.imresize(img, downsample_ratio)
-        else:
-            upsample_ratio = view_size/size
-            import scipy.misc
-            img = scipy.misc.imresize(img, upsample_ratio)
+            img = scipy.misc.imresize(img, resample_ratio)
         """Allows the correct string IO module to be used
                based on the version of Python.
            Once support for Python 2.7 ends, this if-else statement
