@@ -160,9 +160,10 @@ class ImageSlider(base.DOMWidget):
         If _img_min and/or _img_max have been changed from their initial values,
             this function will also change the image data to account for
             this change before encoding the data into Base64."""
-
+        # force the dynamical range limitation to be positive
         if self._img_min >= self._img_max:
             self._img_max = self._img_min + (self._img_max - self._img_min) * 1e-5
+        # apply dynamical range
         self.curr_img_data[self.curr_img_data < self._img_min] = self._img_min
         self.curr_img_data[self.curr_img_data > self._img_max] = self._img_max
         img = ((self.curr_img_data-self._img_min)/(self._img_max-self._img_min)*(2**8-1)).astype('uint8')
@@ -219,10 +220,7 @@ class ImageSlider(base.DOMWidget):
             and stores this encoding in _b64value."""
 
         self.current_img = self.image_series[self._img_index]
-        if type(self.current_img) is np.ndarray:
-            self.arr = self.current_img.copy().astype("float")
-        else:
-            self.arr = self.current_img.data.copy().astype("float")
+        self.arr = self.current_img.data.copy().astype("float")
         self.curr_img_data = self.arr.copy()
         if self.left != -1 and self.right != -1 and self.top != -1 and self.bottom != -1:
             self.handle_zoom()
@@ -263,13 +261,8 @@ class ImageSlider(base.DOMWidget):
 
         select_width = self.right - self.left
         select_height = self.bottom - self.top
-        if select_width == 0 and select_height == 0:
-            select_width = 1
-            select_height = 1
-        if select_width == 0:
-            select_width = 1
-        if select_height == 0:
-            select_height = 1
+        if select_width == 0: select_width = 1
+        if select_height == 0: select_height = 1
         self.arr = self.arr[self._ycoord_absolute:(self._ycoord_absolute + select_height),
                             self._xcoord_absolute:(self._xcoord_absolute + select_width)]
         self._nrows, self._ncols = self.arr.shape
