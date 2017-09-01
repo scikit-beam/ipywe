@@ -80,7 +80,7 @@ var ImgSliderView = widgets.DOMWidgetView.extend({
             min: 0,
             max: img_max,
             /*When the handle slides, this function is called to update hslide_label 
-              and change _img_index on the backend (triggers the update_image function on the backend)*/
+              and change _img_index on the backend (triggers the update_image_index function on the backend)*/
             slide: function(event, ui) {
                 hslide_label.val( ui.value );
                 console.log("Executed!");
@@ -260,7 +260,7 @@ var ImgSliderView = widgets.DOMWidgetView.extend({
             values: vrange,
             step: vrange_step,
             /*When either handle slides, this function updates this slider's label to reflect the new contrast range. It also sets _img_min and/or _img_max on the backend to the handles' values.
-              This triggers the update_image function on the backend.*/
+              This triggers the update_image_div_data function on the backend.*/
             slide: function(event, ui) {
                 vlabel_content = "Max Range: " + vrange + "\n              Current Range: " + ui.values;
                 wid.$el.find(".vslabel_data").text(vlabel_content);
