@@ -40,7 +40,7 @@ class ImageSlider(base.DOMWidget):
     _series_max = Integer().tag(sync=True)
 
 
-    #These variables were added to support zoom functionality
+    # These variables were added to support zoom functionality
     _offXtop = Float().tag(sync=True)
     _offXbottom = Float().tag(sync=True)
     _offYtop = Float().tag(sync=True)
@@ -66,11 +66,6 @@ class ImageSlider(base.DOMWidget):
             *image_series: the list containing the original series of image objects
                  passed by the image_series parameter.
                  This variable is not changed in the code to preserve the original data.
-            *curr_img_series: the list containing the image series that is
-                 currently being displayed by the widget.
-                 Contains image objects (if no images have been changed or if they've been reset),
-                 numpy arrays corresponding to zoomed images,
-                 or a combination of the two (if only single images have been changed)
             *current_img: the image object or corresponding numpy array of data
                  that is currently being displayed
             *arr: a numpy array containing the data for the current image
@@ -91,8 +86,7 @@ class ImageSlider(base.DOMWidget):
 
         super(ImageSlider, self).__init__()
         assert len(image_series), "Image series cannot be empty"
-        self.image_series = image_series
-        self.curr_img_series = list(self.image_series)
+        self.image_series = list(image_series)
         self.width = width
         self.height = height
         self._series_max = len(self.image_series) - 1
@@ -229,7 +223,7 @@ class ImageSlider(base.DOMWidget):
             to obtain the new Base64 encoding (of either the new or old image)
             and stores this encoding in _b64value."""
 
-        self.current_img = self.curr_img_series[self._img_index]
+        self.current_img = self.image_series[self._img_index]
         if type(self.current_img) is np.ndarray:
             self.arr = self.current_img.copy().astype("float")
         else:
@@ -331,7 +325,6 @@ class ImageSlider(base.DOMWidget):
 
         After resetting, the update_image function is called."""
 
-        self.curr_img_series = list(self.image_series)
         self.right = -1
         self.left = -1
         self.top = -1
