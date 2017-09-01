@@ -26,10 +26,13 @@ class ImageSlider(base.DOMWidget):
 
     # index of current image in display
     _img_index = Integer(0).tag(sync=True)
+    _N_images = Integer().tag(sync=True)
 
     _b64value = Unicode().tag(sync=True)
     _err = Unicode().tag(sync=True)
     _format = Unicode("png").tag(sync=True)
+    _series_min = Float().tag(sync=True)
+    _series_max = Float().tag(sync=True)
     _img_min = Float().tag(sync=True)
     _img_max = Float().tag(sync=True)
     _nrows = Integer().tag(sync=True)
@@ -37,7 +40,6 @@ class ImageSlider(base.DOMWidget):
     _offsetX = Integer().tag(sync=True)
     _offsetY = Integer().tag(sync=True)
     _pix_val = Float().tag(sync=True)
-    _series_max = Integer().tag(sync=True)
 
 
     # These variables were added to support zoom functionality
@@ -89,7 +91,7 @@ class ImageSlider(base.DOMWidget):
         self.image_series = list(image_series)
         self.width = width
         self.height = height
-        self._series_max = len(self.image_series) - 1
+        self._N_images = len(self.image_series)
         self.current_img = self.image_series[self._img_index]
         # image data array. need it to obtain the value at mouse p
         self.arr = self.current_img.data.copy().astype("float") 
@@ -123,8 +125,8 @@ class ImageSlider(base.DOMWidget):
         else:
             indexes = np.random.choice(N, sample_size, replace=False)
             data = [img_series[i].data for i in indexes]
-        self._img_min = float(np.min(data))
-        self._img_max = float(np.max(data))
+        self._series_min = self._img_min = float(np.min(data))
+        self._series_max = self._img_max = float(np.max(data))
         return
 
     #This function is called when the values of _offsetX and/or _offsetY change
@@ -162,7 +164,7 @@ class ImageSlider(base.DOMWidget):
             this change before encoding the data into Base64."""
         # force the intensity range limitation to be positive
         if self._img_min >= self._img_max:
-            self._img_max = self._img_min + (self._img_max - self._img_min) * 1e-5
+            self._img_max = self._img_min + (self._series_max - self._series_min) * 1e-5
         # apply intensity range
         self.curr_img_data[self.curr_img_data < self._img_min] = self._img_min
         self.curr_img_data[self.curr_img_data > self._img_max] = self._img_max
