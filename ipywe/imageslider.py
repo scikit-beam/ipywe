@@ -123,10 +123,7 @@ class ImageSlider(base.DOMWidget):
         else:
             indexes = np.random.choice(N, sample_size, replace=False)
             data = [img_series[i].data for i in indexes]
-        if float(np.min(data)) >= 0.00001:
-            self._img_min = float(np.min(data))
-        else:
-            self._img_min = 0
+        self._img_min = float(np.min(data))
         self._img_max = float(np.max(data))
         return
 
