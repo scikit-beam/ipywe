@@ -123,15 +123,6 @@ var ImgSliderView = widgets.DOMWidgetView.extend({
 	    if (typeof ROI == 'undefined') return;
 	    wid.model.set("_ROI", ROI);
 	    wid.touch();
-            var zoom_val = wid.model.get("_zoom_click");
-            if (zoom_val < Number.MAX_SAFE_INTEGER) {
-                zoom_val++;
-            }
-            else {
-                zoom_val = 0;
-            }
-            wid.model.set("_zoom_click", zoom_val);
-            wid.touch();
             select.remove();
             console.log("Zoomed");
         });

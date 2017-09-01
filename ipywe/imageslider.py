@@ -44,7 +44,6 @@ class ImageSlider(base.DOMWidget):
 
     # These variables were added to support zoom functionality
     _ROI = Tuple((0,0,0,0), sync=True) # Xtop, Ytop, Xbottom, Ybottom
-    _zoom_click = Integer(0).tag(sync=True)
     _reset_click = Integer(0).tag(sync=True)
     _extrarows = Integer(0).tag(sync=True)
     _extracols = Integer(0).tag(sync=True)
@@ -241,8 +240,8 @@ class ImageSlider(base.DOMWidget):
         self._b64value = self.getimg_bytes()
         return
 
-    #This function is called when _zoom_click changes.
-    @observe("_zoom_click")
+    #This function is called when _ROI changes.
+    @observe("_ROI")
     def zoom_image(self, change):
         """Sets all values necessary for zooming into a Region of Interest
         and then calls the update_image_div_data function."""
