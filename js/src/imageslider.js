@@ -80,11 +80,11 @@ var ImgSliderView = widgets.DOMWidgetView.extend({
             min: 0,
             max: img_max,
             /*When the handle slides, this function is called to update hslide_label 
-              and change img_index on the backend (triggers the update_image function on the backend)*/
+              and change _img_index on the backend (triggers the update_image function on the backend)*/
             slide: function(event, ui) {
                 hslide_label.val( ui.value );
                 console.log("Executed!");
-                wid.model.set("img_index", ui.value);
+                wid.model.set("_img_index", ui.value);
                 wid.touch();
             }
         });

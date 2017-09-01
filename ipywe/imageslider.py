@@ -20,6 +20,13 @@ class ImageSlider(base.DOMWidget):
     _view_name = Unicode("ImgSliderView").tag(sync=True)
     _model_name = Unicode("ImgSliderModel").tag(sync=True)
 
+    # public attrs
+    height = Integer().tag(sync=True)
+    width = Integer().tag(sync=True)
+
+    # index of current image in display
+    _img_index = Integer(0).tag(sync=True)
+
     _b64value = Unicode().tag(sync=True)
     _err = Unicode().tag(sync=True)
     _format = Unicode("png").tag(sync=True)
@@ -32,9 +39,6 @@ class ImageSlider(base.DOMWidget):
     _pix_val = Float().tag(sync=True)
     _series_max = Integer().tag(sync=True)
 
-    height = Integer().tag(sync=True)
-    img_index = Integer(0).tag(sync=True)
-    width = Integer().tag(sync=True)
 
     #These variables were added to support zoom functionality
     _offXtop = Float().tag(sync=True)
@@ -85,13 +89,14 @@ class ImageSlider(base.DOMWidget):
             *width: an integer that is used to set the width of the image and UI elements.
             *height: an integer that is used to set the height of the image and UI elements."""
 
+        super(ImageSlider, self).__init__()
         assert len(image_series), "Image series cannot be empty"
         self.image_series = image_series
         self.curr_img_series = list(self.image_series)
         self.width = width
         self.height = height
         self._series_max = len(self.image_series) - 1
-        self.current_img = self.image_series[self.img_index]
+        self.current_img = self.image_series[self._img_index]
         self.arr = self.current_img.data.copy().astype("float")
         self.curr_img_data = self.arr.copy()
         self._nrows, self._ncols = self.arr.shape
@@ -105,7 +110,6 @@ class ImageSlider(base.DOMWidget):
         self.bottom = -1
         self.get_series_minmax()
         self.update_image(None)
-        super(ImageSlider, self).__init__()
         return
 
     def get_series_minmax(self, sample_size=10):
@@ -209,12 +213,12 @@ class ImageSlider(base.DOMWidget):
             ex_mess = ex_mess + str(arg)
         return(ex_mess)
 
-    #This function is called when img_index, _img_min, and/or _img_max change
-    @observe("img_index", "_img_min", "_img_max")
+    #This function is called when _img_index, _img_min, and/or _img_max change
+    @observe("_img_index", "_img_min", "_img_max")
     def update_image(self, change):
         """The function that begins any change to the displayed image, besides zooming.
 
-        If it is triggered by a change in img_index, it changes
+        If it is triggered by a change in _img_index, it changes
             the current_img member variable to the new desired image.
 
         If the zoomImg function has been called and the resetImg has not,
@@ -225,7 +229,7 @@ class ImageSlider(base.DOMWidget):
             to obtain the new Base64 encoding (of either the new or old image)
             and stores this encoding in _b64value."""
 
-        self.current_img = self.curr_img_series[self.img_index]
+        self.current_img = self.curr_img_series[self._img_index]
         if type(self.current_img) is np.ndarray:
             self.arr = self.current_img.copy().astype("float")
         else:
