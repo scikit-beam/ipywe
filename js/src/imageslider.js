@@ -117,6 +117,14 @@ var ImgSliderView = widgets.DOMWidgetView.extend({
           This triggeres the zoom_image python function. The selection box is also removed.
         */
         zoom_button.click(function() {
+	    ; //
+	    var ROI = select.data("ROI");
+	    console.log(ROI);
+	    wid.model.set("_offXtop", ROI[0]);
+	    wid.model.set("_offYtop", ROI[1]);
+	    wid.model.set("_offXbottom", ROI[2]);
+	    wid.model.set("_offYbottom", ROI[3]);
+	    wid.touch();
             var zoom_val = wid.model.get("_zoom_click");
             if (zoom_val < Number.MAX_SAFE_INTEGER) {
                 zoom_val++;
@@ -207,19 +215,19 @@ var ImgSliderView = widgets.DOMWidgetView.extend({
                 });
 
                 //Sets the variables used to splice the image's data on the backend
-                wid.model.set("_offXtop", parseInt(select.css("left"), 10));
-                wid.model.set("_offYtop", parseInt(select.css("top"), 10));
-                wid.model.set("_offXbottom", parseInt(select.css("left"), 10) + select.width());
-                wid.model.set("_offYbottom", parseInt(select.css("top"), 10) + select.height());
-                wid.touch();
-
+		select.data("ROI", 
+			    [parseInt(select.css("left"), 10), //_offXtop
+			     parseInt(select.css("top"), 10),  //_offYtop
+			     parseInt(select.css("left"), 10) + select.width(), // _offXbottom
+			     parseInt(select.css("top"), 10) + select.height()  // _offYbottom
+			     ]);
             }).on("mouseup", function(event) {
                 //Turns the mousemove event off to stop resizing the selection box.
                 console.log("Click 2");
                 img_container.off("mousemove");
             });
         });
-
+	    // wid.model.set("_offXbottom"
         console.log(img_vbox);
         console.log("done with img box");
 
