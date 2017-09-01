@@ -120,10 +120,8 @@ var ImgSliderView = widgets.DOMWidgetView.extend({
 	    ; //
 	    var ROI = select.data("ROI");
 	    console.log(ROI);
-	    wid.model.set("_offXtop", ROI[0]);
-	    wid.model.set("_offYtop", ROI[1]);
-	    wid.model.set("_offXbottom", ROI[2]);
-	    wid.model.set("_offYbottom", ROI[3]);
+	    if (typeof ROI == 'undefined') return;
+	    wid.model.set("_ROI", ROI);
 	    wid.touch();
             var zoom_val = wid.model.get("_zoom_click");
             if (zoom_val < Number.MAX_SAFE_INTEGER) {

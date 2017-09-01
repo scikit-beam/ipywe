@@ -3,7 +3,7 @@ from __future__ import division
 
 import ipywidgets as ipyw
 from . import base
-from traitlets import Unicode, Integer, Float, HasTraits, observe
+from traitlets import Unicode, Integer, Float, Tuple, HasTraits, observe
 import numpy as np
 import sys
 
@@ -43,10 +43,7 @@ class ImageSlider(base.DOMWidget):
 
 
     # These variables were added to support zoom functionality
-    _offXtop = Float().tag(sync=True)
-    _offXbottom = Float().tag(sync=True)
-    _offYtop = Float().tag(sync=True)
-    _offYbottom = Float().tag(sync=True)
+    _ROI = Tuple((0,0,0,0), sync=True) # Xtop, Ytop, Xbottom, Ybottom
     _zoom_click = Integer(0).tag(sync=True)
     _reset_click = Integer(0).tag(sync=True)
     _extrarows = Integer(0).tag(sync=True)
@@ -250,10 +247,11 @@ class ImageSlider(base.DOMWidget):
         """Sets all values necessary for zooming into a Region of Interest
         and then calls the update_image_div_data function."""
         self._zoom = True
-        self.left = int(self._offXtop/self.width * self._ncols_currimg)
-        self.right = int(self._offXbottom/self.width*self._ncols_currimg)
-        self.top = int(self._offYtop/self.height*self._nrows_currimg)
-        self.bottom = int(self._offYbottom/self.height*self._nrows_currimg)
+        Xtop, Ytop, Xbottom, Ybottom = self._ROI
+        self.left = int(Xtop/self.width * self._ncols_currimg)
+        self.right = int(Xbottom/self.width*self._ncols_currimg)
+        self.top = int(Ytop/self.height*self._nrows_currimg)
+        self.bottom = int(Ybottom/self.height*self._nrows_currimg)
         self._xcoord_absolute += (self.left - self.xbuff)
         self._ycoord_absolute += (self.top - self.ybuff)
         self.update_image_div_data(change)
