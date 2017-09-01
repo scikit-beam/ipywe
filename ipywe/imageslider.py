@@ -44,7 +44,6 @@ class ImageSlider(base.DOMWidget):
 
     # These variables were added to support zoom functionality
     _ROI = Tuple((0,0,0,0), sync=True) # Xtop, Ytop, Xbottom, Ybottom
-    _reset_click = Integer(0).tag(sync=True)
     _extrarows = Integer(0).tag(sync=True)
     _extracols = Integer(0).tag(sync=True)
     _nrows_currimg = Integer().tag(sync=True)
@@ -245,8 +244,11 @@ class ImageSlider(base.DOMWidget):
     def zoom_image(self, change):
         """Sets all values necessary for zooming into a Region of Interest
         and then calls the update_image_div_data function."""
-        self._zoom = True
         Xtop, Ytop, Xbottom, Ybottom = self._ROI
+        if Xtop < 0:
+            self._zoom = False
+            return self.reset_image()
+        self._zoom = True
         self.left = int(Xtop/self.width * self._ncols_currimg)
         self.right = int(Xbottom/self.width*self._ncols_currimg)
         self.top = int(Ytop/self.height*self._nrows_currimg)
@@ -256,13 +258,10 @@ class ImageSlider(base.DOMWidget):
         self.update_image_div_data(change)
         return
 
-    #This function is triggered when the value of _reset_click changes.
-    @observe("_reset_click")
-    def reset_image(self, change):
+    def reset_image(self):
         """Resets all variables that are involved in zooming to their default values.
 
         After resetting, the update_image_div_data function is called."""
-        self._zoom = False
         self._extrarows = 0
         self._extracols = 0
         self.xbuff = 0

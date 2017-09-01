@@ -112,8 +112,7 @@ var ImgSliderView = widgets.DOMWidgetView.extend({
         });
         zoom_button.css("margin", "10px");
         img_vbox.append(zoom_button);
-        /*When zoom_button is clicked, the synced variable _zoom_click is either incremented or
-          reset to 0 (if its value is almost too large for Javascript to safely handle). 
+        /*When zoom_button is clicked, the ROI is passed back to the python side.
           This triggeres the zoom_image python function. The selection box is also removed.
         */
         zoom_button.click(function() {
@@ -135,18 +134,11 @@ var ImgSliderView = widgets.DOMWidgetView.extend({
         });
         reset_button.css("margin", "10px");
         img_vbox.append(reset_button);
-        /*When reset_button is clicked, the synced variable _reset_click is either incremented or
-          reset to 0. This triggers the reset_image python function. The selection box is also removed.
+        /*When reset_button is clicked, ROI is set to negative numbers.
+          This triggers the zoom_image python function. The selection box is also removed.
         */
         reset_button.click(function() {
-            var reset_val = wid.model.get("_reset_click");
-            if (reset_val < Number.MAX_SAFE_INTEGER) {
-                reset_val++;
-            }
-            else {
-                reset_val = 0;
-            }
-            wid.model.set("_reset_click", reset_val);
+	    wid.model.set("_ROI", [-1,-1,-1,-1]);
             wid.touch();
             select.remove();
             console.log("Image reset");
