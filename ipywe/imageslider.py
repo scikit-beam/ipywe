@@ -91,8 +91,11 @@ class ImageSlider(base.DOMWidget):
         self.height = height
         self._series_max = len(self.image_series) - 1
         self.current_img = self.image_series[self._img_index]
-        self.arr = self.current_img.data.copy().astype("float")
-        self.curr_img_data = self.arr.copy()
+        # image data array. need it to obtain the value at mouse p
+        self.arr = self.current_img.data.copy().astype("float") 
+        # image data in the <img> tag. this may contains buffers at zoom, or may be altered due to 
+        # dynamic range limit
+        self.curr_img_data = self.arr.copy() 
         self._nrows, self._ncols = self.arr.shape
         self._nrows_currimg, self._ncols_currimg = self.arr.shape
         self._ycoord_max_roi, self._xcoord_max_roi = self.arr.shape
@@ -211,7 +214,7 @@ class ImageSlider(base.DOMWidget):
         If it is triggered by a change in _img_index, it changes
             the current_img member variable to the new desired image.
 
-        If the zoomImg function has been called and the resetImg has not,
+        If the zoom_image function has been called and the reset_image has not,
             this function will call the handle_zoom function to zoom into
             the image and obtain the Base64 encoding.
 
@@ -233,8 +236,9 @@ class ImageSlider(base.DOMWidget):
 
     #This function is called when _zoom_click changes.
     @observe("_zoom_click")
-    def zoomImg(self, change):
-        """Sets all values necessary for zooming and then calls the update_image function."""
+    def zoom_image(self, change):
+        """Sets all values necessary for zooming into a Region of Interest
+        and then calls the update_image function."""
 
         self.left = int(self._offXtop/self.width * self._ncols_currimg)
         self.right = int(self._offXbottom/self.width*self._ncols_currimg)
@@ -248,9 +252,9 @@ class ImageSlider(base.DOMWidget):
         """The function that controlls zooming on a single image.
 
         It splices the image data based on the left, right, bottom,
-            and top variables calculated in the zoomImg function.
+            and top variables calculated in the zoom_image function.
 
-        The function then copies the zoomed data and adds
+        The function then copies the data in ROI and adds
             buffer rows/columns to the copy to insure the data
             used to create the image is a square numpy array.
 
@@ -267,6 +271,7 @@ class ImageSlider(base.DOMWidget):
                             self._xcoord_absolute:(self._xcoord_absolute + select_width)]
         self._nrows, self._ncols = self.arr.shape
         self.curr_img_data = self.arr.copy()
+        # calculate paddings
         if self._ncols > self._nrows:
             diff = self._ncols - self._nrows
             if diff % 2 == 0:
@@ -308,7 +313,7 @@ class ImageSlider(base.DOMWidget):
 
     #This function is triggered when the value of _reset_click changes.
     @observe("_reset_click")
-    def resetImg(self, change):
+    def reset_image(self, change):
         """Resets all variables that are involved in zooming to their default values.
 
         After resetting, the update_image function is called."""
