@@ -3,7 +3,7 @@ from __future__ import division
 
 import ipywidgets as ipyw
 from . import base
-from traitlets import Unicode, Integer, Float, HasTraits, observe
+from traitlets import Unicode, Integer, Float, Tuple, HasTraits, observe
 import numpy as np
 import sys
 
@@ -20,9 +20,19 @@ class ImageSlider(base.DOMWidget):
     _view_name = Unicode("ImgSliderView").tag(sync=True)
     _model_name = Unicode("ImgSliderModel").tag(sync=True)
 
+    # public attrs
+    height = Integer().tag(sync=True)
+    width = Integer().tag(sync=True)
+
+    # index of current image in display
+    _img_index = Integer(0).tag(sync=True)
+    _N_images = Integer().tag(sync=True)
+
     _b64value = Unicode().tag(sync=True)
     _err = Unicode().tag(sync=True)
     _format = Unicode("png").tag(sync=True)
+    _series_min = Float().tag(sync=True)
+    _series_max = Float().tag(sync=True)
     _img_min = Float().tag(sync=True)
     _img_max = Float().tag(sync=True)
     _nrows = Integer().tag(sync=True)
@@ -30,19 +40,10 @@ class ImageSlider(base.DOMWidget):
     _offsetX = Integer().tag(sync=True)
     _offsetY = Integer().tag(sync=True)
     _pix_val = Float().tag(sync=True)
-    _series_max = Integer().tag(sync=True)
 
-    height = Integer().tag(sync=True)
-    img_index = Integer(0).tag(sync=True)
-    width = Integer().tag(sync=True)
 
-    #These variables were added to support zoom functionality
-    _offXtop = Float().tag(sync=True)
-    _offXbottom = Float().tag(sync=True)
-    _offYtop = Float().tag(sync=True)
-    _offYbottom = Float().tag(sync=True)
-    _zoom_click = Integer(0).tag(sync=True)
-    _reset_click = Integer(0).tag(sync=True)
+    # These variables were added to support zoom functionality
+    _ROI = Tuple((0,0,0,0), sync=True) # Xtop, Ytop, Xbottom, Ybottom
     _extrarows = Integer(0).tag(sync=True)
     _extracols = Integer(0).tag(sync=True)
     _nrows_currimg = Integer().tag(sync=True)
@@ -62,11 +63,6 @@ class ImageSlider(base.DOMWidget):
             *image_series: the list containing the original series of image objects
                  passed by the image_series parameter.
                  This variable is not changed in the code to preserve the original data.
-            *curr_img_series: the list containing the image series that is
-                 currently being displayed by the widget.
-                 Contains image objects (if no images have been changed or if they've been reset),
-                 numpy arrays corresponding to zoomed images,
-                 or a combination of the two (if only single images have been changed)
             *current_img: the image object or corresponding numpy array of data
                  that is currently being displayed
             *arr: a numpy array containing the data for the current image
@@ -85,27 +81,26 @@ class ImageSlider(base.DOMWidget):
             *width: an integer that is used to set the width of the image and UI elements.
             *height: an integer that is used to set the height of the image and UI elements."""
 
+        super(ImageSlider, self).__init__()
         assert len(image_series), "Image series cannot be empty"
-        self.image_series = image_series
-        self.curr_img_series = list(self.image_series)
+        self.image_series = list(image_series)
         self.width = width
         self.height = height
-        self._series_max = len(self.image_series) - 1
-        self.current_img = self.image_series[self.img_index]
-        self.arr = self.current_img.data.copy().astype("float")
-        self.curr_img_data = self.arr.copy()
+        self._N_images = len(self.image_series)
+        self.current_img = self.image_series[self._img_index]
+        # image data array. need it to obtain the value at mouse p
+        self.arr = self.current_img.data.copy().astype("float") 
+        # image data in the <img> tag. this may contains buffers at zoom, or may be altered due to 
+        # intensity range limit
+        self.curr_img_data = self.arr.copy() 
         self._nrows, self._ncols = self.arr.shape
         self._nrows_currimg, self._ncols_currimg = self.arr.shape
         self._ycoord_max_roi, self._xcoord_max_roi = self.arr.shape
         self.ybuff = 0
         self.xbuff = 0
-        self.left = -1
-        self.right = -1
-        self.top = -1
-        self.bottom = -1
+        self._zoom = False
         self.get_series_minmax()
-        self.update_image(None)
-        super(ImageSlider, self).__init__()
+        self.update_image_div_data(None)
         return
 
     def get_series_minmax(self, sample_size=10):
@@ -125,11 +120,8 @@ class ImageSlider(base.DOMWidget):
         else:
             indexes = np.random.choice(N, sample_size, replace=False)
             data = [img_series[i].data for i in indexes]
-        if float(np.min(data)) >= 0.00001:
-            self._img_min = float(np.min(data))
-        else:
-            self._img_min = 0
-        self._img_max = float(np.max(data))
+        self._series_min = self._img_min = float(np.min(data))
+        self._series_max = self._img_max = float(np.max(data))
         return
 
     #This function is called when the values of _offsetX and/or _offsetY change
@@ -155,6 +147,7 @@ class ImageSlider(base.DOMWidget):
             self._pix_val = float(self.arr[row, col])
             self._err = ""
         except Exception:
+            self._pix_val = float(np.nan)
             self._err = self.handle_error()
             return
 
@@ -164,22 +157,20 @@ class ImageSlider(base.DOMWidget):
         If _img_min and/or _img_max have been changed from their initial values,
             this function will also change the image data to account for
             this change before encoding the data into Base64."""
-
+        # force the intensity range limitation to be positive
         if self._img_min >= self._img_max:
-            self._img_max = self._img_min + (self._img_max - self._img_min) * 1e-5
+            self._img_max = self._img_min + (self._series_max - self._series_min) * 1e-5
+        # apply intensity range
         self.curr_img_data[self.curr_img_data < self._img_min] = self._img_min
         self.curr_img_data[self.curr_img_data > self._img_max] = self._img_max
         img = ((self.curr_img_data-self._img_min)/(self._img_max-self._img_min)*(2**8-1)).astype('uint8')
         size = np.max(img.shape)
         view_size = np.max((self.width, self.height))
-        if size > view_size:
-            downsample_ratio = view_size/size
+        # resample if necessary
+        resample_ratio = view_size/size
+        if resample_ratio != 1.:
             import scipy.misc
-            img = scipy.misc.imresize(img, downsample_ratio)
-        else:
-            upsample_ratio = view_size/size
-            import scipy.misc
-            img = scipy.misc.imresize(img, upsample_ratio)
+            img = scipy.misc.imresize(img, resample_ratio)
         """Allows the correct string IO module to be used
                based on the version of Python.
            Once support for Python 2.7 ends, this if-else statement
@@ -209,30 +200,38 @@ class ImageSlider(base.DOMWidget):
             ex_mess = ex_mess + str(arg)
         return(ex_mess)
 
-    #This function is called when img_index, _img_min, and/or _img_max change
-    @observe("img_index", "_img_min", "_img_max")
-    def update_image(self, change):
-        """The function that begins any change to the displayed image, besides zooming.
+    #This function is called when _img_index
+    @observe("_img_index")
+    def update_image_index(self, change):
+        """
+        change the current_img member variable to the new desired image
+        and then update the image div
+        """
+        self.current_img = self.image_series[self._img_index]
+        self.update_image_div_data(change)
+        return
 
-        If it is triggered by a change in img_index, it changes
-            the current_img member variable to the new desired image.
+    @observe("_img_min", "_img_max")
+    def update_image_div_data(self, change):
+        """update the image div data
 
-        If the zoomImg function has been called and the resetImg has not,
-            this function will call the handle_zoom function to zoom into
+        This function is called whenever the image div needs to be updated.
+        It could be triggered directly by changes to _img_min and _img_max, but also
+        by function calls from handlers of other events such as image-index-change,
+        and ROI-change.
+
+        If the zoom is activated (see flag _zoom)
+            this function will call the update_image_div_data_with_zoom function to zoom into
             the image and obtain the Base64 encoding.
 
-        In all other cases, this function calls the getimg_bytes method
+        Otherwise, this function calls the getimg_bytes method
             to obtain the new Base64 encoding (of either the new or old image)
             and stores this encoding in _b64value."""
 
-        self.current_img = self.curr_img_series[self.img_index]
-        if type(self.current_img) is np.ndarray:
-            self.arr = self.current_img.copy().astype("float")
-        else:
-            self.arr = self.current_img.data.copy().astype("float")
+        self.arr = self.current_img.data.copy().astype("float")
         self.curr_img_data = self.arr.copy()
-        if self.left != -1 and self.right != -1 and self.top != -1 and self.bottom != -1:
-            self.handle_zoom()
+        if self._zoom:
+            self.update_image_div_data_with_zoom()
             return
         self._nrows, self._ncols = self.arr.shape
         self._ycoord_max_roi, self._xcoord_max_roi = self.arr.shape
@@ -240,26 +239,47 @@ class ImageSlider(base.DOMWidget):
         self._b64value = self.getimg_bytes()
         return
 
-    #This function is called when _zoom_click changes.
-    @observe("_zoom_click")
-    def zoomImg(self, change):
-        """Sets all values necessary for zooming and then calls the update_image function."""
-
-        self.left = int(self._offXtop/self.width * self._ncols_currimg)
-        self.right = int(self._offXbottom/self.width*self._ncols_currimg)
-        self.top = int(self._offYtop/self.height*self._nrows_currimg)
-        self.bottom = int(self._offYbottom/self.height*self._nrows_currimg)
+    #This function is called when _ROI changes.
+    @observe("_ROI")
+    def zoom_image(self, change):
+        """Sets all values necessary for zooming into a Region of Interest
+        and then calls the update_image_div_data function."""
+        Xtop, Ytop, Xbottom, Ybottom = self._ROI
+        if Xtop < 0: # invalid ROI means reset
+            self._zoom = False
+            return self.reset_image()
+        self._zoom = True
+        self.left = int(Xtop/self.width * self._ncols_currimg)
+        self.right = int(Xbottom/self.width*self._ncols_currimg)
+        self.top = int(Ytop/self.height*self._nrows_currimg)
+        self.bottom = int(Ybottom/self.height*self._nrows_currimg)
         self._xcoord_absolute += (self.left - self.xbuff)
         self._ycoord_absolute += (self.top - self.ybuff)
-        self.update_image(None)
+        self.update_image_div_data(change)
+        return
 
-    def handle_zoom(self):
+    def reset_image(self):
+        """Resets all variables that are involved in zooming to their default values.
+
+        After resetting, the update_image_div_data function is called."""
+        self._extrarows = 0
+        self._extracols = 0
+        self.xbuff = 0
+        self.ybuff = 0
+        self._xcoord_absolute = 0
+        self._ycoord_absolute = 0
+        self.get_series_minmax()
+        self._vslide_reset += 1
+        self.update_image_div_data(None)
+        return
+
+    def update_image_div_data_with_zoom(self):
         """The function that controlls zooming on a single image.
 
         It splices the image data based on the left, right, bottom,
-            and top variables calculated in the zoomImg function.
+            and top variables calculated in the zoom_image function.
 
-        The function then copies the zoomed data and adds
+        The function then copies the data in ROI and adds
             buffer rows/columns to the copy to insure the data
             used to create the image is a square numpy array.
 
@@ -270,17 +290,13 @@ class ImageSlider(base.DOMWidget):
 
         select_width = self.right - self.left
         select_height = self.bottom - self.top
-        if select_width == 0 and select_height == 0:
-            select_width = 1
-            select_height = 1
-        if select_width == 0:
-            select_width = 1
-        if select_height == 0:
-            select_height = 1
+        if select_width == 0: select_width = 1
+        if select_height == 0: select_height = 1
         self.arr = self.arr[self._ycoord_absolute:(self._ycoord_absolute + select_height),
                             self._xcoord_absolute:(self._xcoord_absolute + select_width)]
         self._nrows, self._ncols = self.arr.shape
         self.curr_img_data = self.arr.copy()
+        # calculate paddings
         if self._ncols > self._nrows:
             diff = self._ncols - self._nrows
             if diff % 2 == 0:
@@ -320,25 +336,3 @@ class ImageSlider(base.DOMWidget):
         self._b64value = self.getimg_bytes()
         return
 
-    #This function is triggered when the value of _reset_click changes.
-    @observe("_reset_click")
-    def resetImg(self, change):
-        """Resets all variables that are involved in zooming to their default values.
-
-        After resetting, the update_image function is called."""
-
-        self.curr_img_series = list(self.image_series)
-        self.right = -1
-        self.left = -1
-        self.top = -1
-        self.bottom = -1
-        self._extrarows = 0
-        self._extracols = 0
-        self.xbuff = 0
-        self.ybuff = 0
-        self._xcoord_absolute = 0
-        self._ycoord_absolute = 0
-        self.get_series_minmax()
-        self._vslide_reset += 1
-        self.update_image(None)
-        return

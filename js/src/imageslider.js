@@ -22,7 +22,7 @@ var ImgSliderView = widgets.DOMWidgetView.extend({
 
         //Sets all the values needed for creating the sliders. wid is created to allow model values to be obtained in functions within this render function.
         var wid = this;
-        var img_max = this.model.get("_series_max");
+        var img_index_max = this.model.get("_N_images") - 1;
         var vrange_min = this.model.get("_img_min");
         var vrange_max = this.model.get("_img_max");
         var vrange_step = (vrange_max - vrange_min)/100;
@@ -78,13 +78,13 @@ var ImgSliderView = widgets.DOMWidgetView.extend({
         hslide_html.slider({
             value: 0,
             min: 0,
-            max: img_max,
+            max: img_index_max,
             /*When the handle slides, this function is called to update hslide_label 
-              and change img_index on the backend (triggers the update_image function on the backend)*/
+              and change _img_index on the backend (triggers the update_image_index function on the backend)*/
             slide: function(event, ui) {
                 hslide_label.val( ui.value );
                 console.log("Executed!");
-                wid.model.set("img_index", ui.value);
+                wid.model.set("_img_index", ui.value);
                 wid.touch();
             }
         });
@@ -112,20 +112,16 @@ var ImgSliderView = widgets.DOMWidgetView.extend({
         });
         zoom_button.css("margin", "10px");
         img_vbox.append(zoom_button);
-        /*When zoom_button is clicked, the synced variable _zoom_click is either incremented or
-          reset to 0 (if its value is almost too large for Javascript to safely handle). 
-          This triggeres the zoomImg python function. The selection box is also removed.
+        /*When zoom_button is clicked, the ROI is passed back to the python side.
+          This triggeres the zoom_image python function. The selection box is also removed.
         */
         zoom_button.click(function() {
-            var zoom_val = wid.model.get("_zoom_click");
-            if (zoom_val < Number.MAX_SAFE_INTEGER) {
-                zoom_val++;
-            }
-            else {
-                zoom_val = 0;
-            }
-            wid.model.set("_zoom_click", zoom_val);
-            wid.touch();
+	    ; //
+	    var ROI = select.data("ROI");
+	    console.log(ROI);
+	    if (typeof ROI == 'undefined') return;
+	    wid.model.set("_ROI", ROI);
+	    wid.touch();
             select.remove();
             console.log("Zoomed");
         });
@@ -138,18 +134,11 @@ var ImgSliderView = widgets.DOMWidgetView.extend({
         });
         reset_button.css("margin", "10px");
         img_vbox.append(reset_button);
-        /*When reset_button is clicked, the synced variable _reset_click is either incremented or
-          reset to 0. This triggers the resetImg python function. The selection box is also removed.
+        /*When reset_button is clicked, ROI is set to negative numbers.
+          This triggers the zoom_image python function. The selection box is also removed.
         */
         reset_button.click(function() {
-            var reset_val = wid.model.get("_reset_click");
-            if (reset_val < Number.MAX_SAFE_INTEGER) {
-                reset_val++;
-            }
-            else {
-                reset_val = 0;
-            }
-            wid.model.set("_reset_click", reset_val);
+	    wid.model.set("_ROI", [-1,-1,-1,-1]);
             wid.touch();
             select.remove();
             console.log("Image reset");
@@ -207,19 +196,19 @@ var ImgSliderView = widgets.DOMWidgetView.extend({
                 });
 
                 //Sets the variables used to splice the image's data on the backend
-                wid.model.set("_offXtop", parseInt(select.css("left"), 10));
-                wid.model.set("_offYtop", parseInt(select.css("top"), 10));
-                wid.model.set("_offXbottom", parseInt(select.css("left"), 10) + select.width());
-                wid.model.set("_offYbottom", parseInt(select.css("top"), 10) + select.height());
-                wid.touch();
-
+		select.data("ROI", 
+			    [parseInt(select.css("left"), 10), //_offXtop
+			     parseInt(select.css("top"), 10),  //_offYtop
+			     parseInt(select.css("left"), 10) + select.width(), // _offXbottom
+			     parseInt(select.css("top"), 10) + select.height()  // _offYbottom
+			     ]);
             }).on("mouseup", function(event) {
                 //Turns the mousemove event off to stop resizing the selection box.
                 console.log("Click 2");
                 img_container.off("mousemove");
             });
         });
-
+	    // wid.model.set("_offXbottom"
         console.log(img_vbox);
         console.log("done with img box");
 
@@ -260,7 +249,7 @@ var ImgSliderView = widgets.DOMWidgetView.extend({
             values: vrange,
             step: vrange_step,
             /*When either handle slides, this function updates this slider's label to reflect the new contrast range. It also sets _img_min and/or _img_max on the backend to the handles' values.
-              This triggers the update_image function on the backend.*/
+              This triggers the update_image_div_data function on the backend.*/
             slide: function(event, ui) {
                 vlabel_content = "Max Range: " + vrange + "\n              Current Range: " + ui.values;
                 wid.$el.find(".vslabel_data").text(vlabel_content);
