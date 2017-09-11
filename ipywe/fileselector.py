@@ -58,6 +58,13 @@ class FileSelectorPanel:
         
         self.curdir = curdir
         explanation = ipyw.Label(self.instruction, layout=self.label_layout)
+        # "jump to"
+        jumpto_input = ipyw.Text(value=curdir, placeholder="", description="Location: ", layout=ipyw.Layout(width='400px'))
+        self.jumpto_input = jumpto_input
+        jumpto_button = ipyw.Button(description="Jump", layout=self.button_layout)
+        jumpto = ipyw.HBox(children=[jumpto_input, jumpto_button])
+        jumpto_button.on_click(self.handle_jumpto)
+        # entries in this starting dir
         entries_files = sorted(os.listdir(curdir))
         entries_paths = [os.path.join(curdir, e) for e in entries_files]
         entries_ftime = create_file_times(entries_paths)
@@ -92,9 +99,17 @@ class FileSelectorPanel:
         self.ok = ipyw.Button(description='Select', layout=self.button_layout)
         self.ok.on_click(self.validate)
         buttons = ipyw.HBox(children=[self.enterdir, self.ok])
-        self.widgets = [explanation, self.select, buttons]
-        self.panel = ipyw.VBox(children=self.widgets, layout=self.layout)
+        lower_panel = ipyw.VBox(children=[self.select, buttons], layout=ipyw.Layout(border='1px solid lightgrey', margin='5px', padding='10px'))
+        self.panel = ipyw.VBox(children=[explanation, jumpto, lower_panel], layout=self.layout)
         wait.close()
+        return
+
+    def handle_jumpto(self, s):
+        v = self.jumpto_input.value
+        if not os.path.isdir(v): return
+        self.remove()
+        self.createPanel(v)
+        self.show()
         return
 
     def handle_enterdir(self, s):
@@ -157,9 +172,17 @@ class FileSelectorPanel:
         display(self.panel)
 
     def remove(self):
-        for w in self.widgets:
-            w.close()
-        self.panel.close()
+        close(self.panel)
+
+
+def close(w):
+    "recursively close a widget"
+    if hasattr(w, 'children'):
+        for c in w.children:
+            close(c)
+            continue
+    w.close()
+    return
 
 
 def create_file_times(paths):
