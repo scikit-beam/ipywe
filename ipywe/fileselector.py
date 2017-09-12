@@ -23,6 +23,8 @@ class FileSelectorPanel:
     select_multiple_layout = ipyw.Layout(width="750px", 
                                          display="flex", flex_flow="column")
     button_layout = ipyw.Layout(margin="5px 40px")
+    toolbar_button_layout = ipyw.Layout(margin="5px 10px", width="100px")
+    toolbar_box_layout=ipyw.Layout(border='1px solid lightgrey', padding='3px', margin='5px 50px 5px 5px')
     label_layout = ipyw.Layout(width="250px")
     layout = ipyw.Layout()
 
@@ -58,12 +60,21 @@ class FileSelectorPanel:
         
         self.curdir = curdir
         explanation = ipyw.Label(self.instruction, layout=self.label_layout)
+        # toolbar
         # "jump to"
-        jumpto_input = ipyw.Text(value=curdir, placeholder="", description="Location: ", layout=ipyw.Layout(width='400px'))
-        self.jumpto_input = jumpto_input
-        jumpto_button = ipyw.Button(description="Jump", layout=self.button_layout)
-        jumpto = ipyw.HBox(children=[jumpto_input, jumpto_button])
+        self.jumpto_input = jumpto_input = ipyw.Text(
+            value=curdir, placeholder="", description="Location: ", layout=ipyw.Layout(width='300px'))
+        jumpto_button = ipyw.Button(description="Jump", layout=self.toolbar_button_layout)
         jumpto_button.on_click(self.handle_jumpto)
+        jumpto = ipyw.HBox(children=[jumpto_input, jumpto_button], layout=self.toolbar_box_layout)
+        # "new dir"
+        self.newdir_input = newdir_input = ipyw.Text(
+            value = "", placeholder="new dir name", description="New subdir: ",
+            layout=ipyw.Layout(width='180px'))
+        newdir_button = ipyw.Button(description="Create", layout=self.toolbar_button_layout)
+        newdir_button.on_click(self.handle_newdir)
+        newdir = ipyw.HBox(children=[newdir_input, newdir_button], layout=self.toolbar_box_layout)
+        toolbar = ipyw.HBox(children=[jumpto, newdir])
         # entries in this starting dir
         entries_files = sorted(os.listdir(curdir))
         entries_paths = [os.path.join(curdir, e) for e in entries_files]
@@ -100,7 +111,7 @@ class FileSelectorPanel:
         self.ok.on_click(self.validate)
         buttons = ipyw.HBox(children=[self.enterdir, self.ok])
         lower_panel = ipyw.VBox(children=[self.select, buttons], layout=ipyw.Layout(border='1px solid lightgrey', margin='5px', padding='10px'))
-        self.panel = ipyw.VBox(children=[explanation, jumpto, lower_panel], layout=self.layout)
+        self.panel = ipyw.VBox(children=[explanation, toolbar, lower_panel], layout=self.layout)
         wait.close()
         return
 
@@ -109,6 +120,18 @@ class FileSelectorPanel:
         if not os.path.isdir(v): return
         self.remove()
         self.createPanel(v)
+        self.show()
+        return
+
+    def handle_newdir(self, s):
+        v = self.newdir_input.value
+        path = os.path.join(self.curdir, v)
+        try:
+            os.makedirs(path)
+        except:
+            return
+        self.remove()
+        self.createPanel(path)
         self.show()
         return
 
