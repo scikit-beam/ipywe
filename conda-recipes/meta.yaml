@@ -1,5 +1,5 @@
-{% set version = "0.1.1a4" %}
-{% set git_rev = "0.1.1a4" %}
+{% set version = "0.1.1a5" %}
+{% set git_rev = "0.1.1a5" %}
 
 package:
   name: ipywe
