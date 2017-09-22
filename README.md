@@ -11,4 +11,4 @@ To install using conda:
 For dev installation, see [Dev.md](Dev.md)
 
 ### Known problems
-* Some versions of ipywidgets and widgetsnbextension (which are prerequisites) are imcompatible. See https://github.com/neutrons/ipywe/issues/55
+* Some versions of ipywidgets and widgetsnbextension (which are prerequisites) are imcompatible. See https://github.com/scikit-beam/ipywe/issues/55
