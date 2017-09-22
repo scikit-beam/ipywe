@@ -187,9 +187,9 @@ class FileSelectorPanel:
     def show(self):
         display(HTML("""
         <style type="text/css">
-        .jupyter-widgets select option {
-            font-family: "Lucida Console", Monaco, monospace;
-        }
+        .jupyter-widgets select option {font-family: "Lucida Console", Monaco, monospace;}
+        div.output_subarea {padding: 0px;}
+        div.output_subarea > div {margin: 0.4em;}
         </style>
         """))
         display(self.panel)
