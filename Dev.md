@@ -12,7 +12,7 @@ to check for errors (especially in js code).
 
 For a development installation (requires npm),
 
-    $ git clone https://github.com/neutrons/ipywe.git
+    $ git clone https://github.com/scikit-beam/ipywe.git
     $ cd ipywe
     $ pip install -e .
     $ jupyter nbextension install --py --symlink --sys-prefix ipywe
