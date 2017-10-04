@@ -28,7 +28,11 @@ class FileSelectorPanel:
     label_layout = ipyw.Layout(width="250px")
     layout = ipyw.Layout()
 
-    def __init__(self, instruction, start_dir=".", type='file', next=None, multiple=False):
+    def __init__(
+            self,
+            instruction,
+            start_dir=".", type='file', next=None,
+            multiple=False, newdir_toolbar_button=False):
         """
         Create FileSelectorPanel instance
 
@@ -44,12 +48,15 @@ class FileSelectorPanel:
             if True, multiple files/dirs can be selected
         next : function
             callback function to execute after the selection is selected
+        newdir_toolbar_button : bool
+            If true, a button to create new directory is added to the toolbar
         """
         if type not in ['file', 'directory']:
             raise ValueError("type must be either file or directory")
         self.instruction = instruction
         self.type = type
         self.multiple = multiple
+        self.newdir_toolbar_button = newdir_toolbar_button
         self.createPanel(os.path.abspath(start_dir))
         self.next = next
         return
@@ -67,14 +74,17 @@ class FileSelectorPanel:
         jumpto_button = ipyw.Button(description="Jump", layout=self.toolbar_button_layout)
         jumpto_button.on_click(self.handle_jumpto)
         jumpto = ipyw.HBox(children=[jumpto_input, jumpto_button], layout=self.toolbar_box_layout)
-        # "new dir"
-        self.newdir_input = newdir_input = ipyw.Text(
-            value = "", placeholder="new dir name", description="New subdir: ",
-            layout=ipyw.Layout(width='180px'))
-        newdir_button = ipyw.Button(description="Create", layout=self.toolbar_button_layout)
-        newdir_button.on_click(self.handle_newdir)
-        newdir = ipyw.HBox(children=[newdir_input, newdir_button], layout=self.toolbar_box_layout)
-        toolbar = ipyw.HBox(children=[jumpto, newdir])
+        if self.newdir_toolbar_button:
+            # "new dir"
+            self.newdir_input = newdir_input = ipyw.Text(
+                value = "", placeholder="new dir name", description="New subdir: ",
+                layout=ipyw.Layout(width='180px'))
+            newdir_button = ipyw.Button(description="Create", layout=self.toolbar_button_layout)
+            newdir_button.on_click(self.handle_newdir)
+            newdir = ipyw.HBox(children=[newdir_input, newdir_button], layout=self.toolbar_box_layout)
+            toolbar = ipyw.HBox(children=[jumpto, newdir])
+        else:
+            toolbar = ipyw.HBox(children=[jumpto])
         # entries in this starting dir
         entries_files = sorted(os.listdir(curdir))
         entries_paths = [os.path.join(curdir, e) for e in entries_files]
