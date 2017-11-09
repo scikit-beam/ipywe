@@ -6,6 +6,7 @@ var loadedModules = [
     require('./imgdisplay'),
     require('./imageslider'),
     require('./imgdatagraph'),
+    require('./tomvizjs'),
 ];
 
 for (var i in loadedModules) {
