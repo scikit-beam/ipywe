@@ -34,15 +34,14 @@ var TomvizJsModel = widgets.DOMWidgetModel.extend({
 // Custom View. Renders the widget model.
 var TomvizJsView = widgets.DOMWidgetView.extend({
     render: function() {
-        var s= '<div class="tomviz-data-viewer"  data-url="https://openchemistry.github.io/tomvizweb/data/ImagesVolumeExploration.tomviz" '
-            + 'data-viewport="100%x500"'
-            + 'data-no-ui   data-initialization="zoom=1.5" data-step="azimuth=10" data-animation="azimuth=100" /> ';
+        var s= '<div class="tomviz-data-viewer" data-url="' + this.model.get("url") + '" '
+            + 'data-viewport="100%x500" '
+            + 'data-no-ui data-initialization="zoom=1.5" data-step="azimuth=10" data-animation="azimuth=100" /> ';
         var js = '<script type="text/javascript" src="https://unpkg.com/tomvizweb"></script>';
         var widget_area = $(s);
         this.$el.append(widget_area);
         $.getScript('https://unpkg.com/tomvizweb');
     }
-
 });
 
 

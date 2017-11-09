@@ -14,5 +14,8 @@ class TomvizJs(base.DOMWidget):
     _view_name = Unicode("TomvizJsView").tag(sync=True)
     _model_name = Unicode("TomvizJsModel").tag(sync=True)
 
-    def __init__(self):
+    url = Unicode("").tag(sync=True)
+
+    def __init__(self, url=None):
         super(TomvizJs, self).__init__()
+        self.url =  url
