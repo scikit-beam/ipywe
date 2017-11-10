@@ -37,6 +37,7 @@ var VtkJsView = widgets.DOMWidgetView.extend({
         var widget_area = $('<div>');
         this.$el.append(widget_area);
         var container = widget_area.get(0);
+	var url = this.model.get("url");
 
         $.getScript('https://unpkg.com/vtk.js').done(function(){
 
@@ -73,7 +74,7 @@ var VtkJsView = widgets.DOMWidgetView.extend({
 		mapper.setInputConnection(reader.getOutputPort());
 
 		// reader.setUrl(`/~lj7/LIDC2.vti`).then(() => {
-		reader.setUrl(`/files/data/head-binary.vti`).then(() => {
+		reader.setUrl(url).then(() => {
 			reader.loadData().then(() => {
 				//
 				const source = reader.getOutputData(0);
