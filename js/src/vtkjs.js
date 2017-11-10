@@ -70,25 +70,31 @@ var VtkJsView = widgets.DOMWidgetView.extend({
 		const ofun = vtkPiecewiseFunction.newInstance();
 		ofun.addPoint(0.0, 0.0);
 		ofun.addPoint(255.0, 1.0);
-		actor.getProperty().setRGBTransferFunction(0, ctfun);
-		actor.getProperty().setScalarOpacity(0, ofun);
-		actor.getProperty().setScalarOpacityUnitDistance(0, 3.0);
-		actor.getProperty().setInterpolationTypeToLinear();
-		actor.getProperty().setUseGradientOpacity(0, true);
-		actor.getProperty().setGradientOpacityMinimumValue(0, 2);
-		actor.getProperty().setGradientOpacityMinimumOpacity(0, 0.0);
-		actor.getProperty().setGradientOpacityMaximumValue(0, 1e3);
-		actor.getProperty().setGradientOpacityMaximumOpacity(0, 1.0);
-		actor.getProperty().setShade(true);
-		actor.getProperty().setAmbient(0.2);
-		actor.getProperty().setDiffuse(0.7);
-		actor.getProperty().setSpecular(0.3);
-		actor.getProperty().setSpecularPower(8.0);
 		mapper.setInputConnection(reader.getOutputPort());
 
 		// reader.setUrl(`/~lj7/LIDC2.vti`).then(() => {
 		reader.setUrl(`/files/data/head-binary.vti`).then(() => {
 			reader.loadData().then(() => {
+				//
+				const source = reader.getOutputData(0);
+				const dataArray = source.getPointData().getScalars() || source.getPointData().getArrays()[0];
+				const dataRange = dataArray.getRange();
+				console.log("dataRange=", dataRange);
+				actor.getProperty().setRGBTransferFunction(0, ctfun);
+				actor.getProperty().setScalarOpacity(0, ofun);
+				actor.getProperty().setScalarOpacityUnitDistance(0, 3.0);
+				actor.getProperty().setInterpolationTypeToLinear();
+				actor.getProperty().setUseGradientOpacity(0, true);
+				actor.getProperty().setGradientOpacityMinimumValue(0, 0);
+				actor.getProperty().setGradientOpacityMinimumOpacity(0, 0.0);
+				actor.getProperty().setGradientOpacityMaximumValue(0, (dataRange[1] - dataRange[0]) * 0.05);
+				actor.getProperty().setGradientOpacityMaximumOpacity(0, 1.0);
+				actor.getProperty().setShade(true);
+				actor.getProperty().setAmbient(0.2);
+				actor.getProperty().setDiffuse(0.7);
+				actor.getProperty().setSpecular(0.3);
+				actor.getProperty().setSpecularPower(8.0);
+
 				renderer.addVolume(actor);
 				renderer.resetCamera();
 
