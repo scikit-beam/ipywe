@@ -39,79 +39,79 @@ var VtkJsView = widgets.DOMWidgetView.extend({
         var container = widget_area.get(0);
 
         $.getScript('https://unpkg.com/vtk.js').done(function(){
-            var renderWindow = vtk.Rendering.Core.vtkRenderWindow.newInstance();
-            var renderer = vtk.Rendering.Core.vtkRenderer.newInstance({ background: [0.2, 0.3, 0.4] });
-            renderWindow.addRenderer(renderer);
 
-            // var fullScreenRenderer = vtk.Rendering.Core.vtkRenderWindow.newInstance();
-            // var actor              = vtk.Rendering.Core.vtkActor.newInstance();
-            // var mapper             = vtk.Rendering.Core.vtkMapper.newInstance();
-            // var cone               = vtk.Filters.Sources.vtkConeSource.newInstance();
+		var vtkColorTransferFunction = vtk.Rendering.Core.vtkColorTransferFunction;
+		var vtkFullScreenRenderWindow = vtk.Rendering.Misc.vtkFullScreenRenderWindow;
+		var  vtkHttpDataSetReader  = vtk.IO.Core.vtkHttpDataSetReader;
+		var  vtkXMLImageDataReader  = vtk.IO.XML.vtkXMLImageDataReader;
+		var vtkPiecewiseFunction = vtk.Common.DataModel.vtkPiecewiseFunction;
+		var  vtkVolume = vtk.Rendering.Core.vtkVolume;
+		var  vtkVolumeMapper = vtk.Rendering.Core.vtkVolumeMapper;
+		//
+		// Standard rendering code setup
+		var renderWindow = vtk.Rendering.Core.vtkRenderWindow.newInstance();
+		var renderer = vtk.Rendering.Core.vtkRenderer.newInstance({ background: [0.2, 0.3, 0.4] });
+		renderWindow.addRenderer(renderer);
+    
+		// different data needs different reader. 
+		// const reader = vtkHttpDataSetReader.newInstance({ fetchGzip: true });
+		// VTI reader
+		const reader = vtkXMLImageDataReader.newInstance();
+		const actor = vtkVolume.newInstance();
+		const mapper = vtkVolumeMapper.newInstance();
+		mapper.setSampleDistance(1.1);
+		actor.setMapper(mapper);
+		// create color and opacity transfer functions
+		const ctfun = vtkColorTransferFunction.newInstance();
+		ctfun.addRGBPoint(0, 85 / 255.0, 0, 0);
+		ctfun.addRGBPoint(95, 1.0, 1.0, 1.0);
+		ctfun.addRGBPoint(225, 0.66, 0.66, 0.5);
+		ctfun.addRGBPoint(255, 0.3, 1.0, 0.5);
+		const ofun = vtkPiecewiseFunction.newInstance();
+		ofun.addPoint(0.0, 0.0);
+		ofun.addPoint(255.0, 1.0);
+		actor.getProperty().setRGBTransferFunction(0, ctfun);
+		actor.getProperty().setScalarOpacity(0, ofun);
+		actor.getProperty().setScalarOpacityUnitDistance(0, 3.0);
+		actor.getProperty().setInterpolationTypeToLinear();
+		actor.getProperty().setUseGradientOpacity(0, true);
+		actor.getProperty().setGradientOpacityMinimumValue(0, 2);
+		actor.getProperty().setGradientOpacityMinimumOpacity(0, 0.0);
+		actor.getProperty().setGradientOpacityMaximumValue(0, 1e3);
+		actor.getProperty().setGradientOpacityMaximumOpacity(0, 1.0);
+		actor.getProperty().setShade(true);
+		actor.getProperty().setAmbient(0.2);
+		actor.getProperty().setDiffuse(0.7);
+		actor.getProperty().setSpecular(0.3);
+		actor.getProperty().setSpecularPower(8.0);
+		mapper.setInputConnection(reader.getOutputPort());
 
-            $.get('/files/data/head-binary.vti', function(fileContentAsText){
-                var vtiReader = vtk.IO.XML.vtkXMLImageDataReader.newInstance();
-                vtiReader.parse(fileContentAsText);
+		// reader.setUrl(`/~lj7/LIDC2.vti`).then(() => {
+		reader.setUrl(`/files/data/head-binary.vti`).then(() => {
+			reader.loadData().then(() => {
+				renderer.addVolume(actor);
+				renderer.resetCamera();
 
-                var source = vtiReader.getOutputData(0);
-                console.log(source);
-                var mapper = vtk.Rendering.Core.vtkVolumeMapper.newInstance();
-                var actor = vtk.Rendering.Core.vtkVolume.newInstance();
+				var openglRenderWindow = vtk.Rendering.OpenGL.vtkRenderWindow.newInstance();
+				renderWindow.addView(openglRenderWindow);
+				openglRenderWindow.setContainer(container);
 
-                var dataArray = source.getPointData().getScalars() || source.getPointData().getArrays()[0];
-                var dataRange = dataArray.getRange();
-                var lookupTable = vtk.Rendering.Core.vtkColorTransferFunction.newInstance();
-                var piecewiseFunction = vtk.Common.DataModel.vtkPiecewiseFunction.newInstance();
+				renderer.getActiveCamera().zoom(1.5);
+				renderer.getActiveCamera().elevation(70);
 
-                actor.setMapper(mapper);
-                mapper.setInputData(source);
-                renderer.addActor(actor);
-                renderer.resetCamera();
+				var interactor =     vtk.Rendering.Core.vtkRenderWindowInteractor.newInstance();
+				interactor.setView(openglRenderWindow);
+				interactor.initialize();
+				interactor.setDesiredUpdateRate(15.0);
+				interactor.bindEvents(container);
 
-                var sampleDistance = 0.7 * Math.sqrt(source.getSpacing().map(v => v * v).reduce((a, b) => a + b, 0));
-                console.log('sampleDistance', sampleDistance);
-                mapper.setSampleDistance(sampleDistance);
-                actor.getProperty().setRGBTransferFunction(0, lookupTable);
-                actor.getProperty().setScalarOpacity(0, piecewiseFunction);
-                // actor.getProperty().setInterpolationTypeToFastLinear();
-                actor.getProperty().setInterpolationTypeToLinear();
-                // For better looking volume rendering
-                // - distance in world coordinates a scalar opacity of 1.0
-                actor.getProperty().setScalarOpacityUnitDistance(0, vtk.Common.DataModel.vtkBoundingBox.getDiagonalLength(source.getBounds()) / Math.max(...source.getDimensions()));
-                // - control how we emphasize surface boundaries
-                //  => max should be around the average gradient magnitude for the
-                //     volume or maybe average plus one std dev of the gradient magnitude
-                //     (adjusted for spacing, this is a world coordinate gradient, not a
-                //     pixel gradient)
-                //  => max hack: (dataRange[1] - dataRange[0]) * 0.05
-                actor.getProperty().setGradientOpacityMinimumValue(0, 0);
-                actor.getProperty().setGradientOpacityMaximumValue(0, (dataRange[1] - dataRange[0]) * 0.05);
-                // - Use shading based on gradient
-                actor.getProperty().setShade(true);
-                actor.getProperty().setUseGradientOpacity(0, true);
-                // - generic good default
-                actor.getProperty().setGradientOpacityMinimumOpacity(0, 0.0);
-                actor.getProperty().setGradientOpacityMaximumOpacity(0, 1.0);
-                actor.getProperty().setAmbient(0.2);
-                actor.getProperty().setDiffuse(0.7);
-                actor.getProperty().setSpecular(0.3);
-                actor.getProperty().setSpecularPower(8.0);
+				renderWindow.render();
+			    });
+		    });
+		// end of setUrl
 
-
-                // Sources/Rendering/OpenGL/RenderWindow
-
-                var openglRenderWindow = vtk.Rendering.OpenGL.vtkRenderWindow.newInstance();
-                renderWindow.addView(openglRenderWindow);
-
-                openglRenderWindow.setContainer(container);
-
-                renderWindow.render();
-
-//                var interactor = vtk.Rendering.Core.vtkRenderWindowInteractor.newInstance();
-//                interactor.setView(openglRenderWindow);
-//                interactor.initialize();
-//                interactor.bindEvents(container);
-            });
-        });
+	    }); // end of getScript
+	
     }
 });
 
