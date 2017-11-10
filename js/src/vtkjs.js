@@ -71,13 +71,15 @@ var VtkJsView = widgets.DOMWidgetView.extend({
 		const ofun = vtkPiecewiseFunction.newInstance();
 		ofun.addPoint(0.0, 0.0);
 		ofun.addPoint(255.0, 1.0);
-		mapper.setInputConnection(reader.getOutputPort());
 
 		// reader.setUrl(`/~lj7/LIDC2.vti`).then(() => {
 		reader.setUrl(url).then(() => {
 			reader.loadData().then(() => {
 				//
 				const source = reader.getOutputData(0);
+				// mapper.setInputConnection(reader.getOutputPort());
+				console.log(source);
+				mapper.setInputData(source);
 				const dataArray = source.getPointData().getScalars() || source.getPointData().getArrays()[0];
 				const dataRange = dataArray.getRange();
 				console.log("dataRange=", dataRange);
