@@ -74,6 +74,7 @@ class FileSelectorPanel:
         jumpto_button = ipyw.Button(description="Jump", layout=self.toolbar_button_layout)
         jumpto_button.on_click(self.handle_jumpto)
         jumpto = ipyw.HBox(children=[jumpto_input, jumpto_button], layout=self.toolbar_box_layout)
+        self.jumpto_button = jumpto_button
         if self.newdir_toolbar_button:
             # "new dir"
             self.newdir_input = newdir_input = ipyw.Text(
@@ -124,6 +125,14 @@ class FileSelectorPanel:
         self.panel = ipyw.VBox(children=[explanation, toolbar, lower_panel], layout=self.layout)
         wait.close()
         return
+
+    def disabled_ui(self, disabled=True):
+        self.button_layout.disabled = disabled
+        self.ok.disabled = disabled
+        self.jumpto_input.disabled = disabled
+        self.enterdir.disabled = disabled
+        self.jumpto_button.disabled = disabled
+        self.select.disabled = disabled
 
     def handle_jumpto(self, s):
         v = self.jumpto_input.value
