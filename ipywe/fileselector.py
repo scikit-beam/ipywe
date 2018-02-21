@@ -74,7 +74,7 @@ class FileSelectorPanel:
         # toolbar
         # "jump to"
         self.jumpto_input = jumpto_input = ipyw.Text(
-            value=curdir, placeholder="", description="Location: ", layout=ipyw.Layout(width='600px')
+            value=curdir, placeholder="", description="Location: ", layout=ipyw.Layout(width='500px')
         )
         jumpto_button = ipyw.Button(description="Jump", layout=self.toolbar_button_layout)
         jumpto_button.on_click(self.handle_jumpto)
