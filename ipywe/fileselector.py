@@ -19,9 +19,9 @@ class FileSelectorPanel:
     #If ipywidgets version 5.3 or higher is used, the "width="
     #statement should change the width of the file selector. "width="
     #doesn't appear to work in earlier versions.
-    select_layout = ipyw.Layout(width="750px")
-    select_multiple_layout = ipyw.Layout(width="750px", 
-                                         display="flex", flex_flow="column")
+    select_layout = ipyw.Layout(width="750px", height="260px")
+    select_multiple_layout = ipyw.Layout(
+        width="750px", height="260px", display="flex", flex_flow="column")
     button_layout = ipyw.Layout(margin="5px 40px")
     toolbar_button_layout = ipyw.Layout(margin="5px 10px", width="100px")
     toolbar_box_layout=ipyw.Layout(border='1px solid lightgrey', padding='3px', margin='5px 50px 5px 5px')
@@ -32,7 +32,9 @@ class FileSelectorPanel:
             self,
             instruction,
             start_dir=".", type='file', next=None,
-            multiple=False, newdir_toolbar_button=False):
+            multiple=False, newdir_toolbar_button=False,
+            custom_layout = None
+    ):
         """
         Create FileSelectorPanel instance
 
@@ -53,6 +55,12 @@ class FileSelectorPanel:
         """
         if type not in ['file', 'directory']:
             raise ValueError("type must be either file or directory")
+        if custom_layout:
+            for k, v in custom_layout.items():
+                name = '%s_layout' % k
+                assert name in dir(self), "Invalid layout item: %s" % name
+                setattr(self, name, v)
+                continue
         self.instruction = instruction
         self.type = type
         self.multiple = multiple
@@ -62,15 +70,20 @@ class FileSelectorPanel:
         return
 
     def createPanel(self, curdir):
-        wait = ipyw.HTML("Please wait...")
-        display(wait)
-        
+        self.header = ipyw.Label(self.instruction, layout=self.label_layout)
+        self.footer = ipyw.HTML("")
+        self.body = self.createBody(curdir)
+        self.panel = ipyw.VBox(children=[self.header, self.body, self.footer])
+        return
+
+    def createBody(self, curdir):
         self.curdir = curdir
-        explanation = ipyw.Label(self.instruction, layout=self.label_layout)
+        self.footer.value = "Please wait..."
         # toolbar
         # "jump to"
         self.jumpto_input = jumpto_input = ipyw.Text(
-            value=curdir, placeholder="", description="Location: ", layout=ipyw.Layout(width='300px'))
+            value=curdir, placeholder="", description="Location: ", layout=ipyw.Layout(width='500px')
+        )
         jumpto_button = ipyw.Button(description="Jump", layout=self.toolbar_button_layout)
         jumpto_button.on_click(self.handle_jumpto)
         jumpto = ipyw.HBox(children=[jumpto_input, jumpto_button], layout=self.toolbar_box_layout)
@@ -121,16 +134,21 @@ class FileSelectorPanel:
         self.ok.on_click(self.validate)
         buttons = ipyw.HBox(children=[self.enterdir, self.ok])
         lower_panel = ipyw.VBox(children=[self.select, buttons], layout=ipyw.Layout(border='1px solid lightgrey', margin='5px', padding='10px'))
-        self.panel = ipyw.VBox(children=[explanation, toolbar, lower_panel], layout=self.layout)
-        wait.close()
-        return
+        body = ipyw.VBox(children=[toolbar, lower_panel], layout=self.layout)
+        self.footer.value = ""
+        return body
 
+
+    def changeDir(self, path):
+        close(self.body)
+        self.body = self.createBody(path)
+        self.panel.children = [self.header, self.body, self.footer]
+        return
+    
     def handle_jumpto(self, s):
         v = self.jumpto_input.value
         if not os.path.isdir(v): return
-        self.remove()
-        self.createPanel(v)
-        self.show()
+        self.changeDir(v)
         return
 
     def handle_newdir(self, s):
@@ -140,9 +158,7 @@ class FileSelectorPanel:
             os.makedirs(path)
         except:
             return
-        self.remove()
-        self.createPanel(path)
-        self.show()
+        self.changeDir(path)
         return
 
     def handle_enterdir(self, s):
@@ -155,9 +171,7 @@ class FileSelectorPanel:
             v = v[0]
         p = os.path.abspath(os.path.join(self.curdir, v))
         if os.path.isdir(p):
-            self.remove()
-            self.createPanel(p)
-            self.show()
+            self.changeDir(p)
         return
 
     def validate(self, s):
@@ -195,17 +209,21 @@ class FileSelectorPanel:
         return
 
     def show(self):
-        display(HTML("""
-        <style type="text/css">
-        .jupyter-widgets select option {font-family: "Lucida Console", Monaco, monospace;}
-        div.output_subarea {padding: 0px;}
-        div.output_subarea > div {margin: 0.4em;}
-        </style>
-        """))
         display(self.panel)
+        return
 
     def remove(self):
         close(self.panel)
+
+
+# XXX css for big select area XXX
+display(HTML("""
+<style type="text/css">
+.jupyter-widgets select option {font-family: "Lucida Console", Monaco, monospace;}
+div.output_subarea {padding: 0px;}
+div.output_subarea > div {margin: 0.4em;}
+</style>
+"""))
 
 
 def close(w):
