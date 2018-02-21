@@ -19,9 +19,9 @@ class FileSelectorPanel:
     #If ipywidgets version 5.3 or higher is used, the "width="
     #statement should change the width of the file selector. "width="
     #doesn't appear to work in earlier versions.
-    select_layout = ipyw.Layout(width="750px")
-    select_multiple_layout = ipyw.Layout(width="750px", 
-                                         display="flex", flex_flow="column")
+    select_layout = ipyw.Layout(width="750px", height="260px")
+    select_multiple_layout = ipyw.Layout(
+        width="750px", height="260px", display="flex", flex_flow="column")
     button_layout = ipyw.Layout(margin="5px 40px")
     toolbar_button_layout = ipyw.Layout(margin="5px 10px", width="100px")
     toolbar_box_layout=ipyw.Layout(border='1px solid lightgrey', padding='3px', margin='5px 50px 5px 5px')
