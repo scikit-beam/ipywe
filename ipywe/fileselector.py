@@ -32,7 +32,9 @@ class FileSelectorPanel:
             self,
             instruction,
             start_dir=".", type='file', next=None,
-            multiple=False, newdir_toolbar_button=False):
+            multiple=False, newdir_toolbar_button=False,
+            custom_layout = None
+    ):
         """
         Create FileSelectorPanel instance
 
@@ -53,6 +55,12 @@ class FileSelectorPanel:
         """
         if type not in ['file', 'directory']:
             raise ValueError("type must be either file or directory")
+        if custom_layout:
+            for k, v in custom_layout.items():
+                name = '%s_layout' % k
+                assert name in dir(self), "Invalid layout item: %s" % name
+                setattr(self, name, v)
+                continue
         self.instruction = instruction
         self.type = type
         self.multiple = multiple
