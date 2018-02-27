@@ -22,8 +22,8 @@ class FileSelectorPanel:
     select_layout = ipyw.Layout(width="99%", height="260px")
     select_multiple_layout = ipyw.Layout(
         width="99%", height="260px", display="flex", flex_flow="column")
-    button_layout = ipyw.Layout(margin="5px 40px", border='1px solid blue')
-    toolbar_button_layout = ipyw.Layout(margin="5px 10px", width="100px", border='1px solid blue')
+    button_layout = ipyw.Layout(margin="5px 40px", border='1px solid gray')
+    toolbar_button_layout = ipyw.Layout(margin="5px 10px", width="100px", border='1px solid gray')
     toolbar_box_layout=ipyw.Layout(border='1px solid lightgrey', padding='3px', margin='5px 50px 5px 5px', width='100%')
     label_layout = ipyw.Layout(width="250px")
     layout = ipyw.Layout()
@@ -145,11 +145,11 @@ class FileSelectorPanel:
 
         # ------------------------------------------------------------
         # |  (filter)                                                |
-        # |  Entries _______________________             |  Enter |  |
+        # |  Entries _______________________         | Change Dir |  |
+        # |          _______________________                         |
+        # |          _______________________                         |
+        # |          _______________________                         |
         # |          _______________________             | Select |  |
-        # |          _______________________                         |
-        # |          _______________________                         |
-        # |          _______________________                         |
         # ------------------------------------------------------------
         # left
         left_widgets = []
@@ -157,13 +157,16 @@ class FileSelectorPanel:
         left_widgets.append(self.select)
         left_vbox = ipyw.VBox(left_widgets, layout=ipyw.Layout(width="80%"))
         # right
-        # enter directory button
-        self.enterdir = ipyw.Button(description='Enter directory', layout=self.button_layout)
-        self.enterdir.on_click(self.handle_enterdir)
+        # change directory button
+        self.changedir = ipyw.Button(description='Change directory', layout=self.button_layout)
+        self.changedir.on_click(self.handle_changedir)
         # select button
-        self.ok = ipyw.Button(description='Select', layout=self.button_layout)
+        import copy
+        ok_layout = cloneLayout(self.button_layout)
+        ok_layout.margin = 'auto 40px 5px'; ok_layout.border = "1px solid blue"
+        self.ok = ipyw.Button(description='Select', layout=ok_layout)
         self.ok.on_click(self.validate)
-        right_vbox = ipyw.VBox(children=[self.enterdir, self.ok])
+        right_vbox = ipyw.VBox(children=[self.changedir, self.ok])
         select_panel = ipyw.HBox(
             children=[left_vbox , right_vbox],
             layout=ipyw.Layout(border='1px solid lightgrey', margin='5px', padding='10px')
@@ -228,7 +231,7 @@ class FileSelectorPanel:
         self.changeDir(path)
         return
 
-    def handle_enterdir(self, s):
+    def handle_changedir(self, s):
         v = self.select.value
         v = del_ftime(v)
         if self.multiple:
@@ -322,6 +325,13 @@ def recursive_op(w, single_op):
     single_op(w)
     return
 
+def cloneLayout(l):
+    c = ipyw.Layout()
+    for k,v in l.get_state().items():
+        if k.startswith('_'): continue
+        setattr(c, k, v)
+    return c
+
 def create_file_times(paths):
     """returns a list of file modify time"""
     ftimes = []
@@ -363,7 +373,7 @@ def del_ftime(file_label):
 '''def test1():
     panel = FileSelectorPanel("instruction", start_dir=".")
     print('\n'.join(panel._entries))
-    panel.handle_enterdir(".")
+    panel.handle_changedir(".")
     return
 
 
