@@ -1,6 +1,6 @@
 # coding: utf-8
 
-import os
+import os, glob
 import time
 import ipywidgets as ipyw
 from IPython.display import display, HTML
@@ -28,15 +28,13 @@ class FileSelectorPanel:
     label_layout = ipyw.Layout(width="250px")
     layout = ipyw.Layout()
 
-    new_filter = None
-
     def __init__(
             self,
             instruction,
             start_dir=".", type='file', next=None,
             multiple=False, newdir_toolbar_button=False,
             custom_layout = None,
-            filter={},
+            filters=dict(), default_filter=None,
             stay_alive=False,
     ):
         """
@@ -56,7 +54,7 @@ class FileSelectorPanel:
             callback function to execute after the selection is selected
         newdir_toolbar_button : bool
             If true, a button to create new directory is added to the toolbar
-        filter: dictionary
+        filters: dictionary
             each key will be the search message for the user, such as "Ascii", "notebooks"
             the value will be the search engine, such as "*.txt" or "*.ipynb"
         stay_alive: bool (False by default)
@@ -72,7 +70,7 @@ class FileSelectorPanel:
                 continue
         self.instruction = instruction
         self.type = type
-        self.filter = filter
+        self.filters = filters; self.default_filter = default_filter; self.cur_filter=None
         self.multiple = multiple
         self.newdir_toolbar_button = newdir_toolbar_button
         self.createPanel(os.path.abspath(start_dir))
@@ -110,24 +108,9 @@ class FileSelectorPanel:
             toolbar = ipyw.HBox(children=[jumpto])
         # entries in this starting dir
 
-        if self.filter:
-            self.filter = {**self.filter, 'All':['*.*']}
-            if self.new_filter:
-                self.filter_ui = ipyw.Dropdown(options=self.filter,
-                                               value=self.new_filter,
-                                               layout=ipyw.Layout(align_self='flex-end', width='10%'))
-            else:
-                self.filter_ui = ipyw.Dropdown(options=self.filter,
-                                               layout=ipyw.Layout(align_self='flex-end', width='10%'))
-            self.filter_ui.observe(self.handle_filter_changed, names='value')
-            _filter_selected = self.filter_ui.value
-
-            import glob
-            list_files = glob.glob(os.path.join(curdir, _filter_selected[0]))
-            list_dir = list(os.walk(curdir))[0][1]
-
-            entries_files = list_dir + list_files
-
+        if self.filters:
+            self.createFilterWidget()
+            entries_files = self.getFilteredEntries()
         else:
             entries_files = sorted(os.listdir(curdir))
 
@@ -159,10 +142,9 @@ class FileSelectorPanel:
             layout=self.select_layout) """
 
         # filter
-
         select_hbox_array = [self.select]
-        if self.filter:
-            select_hbox_array.append(self.filter_ui)
+        if self.filters:
+            select_hbox_array.append(self.filter_widget)
         select_hbox = ipyw.HBox(select_hbox_array, layout=ipyw.Layout(width='100%'))
 
         # enter directory button
@@ -177,8 +159,30 @@ class FileSelectorPanel:
         self.footer.value = ""
         return body
 
+    def createFilterWidget(self):
+        if 'All' not in self.filters: self.filters.update(All=['*.*'])
+        self.cur_filter = self.cur_filter or self.filters[self.default_filter or 'All']
+        self.filter_widget = ipyw.Dropdown(
+            options=self.filters,
+            value=self.cur_filter,
+            layout=ipyw.Layout(align_self='flex-end', width='10%'))
+        self.filter_widget.observe(self.handle_filter_changed, names='value')
+        return
+
+    def getFilteredEntries(self):
+        curdir = self.curdir
+        cur_filter = self.filter_widget.value
+        list_files = glob.glob(os.path.join(curdir, cur_filter[0]))
+        # filter out dirs, they will be added below
+        list_files = filter(lambda o: not os.path.isdir(o), list_files)
+        list_files = list( map(os.path.basename, list_files) )
+        list_dirs = [o for o in os.listdir(curdir) if os.path.isdir(os.path.join(curdir, o))]
+        self.footer.value += '<p>' + ' '.join(list_dirs) + '</p>'
+        entries = list_dirs + list_files
+        return entries
+    
     def handle_filter_changed(self, value):
-        self.new_filter = value['new']
+        self.cur_filter = value['new']
         self.changeDir(self.curdir)
 
     def changeDir(self, path):
@@ -245,10 +249,7 @@ class FileSelectorPanel:
             self.selected = paths[0]
 
         # clean up unless user choose not to
-        if self.stay_alive:
-            pass
-        else:
-            self.remove()
+        if not self.stay_alive: self.remove()
 
         # next step
         if self.next:
