@@ -22,18 +22,21 @@ class FileSelectorPanel:
     select_layout = ipyw.Layout(width="750px", height="260px")
     select_multiple_layout = ipyw.Layout(
         width="750px", height="260px", display="flex", flex_flow="column")
-    button_layout = ipyw.Layout(margin="5px 40px")
-    toolbar_button_layout = ipyw.Layout(margin="5px 10px", width="100px")
-    toolbar_box_layout=ipyw.Layout(border='1px solid lightgrey', padding='3px', margin='5px 50px 5px 5px')
+    button_layout = ipyw.Layout(margin="5px 40px", border='1px solid blue')
+    toolbar_button_layout = ipyw.Layout(margin="5px 10px", width="100px", border='1px solid blue')
+    toolbar_box_layout=ipyw.Layout(border='1px solid lightgrey', padding='3px', margin='5px 50px 5px 5px', width='100%')
     label_layout = ipyw.Layout(width="250px")
     layout = ipyw.Layout()
+
+    new_filter = None
 
     def __init__(
             self,
             instruction,
             start_dir=".", type='file', next=None,
             multiple=False, newdir_toolbar_button=False,
-            custom_layout = None
+            custom_layout = None,
+            filter={},
     ):
         """
         Create FileSelectorPanel instance
@@ -63,6 +66,7 @@ class FileSelectorPanel:
                 continue
         self.instruction = instruction
         self.type = type
+        self.filter = filter
         self.multiple = multiple
         self.newdir_toolbar_button = newdir_toolbar_button
         self.createPanel(os.path.abspath(start_dir))
@@ -82,8 +86,7 @@ class FileSelectorPanel:
         # toolbar
         # "jump to"
         self.jumpto_input = jumpto_input = ipyw.Text(
-            value=curdir, placeholder="", description="Location: ", layout=ipyw.Layout(width='500px')
-        )
+            value=curdir, placeholder="", description="Location: ", layout=ipyw.Layout(width='100%'))
         jumpto_button = ipyw.Button(description="Jump", layout=self.toolbar_button_layout)
         jumpto_button.on_click(self.handle_jumpto)
         jumpto = ipyw.HBox(children=[jumpto_input, jumpto_button], layout=self.toolbar_box_layout)
@@ -99,7 +102,28 @@ class FileSelectorPanel:
         else:
             toolbar = ipyw.HBox(children=[jumpto])
         # entries in this starting dir
-        entries_files = sorted(os.listdir(curdir))
+
+        if self.filter:
+            self.filter = {**self.filter, 'All':['*.*']}
+            if self.new_filter:
+                self.filter_ui = ipyw.Dropdown(options=self.filter,
+                                               value=self.new_filter,
+                                               layout=ipyw.Layout(align_self='flex-end', width='10%'))
+            else:
+                self.filter_ui = ipyw.Dropdown(options=self.filter,
+                                               layout=ipyw.Layout(align_self='flex-end', width='10%'))
+            self.filter_ui.observe(self.handle_filter_changed, names='value')
+            _filter_selected = self.filter_ui.value
+
+            import glob
+            list_files = glob.glob(os.path.join(curdir, _filter_selected[0]))
+            list_dir = list(os.walk(curdir))[0][1]
+
+            entries_files = list_dir + list_files
+
+        else:
+            entries_files = sorted(os.listdir(curdir))
+
         entries_paths = [os.path.join(curdir, e) for e in entries_files]
         entries_ftime = create_file_times(entries_paths)
         entries = create_nametime_labels(entries_files, entries_ftime)
@@ -126,6 +150,14 @@ class FileSelectorPanel:
             value=value, options=entries,
             description="Select",
             layout=self.select_layout) """
+
+        # filter
+
+        select_hbox_array = [self.select]
+        if self.filter:
+            select_hbox_array.append(self.filter_ui)
+        select_hbox = ipyw.HBox(select_hbox_array, layout=ipyw.Layout(width='100%'))
+
         # enter directory button
         self.enterdir = ipyw.Button(description='Enter directory', layout=self.button_layout)
         self.enterdir.on_click(self.handle_enterdir)
@@ -133,11 +165,14 @@ class FileSelectorPanel:
         self.ok = ipyw.Button(description='Select', layout=self.button_layout)
         self.ok.on_click(self.validate)
         buttons = ipyw.HBox(children=[self.enterdir, self.ok])
-        lower_panel = ipyw.VBox(children=[self.select, buttons], layout=ipyw.Layout(border='1px solid lightgrey', margin='5px', padding='10px'))
+        lower_panel = ipyw.VBox(children=[select_hbox , buttons], layout=ipyw.Layout(border='1px solid lightgrey', margin='5px', padding='10px'))
         body = ipyw.VBox(children=[toolbar, lower_panel], layout=self.layout)
         self.footer.value = ""
         return body
 
+    def handle_filter_changed(self, value):
+        self.new_filter = value['new']
+        self.changeDir(self.curdir)
 
     def changeDir(self, path):
         close(self.body)
