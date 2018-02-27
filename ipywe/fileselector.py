@@ -140,13 +140,13 @@ class FileSelectorPanel:
         return body
 
 
-    def disabled_ui(self, disabled=True):
-        self.button_layout.disabled = disabled
-        self.ok.disabled = disabled
-        self.jumpto_input.disabled = disabled
-        self.enterdir.disabled = disabled
-        self.jumpto_button.disabled = disabled
-        self.select.disabled = disabled
+    def disable(self):
+        disable(self.panel)
+        return
+
+    def enable(self):
+        enable(self.panel)
+        return
 
     def changeDir(self, path):
         close(self.body)
@@ -237,13 +237,30 @@ div.output_subarea > div {margin: 0.4em;}
 
 def close(w):
     "recursively close a widget"
-    if hasattr(w, 'children'):
-        for c in w.children:
-            close(c)
-            continue
-    w.close()
+    recursive_op(w, lambda x: x.close())
     return
 
+def disable(w):
+    "recursively disable a widget"
+    def _(w):
+        w.disabled = True
+    recursive_op(w, _)
+    return
+
+def enable(w):
+    "recursively enable a widget"
+    def _(w):
+        w.disabled = False
+    recursive_op(w, _)
+    return
+
+def recursive_op(w, single_op):
+    if hasattr(w, 'children'):
+        for c in w.children:
+            recursive_op(c, single_op)
+            continue
+    single_op(w)
+    return
 
 def create_file_times(paths):
     """returns a list of file modify time"""
