@@ -37,6 +37,7 @@ class FileSelectorPanel:
             multiple=False, newdir_toolbar_button=False,
             custom_layout = None,
             filter={},
+            stay_alive=False,
     ):
         """
         Create FileSelectorPanel instance
@@ -55,6 +56,11 @@ class FileSelectorPanel:
             callback function to execute after the selection is selected
         newdir_toolbar_button : bool
             If true, a button to create new directory is added to the toolbar
+        filter: dictionary
+            each key will be the search message for the user, such as "Ascii", "notebooks"
+            the value will be the search engine, such as "*.txt" or "*.ipynb"
+        stay_alive: bool (False by default)
+            if True, the fileselector won't disapear after selection of a file/directory
         """
         if type not in ['file', 'directory']:
             raise ValueError("type must be either file or directory")
@@ -71,6 +77,7 @@ class FileSelectorPanel:
         self.newdir_toolbar_button = newdir_toolbar_button
         self.createPanel(os.path.abspath(start_dir))
         self.next = next
+        self.stay_alive = stay_alive
         return
 
     def createPanel(self, curdir):
@@ -236,8 +243,13 @@ class FileSelectorPanel:
             self.selected = paths
         else:
             self.selected = paths[0]
-        # clean up
-        self.remove()
+
+        # clean up unless user choose not to
+        if self.stay_alive:
+            pass
+        else:
+            self.remove()
+
         # next step
         if self.next:
             self.next(self.selected)
