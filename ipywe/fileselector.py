@@ -95,6 +95,7 @@ class FileSelectorPanel:
         jumpto_button = ipyw.Button(description="Jump", layout=self.toolbar_button_layout)
         jumpto_button.on_click(self.handle_jumpto)
         jumpto = ipyw.HBox(children=[jumpto_input, jumpto_button], layout=self.toolbar_box_layout)
+        self.jumpto_button = jumpto_button
         if self.newdir_toolbar_button:
             # "new dir"
             self.newdir_input = newdir_input = ipyw.Text(
@@ -197,6 +198,14 @@ class FileSelectorPanel:
         self.cur_filter = value['new']
         self.changeDir(self.curdir)
 
+    def disable(self):
+        disable(self.panel)
+        return
+
+    def enable(self):
+        enable(self.panel)
+        return
+
     def changeDir(self, path):
         close(self.body)
         self.body = self.createBody(path)
@@ -288,13 +297,30 @@ div.output_subarea > div {margin: 0.4em;}
 
 def close(w):
     "recursively close a widget"
-    if hasattr(w, 'children'):
-        for c in w.children:
-            close(c)
-            continue
-    w.close()
+    recursive_op(w, lambda x: x.close())
     return
 
+def disable(w):
+    "recursively disable a widget"
+    def _(w):
+        w.disabled = True
+    recursive_op(w, _)
+    return
+
+def enable(w):
+    "recursively enable a widget"
+    def _(w):
+        w.disabled = False
+    recursive_op(w, _)
+    return
+
+def recursive_op(w, single_op):
+    if hasattr(w, 'children'):
+        for c in w.children:
+            recursive_op(c, single_op)
+            continue
+    single_op(w)
+    return
 
 def create_file_times(paths):
     """returns a list of file modify time"""
