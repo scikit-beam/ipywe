@@ -19,9 +19,9 @@ class FileSelectorPanel:
     #If ipywidgets version 5.3 or higher is used, the "width="
     #statement should change the width of the file selector. "width="
     #doesn't appear to work in earlier versions.
-    select_layout = ipyw.Layout(width="750px", height="260px")
+    select_layout = ipyw.Layout(width="99%", height="260px")
     select_multiple_layout = ipyw.Layout(
-        width="750px", height="260px", display="flex", flex_flow="column")
+        width="99%", height="260px", display="flex", flex_flow="column")
     button_layout = ipyw.Layout(margin="5px 40px", border='1px solid blue')
     toolbar_button_layout = ipyw.Layout(margin="5px 10px", width="100px", border='1px solid blue')
     toolbar_box_layout=ipyw.Layout(border='1px solid lightgrey', padding='3px', margin='5px 50px 5px 5px', width='100%')
@@ -88,7 +88,7 @@ class FileSelectorPanel:
     def createBody(self, curdir):
         self.curdir = curdir
         self.footer.value = "Please wait..."
-        # toolbar
+        # toolbar on the top
         # "jump to"
         self.jumpto_input = jumpto_input = ipyw.Text(
             value=curdir, placeholder="", description="Location: ", layout=ipyw.Layout(width='100%'))
@@ -108,6 +108,7 @@ class FileSelectorPanel:
             toolbar = ipyw.HBox(children=[jumpto])
         # entries in this starting dir
 
+        
         if self.filters:
             self.createFilterWidget()
             entries_files = self.getFilteredEntries()
@@ -141,21 +142,32 @@ class FileSelectorPanel:
             description="Select",
             layout=self.select_layout) """
 
-        # filter
-        select_hbox_array = [self.select]
-        if self.filters:
-            select_hbox_array.append(self.filter_widget)
-        select_hbox = ipyw.HBox(select_hbox_array, layout=ipyw.Layout(width='100%'))
-
+        # ------------------------------------------------------------
+        # |  (filter)                                                |
+        # |  Entries _______________________             |  Enter |  |
+        # |          _______________________             | Select |  |
+        # |          _______________________                         |
+        # |          _______________________                         |
+        # |          _______________________                         |
+        # ------------------------------------------------------------
+        # left
+        left_widgets = []
+        if self.filters: left_widgets.append(self.filter_widget)
+        left_widgets.append(self.select)
+        left_vbox = ipyw.VBox(left_widgets, layout=ipyw.Layout(width="80%"))
+        # right
         # enter directory button
         self.enterdir = ipyw.Button(description='Enter directory', layout=self.button_layout)
         self.enterdir.on_click(self.handle_enterdir)
         # select button
         self.ok = ipyw.Button(description='Select', layout=self.button_layout)
         self.ok.on_click(self.validate)
-        buttons = ipyw.HBox(children=[self.enterdir, self.ok])
-        lower_panel = ipyw.VBox(children=[select_hbox , buttons], layout=ipyw.Layout(border='1px solid lightgrey', margin='5px', padding='10px'))
-        body = ipyw.VBox(children=[toolbar, lower_panel], layout=self.layout)
+        right_vbox = ipyw.VBox(children=[self.enterdir, self.ok])
+        select_panel = ipyw.HBox(
+            children=[left_vbox , right_vbox],
+            layout=ipyw.Layout(border='1px solid lightgrey', margin='5px', padding='10px')
+        )
+        body = ipyw.VBox(children=[toolbar, select_panel], layout=self.layout)
         self.footer.value = ""
         return body
 
@@ -165,7 +177,7 @@ class FileSelectorPanel:
         self.filter_widget = ipyw.Dropdown(
             options=self.filters,
             value=self.cur_filter,
-            layout=ipyw.Layout(align_self='flex-end', width='10%'))
+            layout=ipyw.Layout(align_self='flex-end', width='15%'))
         self.filter_widget.observe(self.handle_filter_changed, names='value')
         return
 
