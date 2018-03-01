@@ -2,4 +2,4 @@
 
 echo $PATH
 which conda
-source activate kernel
+conda env list
