@@ -28,6 +28,9 @@ class FileSelectorPanel:
     label_layout = ipyw.Layout(width="250px")
     layout = ipyw.Layout()
 
+    filter_widget = None
+    searching_string = ''
+
     def __init__(
             self,
             instruction,
@@ -85,6 +88,23 @@ class FileSelectorPanel:
         self.panel = ipyw.VBox(children=[self.header, self.body, self.footer])
         return
 
+    def createSearchUi(self):
+        label = ipyw.Label("Search:")
+        self.search_text = ipyw.Text(self.searching_string,
+                                     layout=ipyw.Layout(width='50%'))
+        self.search_text.on_submit(self.search_modified)
+
+        if self.filter_widget:
+            self.search = ipyw.HBox([label, self.search_text, self.filter_widget],
+                                    layout=ipyw.Layout(justify_content='flex-end'))
+        else:
+            self.search = ipyw.HBox([label, self.search_text],
+                                    layout = ipyw.Layout(justify_content='flex-end'))
+
+    def search_modified(self, sender):
+        self.searching_string = sender.value
+        self.changeDir(self.curdir)
+
     def createBody(self, curdir):
         self.curdir = curdir
         self.footer.value = "Please wait..."
@@ -109,12 +129,14 @@ class FileSelectorPanel:
             toolbar = ipyw.HBox(children=[jumpto])
         # entries in this starting dir
 
-        
         if self.filters:
             self.createFilterWidget()
             entries_files = self.getFilteredEntries()
         else:
             entries_files = sorted(os.listdir(curdir))
+            entries_files = [_file for _file in entries_files if (self.searching_string in _file)]
+
+        self.createSearchUi()
 
         entries_paths = [os.path.join(curdir, e) for e in entries_files]
         entries_ftime = create_file_times(entries_paths)
@@ -144,7 +166,7 @@ class FileSelectorPanel:
             layout=self.select_layout) """
 
         # ------------------------------------------------------------
-        # |  (filter)                                                |
+        # |  Search                 (filter)                         |
         # |  Entries _______________________         | Change Dir |  |
         # |          _______________________                         |
         # |          _______________________                         |
@@ -153,7 +175,8 @@ class FileSelectorPanel:
         # ------------------------------------------------------------
         # left
         left_widgets = []
-        if self.filters: left_widgets.append(self.filter_widget)
+        # if self.filters: left_widgets.append(self.filter_widget)
+        left_widgets.append(self.search)
         left_widgets.append(self.select)
         left_vbox = ipyw.VBox(left_widgets, layout=ipyw.Layout(width="80%"))
         # right
@@ -188,7 +211,8 @@ class FileSelectorPanel:
     def getFilteredEntries(self):
         curdir = self.curdir
         cur_filter = self.filter_widget.value
-        list_files = glob.glob(os.path.join(curdir, cur_filter[0]))
+        searching_tool = "*{}*".format(self.searching_string)
+        list_files = glob.glob(os.path.join(curdir, searching_tool + cur_filter[0]))
         # filter out dirs, they will be added below
         list_files = filter(lambda o: not os.path.isdir(o), list_files)
         list_files = list( map(os.path.basename, list_files) )
