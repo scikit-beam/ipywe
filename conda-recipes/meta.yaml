@@ -1,5 +1,5 @@
-{% set version = "0.1.1a8" %}
-{% set git_rev = "0.1.1a8" %}
+{% set version = "0.1.1a9" %}
+{% set git_rev = "0.1.1a9" %}
 
 package:
   name: ipywe
@@ -16,7 +16,7 @@ build:
 
 requirements:
   build:
-    - python
+    - python {{ python }}
     - setuptools
     - jupyter
   run:
