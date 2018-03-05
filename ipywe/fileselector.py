@@ -21,7 +21,7 @@ class FileSelectorPanel:
     #doesn't appear to work in earlier versions.
     select_layout = ipyw.Layout(width="99%", height="260px")
     select_multiple_layout = ipyw.Layout(
-        width="99%", height="260px", display="flex", flex_flow="column")
+        width="99%", height="260px") # , display="flex", flex_flow="column")
     button_layout = ipyw.Layout(margin="5px 40px", border='1px solid gray')
     toolbar_button_layout = ipyw.Layout(margin="5px 10px", width="100px", border='1px solid gray')
     toolbar_box_layout=ipyw.Layout(border='1px solid lightgrey', padding='3px', margin='5px 50px 5px 5px', width='100%')
@@ -69,7 +69,9 @@ class FileSelectorPanel:
             for k, v in custom_layout.items():
                 name = '%s_layout' % k
                 assert name in dir(self), "Invalid layout item: %s" % name
-                setattr(self, name, v)
+                orig = getattr(self, name)
+                new = cloneLayout(orig); updateLayout(new, v)
+                setattr(self, name, new)
                 continue
         self.instruction = instruction
         self.type = type
@@ -88,28 +90,51 @@ class FileSelectorPanel:
         self.panel = ipyw.VBox(children=[self.header, self.body, self.footer])
         return
 
-    def createSearchUi(self):
-        label = ipyw.Label("Search:")
-        self.search_text = ipyw.Text(self.searching_string,
-                                     layout=ipyw.Layout(width='50%'))
-        self.search_text.on_submit(self.search_modified)
-
-        if self.filter_widget:
-            self.search = ipyw.HBox([label, self.search_text, self.filter_widget],
-                                    layout=ipyw.Layout(justify_content='flex-end'))
-        else:
-            self.search = ipyw.HBox([label, self.search_text],
-                                    layout = ipyw.Layout(justify_content='flex-end'))
-
-    def search_modified(self, sender):
-        self.searching_string = sender.value
-        self.changeDir(self.curdir)
-
     def createBody(self, curdir):
         self.curdir = curdir
         self.footer.value = "Please wait..."
+        # create toolbar
+        toolbar = self.createToolbar()
+        # create things in the main UI. a rough schematic:
+        # ------------------------------------------------------------
+        # |  Search                 (filter)                         |
+        # |  Entries _______________________         | Change Dir |  |
+        # |          _______________________                         |
+        # |          _______________________                         |
+        # |          _______________________                         |
+        # |          _______________________             | Select |  |
+        # ------------------------------------------------------------
+        self.createSelectWidget() # calculate entries and create the select widget
+        self.createSearchWidget() # create the search and optionally the filter widget
+        # left
+        left_widgets = []
+        left_widgets.append(self.search)
+        left_widgets.append(self.select)
+        left_vbox = ipyw.VBox(left_widgets, layout=ipyw.Layout(width="80%"))
+        # right
+        # change directory button
+        self.changedir = ipyw.Button(description='Change directory', layout=self.button_layout)
+        self.changedir.on_click(self.handle_changedir)
+        # select button
+        print("button_layout", self.button_layout)
+        ok_layout = cloneLayout(self.button_layout)
+        ok_layout.margin = 'auto 40px 5px'; ok_layout.border = "1px solid blue"
+        print("ok_layout", ok_layout)
+        self.ok = ipyw.Button(description='Select', layout=ok_layout)
+        self.ok.on_click(self.validate)
+        right_vbox = ipyw.VBox(children=[self.changedir, self.ok])
+        select_panel = ipyw.HBox(
+            children=[left_vbox , right_vbox],
+            layout=ipyw.Layout(border='1px solid lightgrey', margin='5px', padding='10px')
+        )
+        body = ipyw.VBox(children=[toolbar, select_panel], layout=self.layout)
+        self.footer.value = ""
+        return body
+
+    def createToolbar(self):
         # toolbar on the top
         # "jump to"
+        curdir = self.curdir
         self.jumpto_input = jumpto_input = ipyw.Text(
             value=curdir, placeholder="", description="Location: ", layout=ipyw.Layout(width='100%'))
         jumpto_button = ipyw.Button(description="Jump", layout=self.toolbar_button_layout)
@@ -127,20 +152,24 @@ class FileSelectorPanel:
             toolbar = ipyw.HBox(children=[jumpto, newdir])
         else:
             toolbar = ipyw.HBox(children=[jumpto])
-        # entries in this starting dir
+        self.toolbar = toolbar
+        return toolbar
 
+    def getEntries(self):
+        curdir = self.curdir
         if self.filters:
             self.createFilterWidget()
             entries_files = self.getFilteredEntries()
         else:
             entries_files = sorted(os.listdir(curdir))
-            entries_files = [_file for _file in entries_files if (self.searching_string in _file)]
-
-        self.createSearchUi()
-
+            entries_files = [_f for _f in entries_files if (self.searching_string in _f)]
+        #
         entries_paths = [os.path.join(curdir, e) for e in entries_files]
         entries_ftime = create_file_times(entries_paths)
-        entries = create_nametime_labels(entries_files, entries_ftime)
+        return create_nametime_labels(entries_files, entries_ftime)
+    
+    def createSelectWidget(self):
+        entries = self.getEntries()
         self._entries = entries = [' .', ' ..', ] + entries
         if self.multiple:
             value = []
@@ -164,39 +193,20 @@ class FileSelectorPanel:
             value=value, options=entries,
             description="Select",
             layout=self.select_layout) """
+        return self.select
 
-        # ------------------------------------------------------------
-        # |  Search                 (filter)                         |
-        # |  Entries _______________________         | Change Dir |  |
-        # |          _______________________                         |
-        # |          _______________________                         |
-        # |          _______________________                         |
-        # |          _______________________             | Select |  |
-        # ------------------------------------------------------------
-        # left
-        left_widgets = []
-        # if self.filters: left_widgets.append(self.filter_widget)
-        left_widgets.append(self.search)
-        left_widgets.append(self.select)
-        left_vbox = ipyw.VBox(left_widgets, layout=ipyw.Layout(width="80%"))
-        # right
-        # change directory button
-        self.changedir = ipyw.Button(description='Change directory', layout=self.button_layout)
-        self.changedir.on_click(self.handle_changedir)
-        # select button
-        import copy
-        ok_layout = cloneLayout(self.button_layout)
-        ok_layout.margin = 'auto 40px 5px'; ok_layout.border = "1px solid blue"
-        self.ok = ipyw.Button(description='Select', layout=ok_layout)
-        self.ok.on_click(self.validate)
-        right_vbox = ipyw.VBox(children=[self.changedir, self.ok])
-        select_panel = ipyw.HBox(
-            children=[left_vbox , right_vbox],
-            layout=ipyw.Layout(border='1px solid lightgrey', margin='5px', padding='10px')
-        )
-        body = ipyw.VBox(children=[toolbar, select_panel], layout=self.layout)
-        self.footer.value = ""
-        return body
+    def createSearchWidget(self):
+        label = ipyw.Label("Search:")
+        self.search_text = ipyw.Text(self.searching_string, layout=ipyw.Layout(width='50%'))
+        self.search_text.on_submit(self.handle_search_changed)
+        elements = [label, self.search_text]
+        if self.filter_widget: elements.append(self.filter_widget)
+        self.search = ipyw.HBox(elements, layout=ipyw.Layout(justify_content='flex-end'))
+        return
+
+    def handle_search_changed(self, sender):
+        self.searching_string = sender.value
+        self.changeDir(self.curdir)
 
     def createFilterWidget(self):
         if 'All' not in self.filters: self.filters.update(All=['*.*'])
@@ -316,13 +326,13 @@ class FileSelectorPanel:
 display(HTML("""
 <style type="text/css">
 .jupyter-widgets select option {font-family: "Lucida Console", Monaco, monospace;}
+.jupyter-widgets select {width: 98%;}
 div.output_subarea {padding: 0px;}
 div.output_subarea > div {margin: 0.4em;}
 </style>
 """))
 
-
-from ._utils import close, disable, enable, cloneLayout
+from ._utils import close, disable, enable, cloneLayout, updateLayout
 
 def create_file_times(paths):
     """returns a list of file modify time"""
