@@ -8,12 +8,25 @@ def js_alert(m):
     display(HTML(js))
     return
 
+layout_reserved_keys = ['keys', 'comm']
 def cloneLayout(l):
     c = ipyw.Layout()
-    for k,v in l.get_state().items():
+    for k in l.trait_names():
         if k.startswith('_'): continue
+        if k in layout_reserved_keys: continue
+        v = getattr(l, k)
         setattr(c, k, v)
     return c
+
+def updateLayout(this, other):
+    'update "this" layout with all non-trivial values of "other" layout'
+    for n in other.trait_names():
+        if n.startswith('_'): continue
+        if n in layout_reserved_keys: continue
+        v = getattr(other, n)
+        if v is None: continue
+        setattr(this, n, v)
+    return this
 
 def close(w):
     "recursively close a widget"
