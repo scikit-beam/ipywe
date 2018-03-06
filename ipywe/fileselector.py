@@ -116,10 +116,8 @@ class FileSelectorPanel:
         self.changedir = ipyw.Button(description='Change directory', layout=self.button_layout)
         self.changedir.on_click(self.handle_changedir)
         # select button
-        print("button_layout", self.button_layout)
         ok_layout = cloneLayout(self.button_layout)
         ok_layout.margin = 'auto 40px 5px'; ok_layout.border = "1px solid blue"
-        print("ok_layout", ok_layout)
         self.ok = ipyw.Button(description='Select', layout=ok_layout)
         self.ok.on_click(self.validate)
         right_vbox = ipyw.VBox(children=[self.changedir, self.ok])
