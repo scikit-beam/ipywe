@@ -76,9 +76,16 @@ class NPM(Command):
     def finalize_options(self):
         pass
 
+    def get_npm_name(self):
+        npmName = 'npm';
+        if platform.system() == 'Windows':
+            npmName = 'npm.cmd';
+        return npmName;
+    
     def has_npm(self):
+        npmName = self.get_npm_name();
         try:
-            check_call(['npm', '--version'])
+            check_call([npmName, '--version'])
             return True
         except:
             return False
