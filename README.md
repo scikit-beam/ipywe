@@ -7,7 +7,7 @@ Widgets etc extending ipywidgets. See [tests](tests) for usage.
 
 To install using conda:
 
-    $ conda install -c neutrons ipywe
+    $ conda install -c conda-forge ipywe
     
 For dev installation, see [Dev.md](Dev.md)
 
