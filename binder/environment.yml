@@ -1,5 +1,4 @@
 channels:
-- neutrons
 - conda-forge
 - defaults
 dependencies:
