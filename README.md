@@ -1,4 +1,5 @@
-[![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/scikit-beam/ipywe/master)
+[![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/scikit-beam/ipywe/master?filepath=tests)
+
 # jupyter widgets extension for scattering sciences
 
 Widgets etc extending ipywidgets. 
