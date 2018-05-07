@@ -203,7 +203,7 @@ class FileSelectorPanel:
         return
 
     def handle_search_changed(self, sender):
-        self.searching_string = sender.value
+        self.searching_string = sender.value.strip()
         sender.value = ""
         self.changeDir(self.curdir)
 
@@ -265,9 +265,6 @@ class FileSelectorPanel:
         return
 
     def handle_changedir(self, s):
-        # update first search text
-        self.searching_string =  self.search_text.value
-
         v = self.select.value
         v = del_ftime(v)
         if self.multiple:
@@ -277,10 +274,9 @@ class FileSelectorPanel:
             v = v[0]
         p = os.path.abspath(os.path.join(self.curdir, v))
         if os.path.isdir(p):
+            # update first search text
+            self.searching_string =  self.search_text.value.strip()
             self.changeDir(p)
-
-        self.handle_search_changed(self.search_text)
-
         return
 
     def validate(self, s):
