@@ -26,3 +26,8 @@ After making a change to a widget's Javascript code (must be in the ipywe direct
     $ ./dev_js_update.sh
 
 Note that the Jupyter server must be restarted after running these commands.
+
+
+## at conda-forge
+
+* [feedstock](https://github.com/conda-forge/ipywe-feedstock)
