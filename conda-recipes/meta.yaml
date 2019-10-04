@@ -16,11 +16,11 @@ build:
 
 requirements:
   build:
-    - python {{ python }}
+    - python {{ python }}#{{PY_VER}}*,>=2.7,<3.0|>=3.5,<4.0 
     - setuptools
     - jupyter
   run:
-    - python
+    - python {{ python }}#{{PY_VER}}*,>=2.7,<3.0|>=3.5,<4.0 
     - ipywidgets >=6.0.0
     - traitlets >=4.3.0
     - pillow
