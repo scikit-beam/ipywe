@@ -16,7 +16,7 @@ git push --tags
 ```
 * build and upload
 ```
-conda build --py {{PYTHON_VERSION}} conda-recipes
+conda build --py {{PYTHON_VERSION}} conda-recipes (or CONDA_PY {{PYTHON_VERSION}} conda build conda-recipes)
 anaconda login
 anaconda upload /path/to/ipywe-...tar.bz2
 ```
