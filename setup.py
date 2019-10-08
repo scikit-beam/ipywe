@@ -81,7 +81,7 @@ class NPM(Command):
         if platform.system() == 'Windows':
             npmName = 'npm.cmd';
         return npmName;
-    
+
     def has_npm(self):
         npmName = self.get_npm_name();
         try:
@@ -173,6 +173,8 @@ setup_args = {
         'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
     ],
 }
 
