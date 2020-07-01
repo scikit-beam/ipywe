@@ -228,6 +228,7 @@ class FileSelectorPanel:
         list_dirs = [o for o in os.listdir(curdir) if os.path.isdir(os.path.join(curdir, o))]
         self.footer.value += '<p>' + ' '.join(list_dirs) + '</p>'
         entries = list_dirs + list_files
+        entries.sort()
         return entries
     
     def handle_filter_changed(self, value):
