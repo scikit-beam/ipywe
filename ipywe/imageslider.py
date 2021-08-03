@@ -169,8 +169,8 @@ class ImageSlider(base.DOMWidget):
         # resample if necessary
         resample_ratio = view_size/size
         if resample_ratio != 1.:
-            import scipy.misc
-            img = scipy.misc.imresize(img, resample_ratio)
+            from PIL import Image
+            img = np.array(Image.fromarray(img).resize((self.width, self.height)))
         """Allows the correct string IO module to be used
                based on the version of Python.
            Once support for Python 2.7 ends, this if-else statement
