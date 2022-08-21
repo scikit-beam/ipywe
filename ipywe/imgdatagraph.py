@@ -75,12 +75,10 @@ class ImageDataGraph(base.DOMWidget):
         view_size = np.max((self.width, self.height))
         if size > view_size:
             downsample_ratio = view_size/size
-            import scipy.misc
-            img = scipy.misc.imresize(img, downsample_ratio)
+            img = resize(img, downsample_ratio)
         else:
             upsample_ratio = view_size/size
-            import scipy.misc
-            img = scipy.misc.imresize(img, upsample_ratio)
+            img = resize(img, upsample_ratio)
         if sys.version_info < (3, 0):
             from cStringIO import StringIO
             f = StringIO()
@@ -410,3 +408,5 @@ class ImageDataGraph(base.DOMWidget):
                 vals.append(i/n)
         bins = bin_borders
         return bins, vals, bin_step
+
+from .imagedisplay import resize
