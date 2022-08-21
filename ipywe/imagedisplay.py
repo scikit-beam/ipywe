@@ -65,12 +65,10 @@ class ImageDisplay(base.DOMWidget):
         view_size = np.max((self.width, self.height))
         if size > view_size:
             downsample_ratio = 1.*view_size/size
-            import scipy.misc
-            img = scipy.misc.imresize(img, downsample_ratio)
+            img = resize(img, downsample_ratio)
         else:
             upsample_ratio = 1.*view_size/size
-            import scipy.misc
-            img = scipy.misc.imresize(img, upsample_ratio)
+            img = resize(img, upsample_ratio)
         """Chooses the correct string IO method based on 
                which version of Python is being used.
            Once Python 2.7 support ends, this can be replaced
@@ -159,3 +157,9 @@ class ImageDisplay(base.DOMWidget):
         self.curr_img_data = self.arr.copy()
         self._b64value = self.createImg()
         return
+
+def resize(img, ratio):
+    from PIL import Image
+    nrows, ncols = img.shape
+    shape1 = nrows1, ncols1 = int(ratio*nrows), int(ratio*ncols)
+    return np.array(Image.fromarray(img).resize(shape1))
